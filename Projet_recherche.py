@@ -492,7 +492,7 @@ class Ui_MainWindow(object):
         self.label_courbe.setAlignment(QtCore.Qt.AlignCenter) 
         self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio,QtCore.Qt.SmoothTransformation)) 
 
-
+##############
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
