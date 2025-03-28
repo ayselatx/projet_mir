@@ -21,20 +21,18 @@ from skimage import exposure
 from matplotlib import pyplot as plt 
 from functions import extractReqFeatures, showDialog, generateSIFT, generateHistogramme_HSV, generateHistogramme_Color, generateORB 
 from distances import * 
-filenames= "MIR_DATASETS_B" 
+filenames= "imageWang1000" 
 folder_model="images_requête" 
 import functions
 
 
-class Ui_MainWindowRecherche(object):
-    def setupUi(self, MainWindowRecherche):
-        self.setObjectName("MainWindowRecherche")
-        self.resize(1203, 544)
-
-        self.widget1 = QtWidgets.QWidget()
-        self.widget1.setObjectName("widget1")
-        self.label = QtWidgets.QLabel(self.widget1)
-        
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(1203, 544)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(120, 10, 251, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -45,7 +43,7 @@ class Ui_MainWindowRecherche(object):
         self.label.setFrameShape(QtWidgets.QFrame.Panel)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
-        self.checkBox_HistC = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_HistC = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_HistC.setGeometry(QtCore.QRect(110, 50, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -54,7 +52,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_HistC.setFont(font)
         self.checkBox_HistC.setObjectName("checkBox_HistC")
-        self.checkBox_HSV = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_HSV = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_HSV.setGeometry(QtCore.QRect(190, 50, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -63,7 +61,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_HSV.setFont(font)
         self.checkBox_HSV.setObjectName("checkBox_HSV")
-        self.checkBox_SIFT = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_SIFT = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_SIFT.setGeometry(QtCore.QRect(110, 80, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -72,7 +70,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_SIFT.setFont(font)
         self.checkBox_SIFT.setObjectName("checkBox_SIFT")
-        self.checkBox_ORB = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_ORB = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_ORB.setGeometry(QtCore.QRect(190, 80, 91, 16))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -81,7 +79,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_ORB.setFont(font)
         self.checkBox_ORB.setObjectName("checkBox_ORB")
-        self.checkBox_GLCM = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_GLCM = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_GLCM.setGeometry(QtCore.QRect(190, 110, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -90,7 +88,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_GLCM.setFont(font)
         self.checkBox_GLCM.setObjectName("checkBox_GLCM")
-        self.checkBox_LBP = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_LBP = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_LBP.setGeometry(QtCore.QRect(110, 110, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -99,7 +97,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_LBP.setFont(font)
         self.checkBox_LBP.setObjectName("checkBox_LBP")
-        self.checkBox_HOG = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_HOG = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_HOG.setGeometry(QtCore.QRect(290, 50, 71, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -108,7 +106,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_HOG.setFont(font)
         self.checkBox_HOG.setObjectName("checkBox_HOG")
-        self.checkBox_Moments = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_Moments = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_Moments.setGeometry(QtCore.QRect(290, 80, 81, 16))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -117,7 +115,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_Moments.setFont(font)
         self.checkBox_Moments.setObjectName("checkBox_Moments")
-        self.label_2 = QtWidgets.QLabel(self.widget1)
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(10, 140, 361, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -128,7 +126,7 @@ class Ui_MainWindowRecherche(object):
         self.label_2.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
-        self.label_requete = QtWidgets.QLabel(self.widget1)
+        self.label_requete = QtWidgets.QLabel(self.centralwidget)
         self.label_requete.setGeometry(QtCore.QRect(10, 180, 361, 251))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -141,11 +139,11 @@ class Ui_MainWindowRecherche(object):
         self.label_requete.setScaledContents(True)
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
         self.label_requete.setObjectName("label_requete")
-        self.progressBar = QtWidgets.QProgressBar(self.widget1)
+        self.progressBar = QtWidgets.QProgressBar(self.centralwidget)
         self.progressBar.setGeometry(QtCore.QRect(10, 440, 931, 41))
         self.progressBar.setProperty("value", 24)
         self.progressBar.setObjectName("progressBar")
-        self.label_4 = QtWidgets.QLabel(self.widget1)
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
         self.label_4.setGeometry(QtCore.QRect(380, 10, 551, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -156,7 +154,7 @@ class Ui_MainWindowRecherche(object):
         self.label_4.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setObjectName("label_4")
-        self.label_5 = QtWidgets.QLabel(self.widget1)
+        self.label_5 = QtWidgets.QLabel(self.centralwidget)
         self.label_5.setGeometry(QtCore.QRect(940, 10, 251, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -167,13 +165,13 @@ class Ui_MainWindowRecherche(object):
         self.label_5.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
         self.label_5.setObjectName("label_5")
-        self.gridLayoutWidget = QtWidgets.QWidget(self.widget1)
+        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(380, 180, 551, 251))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
-        self.label_courbe = QtWidgets.QLabel(self.widget1)
+        self.label_courbe = QtWidgets.QLabel(self.centralwidget)
         self.label_courbe.setGeometry(QtCore.QRect(940, 180, 251, 251))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -186,7 +184,7 @@ class Ui_MainWindowRecherche(object):
         self.label_courbe.setScaledContents(True)
         self.label_courbe.setAlignment(QtCore.Qt.AlignCenter)
         self.label_courbe.setObjectName("label_courbe")
-        self.Quitter = QtWidgets.QPushButton(self.widget1)
+        self.Quitter = QtWidgets.QPushButton(self.centralwidget)
         self.Quitter.setGeometry(QtCore.QRect(940, 440, 251, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -195,10 +193,10 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.Quitter.setFont(font)
         self.Quitter.setObjectName("Quitter")
-        self.comboBox = QtWidgets.QComboBox(self.widget1)
+        self.comboBox = QtWidgets.QComboBox(self.centralwidget)
         self.comboBox.setGeometry(QtCore.QRect(690, 70, 131, 41))
         self.comboBox.setObjectName("comboBox")
-        self.label_7 = QtWidgets.QLabel(self.widget1)
+        self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(590, 70, 101, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -209,7 +207,7 @@ class Ui_MainWindowRecherche(object):
         self.label_7.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_7.setAlignment(QtCore.Qt.AlignCenter)
         self.label_7.setObjectName("label_7")
-        self.label_8 = QtWidgets.QLabel(self.widget1)
+        self.label_8 = QtWidgets.QLabel(self.centralwidget)
         self.label_8.setGeometry(QtCore.QRect(380, 140, 551, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -220,7 +218,7 @@ class Ui_MainWindowRecherche(object):
         self.label_8.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
-        self.label_9 = QtWidgets.QLabel(self.widget1)
+        self.label_9 = QtWidgets.QLabel(self.centralwidget)
         self.label_9.setGeometry(QtCore.QRect(940, 140, 251, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -231,7 +229,7 @@ class Ui_MainWindowRecherche(object):
         self.label_9.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_9.setAlignment(QtCore.Qt.AlignCenter)
         self.label_9.setObjectName("label_9")
-        self.chercher = QtWidgets.QPushButton(self.widget1)
+        self.chercher = QtWidgets.QPushButton(self.centralwidget)
         self.chercher.setGeometry(QtCore.QRect(830, 70, 101, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -240,7 +238,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.chercher.setFont(font)
         self.chercher.setObjectName("chercher")
-        self.calcul_RP = QtWidgets.QPushButton(self.widget1)
+        self.calcul_RP = QtWidgets.QPushButton(self.centralwidget)
         self.calcul_RP.setGeometry(QtCore.QRect(940, 70, 251, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -249,7 +247,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.calcul_RP.setFont(font)
         self.calcul_RP.setObjectName("calcul_RP")
-        self.checkBox_autre = QtWidgets.QCheckBox(self.widget1)
+        self.checkBox_autre = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_autre.setGeometry(QtCore.QRect(290, 110, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -258,7 +256,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.checkBox_autre.setFont(font)
         self.checkBox_autre.setObjectName("checkBox_autre")
-        self.charger = QtWidgets.QPushButton(self.widget1)
+        self.charger = QtWidgets.QPushButton(self.centralwidget)
         self.charger.setGeometry(QtCore.QRect(10, 60, 91, 61))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -267,7 +265,7 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.charger.setFont(font)
         self.charger.setObjectName("charger")
-        self.label_3 = QtWidgets.QLabel(self.widget1)
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(10, 10, 101, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -278,7 +276,7 @@ class Ui_MainWindowRecherche(object):
         self.label_3.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
-        self.charger_desc = QtWidgets.QPushButton(self.widget1)
+        self.charger_desc = QtWidgets.QPushButton(self.centralwidget)
         self.charger_desc.setGeometry(QtCore.QRect(380, 70, 201, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
@@ -287,49 +285,49 @@ class Ui_MainWindowRecherche(object):
         font.setWeight(75)
         self.charger_desc.setFont(font)
         self.charger_desc.setObjectName("charger_desc")
-        #MainWindowRecherche.setwidget1(self.widget1)
-        self.menubar = QtWidgets.QMenuBar(MainWindowRecherche)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1203, 31))
         self.menubar.setObjectName("menubar")
-        #MainWindowRecherche.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindowRecherche)
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
-        #MainWindowRecherche.setStatusBar(self.statusbar)
+        MainWindow.setStatusBar(self.statusbar)
         
         self.charger.clicked.connect(self.Ouvrir)
         self.charger_desc.clicked.connect(self.loadFeatures)
         self.chercher.clicked.connect(self.Recherche)
-        self.calcul_RP.clicked.connect(self.rappel_precision)
+        self.calcul_RP .clicked.connect(self.rappel_precision )
 
-        self.retranslateUi(MainWindowRecherche)
-        QtCore.QMetaObject.connectSlotsByName(MainWindowRecherche)
+        self.retranslateUi(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, MainWindowRecherche):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindowRecherche.setWindowTitle(_translate("MainWindowRecherche", "MainWindowRecherche"))
-        self.label.setText(_translate("MainWindowRecherche", "Choix de descripteur"))
-        self.checkBox_HistC.setText(_translate("MainWindowRecherche", "BGR"))
-        self.checkBox_HSV.setText(_translate("MainWindowRecherche", "HSV"))
-        self.checkBox_SIFT.setText(_translate("MainWindowRecherche", "SIFT"))
-        self.checkBox_ORB.setText(_translate("MainWindowRecherche", "ORB"))
-        self.checkBox_GLCM.setText(_translate("MainWindowRecherche", "GLCM"))
-        self.checkBox_LBP.setText(_translate("MainWindowRecherche", "LBP"))
-        self.checkBox_HOG.setText(_translate("MainWindowRecherche", "HOG"))
-        self.checkBox_Moments.setText(_translate("MainWindowRecherche", "Mom."))
-        self.label_2.setText(_translate("MainWindowRecherche", "Image requête"))
-        self.label_4.setText(_translate("MainWindowRecherche", "Recherche"))
-        self.label_5.setText(_translate("MainWindowRecherche", "Rappel/Précision"))
-        self.Quitter.setText(_translate("MainWindowRecherche", "Quitter"))
-        self.label_7.setText(_translate("MainWindowRecherche", "Distance :"))
-        self.label_8.setText(_translate("MainWindowRecherche", "Résultats"))
-        self.label_9.setText(_translate("MainWindowRecherche", "Courbe R/P"))
-        self.chercher.setText(_translate("MainWindowRecherche", "Recherche"))
-        self.calcul_RP.setText(_translate("MainWindowRecherche", "Calculer la courbe R/P"))
-        self.checkBox_autre.setText(_translate("MainWindowRecherche", "Autre"))
-        self.charger.setText(_translate("MainWindowRecherche", "Charger"))
-        self.label_3.setText(_translate("MainWindowRecherche", "Requête"))
-        self.charger_desc.setText(_translate("MainWindowRecherche", "Charger descripteurs"))
-    def Ouvrir(self, MainWindowRecherche): 
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.label.setText(_translate("MainWindow", "Choix de descripteur"))
+        self.checkBox_HistC.setText(_translate("MainWindow", "BGR"))
+        self.checkBox_HSV.setText(_translate("MainWindow", "HSV"))
+        self.checkBox_SIFT.setText(_translate("MainWindow", "SIFT"))
+        self.checkBox_ORB.setText(_translate("MainWindow", "ORB"))
+        self.checkBox_GLCM.setText(_translate("MainWindow", "GLCM"))
+        self.checkBox_LBP.setText(_translate("MainWindow", "LBP"))
+        self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))
+        self.checkBox_Moments.setText(_translate("MainWindow", "Mom."))
+        self.label_2.setText(_translate("MainWindow", "Image requête"))
+        self.label_4.setText(_translate("MainWindow", "Recherche"))
+        self.label_5.setText(_translate("MainWindow", "Rappel/Précision"))
+        self.Quitter.setText(_translate("MainWindow", "Quitter"))
+        self.label_7.setText(_translate("MainWindow", "Distance :"))
+        self.label_8.setText(_translate("MainWindow", "Résultats"))
+        self.label_9.setText(_translate("MainWindow", "Courbe R/P"))
+        self.chercher.setText(_translate("MainWindow", "Recherche"))
+        self.calcul_RP.setText(_translate("MainWindow", "Calculer la courbe R/P"))
+        self.checkBox_autre.setText(_translate("MainWindow", "Autre"))
+        self.charger.setText(_translate("MainWindow", "Charger"))
+        self.label_3.setText(_translate("MainWindow", "Requête"))
+        self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
+    def Ouvrir(self, MainWindow): 
         global fileName 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "","Image Files (*.png *.jpeg *.jpg *.bmp)") 
         pixmap = QtGui.QPixmap(fileName) 
@@ -338,7 +336,7 @@ class Ui_MainWindowRecherche(object):
         self.label_requete.setPixmap(pixmap) 
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
         
-    def loadFeatures(self, MainWindowRecherche): 
+    def loadFeatures(self, MainWindow): 
         folder_model="" 
         if self.checkBox_HistC.isChecked(): 
             folder_model = './BGR' 
@@ -391,7 +389,7 @@ class Ui_MainWindowRecherche(object):
             print("Merci de sélectionner au moins un descripteur dans le menu") 
             showDialog() 
         print(len(self.features1))
-    def Recherche(self, MainWindowRecherche): 
+    def Recherche(self, MainWindow): 
         #Remise à 0 de la grille des voisins 
         for i in reversed(range(self.gridLayout.count())): 
             self.gridLayout.itemAt(i).widget().setParent(None) 
@@ -436,7 +434,7 @@ class Ui_MainWindowRecherche(object):
                     k+=1 
         else : 
             print("Il faut choisir une méthode !") 
-    
+            
     def rappel_precision(self): 
         rappel_precision=[] 
         rappels=[] 
@@ -461,8 +459,8 @@ class Ui_MainWindowRecherche(object):
                 if rappel_precision[j]: 
                     val+=1 
                 j-=1 
-            precision = val/len(rappel_precision) 
-            rappel = val/sum(rappel_precision)
+            precision =  val/len(rappel_precision)
+            rappel = val/sum(rappel_precision) 
             rappels.append(rappel) 
             precisions.append(precision) 
         #Création de la courbe R/P 
@@ -498,8 +496,8 @@ class Ui_MainWindowRecherche(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    MainWindowRecherche = QtWidgets.QMainWindowRecherche()
-    ui = Ui_MainWindowRecherche()
-    ui.setupUi(MainWindowRecherche)
-    MainWindowRecherche.show()
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
     sys.exit(app.exec_())
