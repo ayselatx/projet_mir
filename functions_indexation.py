@@ -78,39 +78,40 @@ def generateSIFT(filenames, progressBar):
     
 
 
+
 def generateORB(filenames, progressBar):
     start = time.time()
-    
-    # Créer le répertoire ORB s'il n'existe pas déjà
     if not os.path.isdir("ORB"):
         os.mkdir("ORB")
     
-    i = 0
-    # Parcourir tous les fichiers dans le répertoire donné
+    total_images = 0
     for root, dirs, files in os.walk(filenames):
         for file in files:
-            # Vérifier si le fichier est une image avec l'extension .jpg, .jpeg ou .png
-            if file.lower().endswith(('.jpg', '.jpeg', '.png')):
-                img_path = os.path.join(root, file)  # Chemin complet de l'image
-                
-                # Lire l'image
-                img = cv2.imread(img_path)
-                
-                # Créer un objet ORB pour extraire les descripteurs
-                orb = cv2.ORB_create()
-                key_points, descriptors = orb.detectAndCompute(img, None)
-                
-                # Extraire le nom de l'image sans extension
-                num_image = os.path.splitext(file)[0]
-                
-                # Sauvegarder les descripteurs dans un fichier texte
-                np.savetxt(f"ORB/{num_image}.txt", descriptors)
-                
-                # Mettre à jour la barre de progression
-                i += 1
-                progressBar.setValue(100 * (i / len(files)))
+            if file.endswith((".jpg", ".png", ".jpeg")):
+                total_images += 1
     
-    print(f"Indexation ORB terminee en {time.time() - start} secondes !!!!")
+    i = 0
+    for root, dirs, files in os.walk(filenames):
+        for file in files:
+            if file.endswith((".jpg", ".png", ".jpeg")):
+                img_path = os.path.join(root, file)
+                img = cv2.imread(img_path)
+                if img is None:
+                    continue  # Si l'image ne peut pas être lue, on passe à la suivante
+
+                orb = cv2.ORB_create(nfeatures=2000, scoreType=cv2.ORB_HARRIS_SCORE, patchSize=31)
+                key_points, descrip1 = orb.detectAndCompute(img, None)
+                
+                if descrip1 is not None and len(descrip1) > 0:  # Vérification que descrip1 n'est pas None et non vide
+                    num_image, _ = file.split(".")
+                    np.savetxt(f"ORB/{num_image}.txt", descrip1)
+                else:
+                    print(f"Aucun descripteur trouve pour l'image {file}")
+                
+                i += 1
+                progressBar.setValue(100 * (i / total_images))  # Mise à jour de la barre de progression
+
+    print(f"Indexation ORB terminee en {time.time() - start} secondes!")
     
 def generateGLCM(filenames, progressBar): 
     start = time.time()
