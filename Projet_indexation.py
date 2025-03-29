@@ -191,7 +191,9 @@ class Ui_MainWindow(object):
         if self.Dossier_images and self.checkBox_LBP.isChecked():
     		# Appel de la fonction de calcul du descripteur LBP
             functions_indexation.generateLBP(self.Dossier_images, self.progressBar)
-        
+        if self.Dossier_images and self.checkBox_HOG.isChecked():
+        	# Appel de la fonction de calcul du descripteur HOG
+            functions_indexation.generateHistogramme_HOG(self.Dossier_images, self.progressBar)
         if not self.checkBox_SIFT.isChecked() and not self.checkBox_HistC.isChecked() and not self.checkBox_HSV.isChecked() and not self.checkBox_ORB.isChecked() :
             print("Merci de selectionner un descripteur via le Menu  ...")
             functions_indexation.showDialog()
