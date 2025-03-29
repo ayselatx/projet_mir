@@ -28,25 +28,43 @@ def bhatta(l1, l2):
     return math.sqrt( 1 - num / den )
 
 
-def flann(a,b):
-    a = np.float32(np.array(a))
-    b = np.float32(np.array(b))
-    if a.shape[0]==0 or b.shape[0]==0:
-        return np.inf
-    index_params = dict(algorithm=1, trees=5)
-    sch_params = dict(checks=50)
-    flannMatcher = cv2.FlannBasedMatcher(index_params, sch_params)
-    matches = list(map(lambda x: x.distance, flannMatcher.match(a, b)))
-    return np.mean(matches)
+def flann(a, b):
+    # Vérification des dimensions
+    if a.shape[1] != b.shape[1]:
+        print(f"Erreur : Les descripteurs a ({a.shape}) et b ({b.shape}) ont des tailles différentes.")
+        return np.inf  # Ou une autre gestion d'erreur appropriée
+
+    # Utilisation de FLANN pour la recherche des voisins
+    flannIndexKDTREE = 1  # Type de recherche (K-D Tree)
+    indexParams = dict(algorithm=flannIndexKDTREE, trees=10)
+    searchParams = dict(checks=50)  # Nombre d'arbres à interroger
+    
+    flannMatcher = cv2.FlannBasedMatcher(indexParams, searchParams)
+    matches = flannMatcher.match(a, b)  # Recherche des correspondances
+    
+    # Retourne la distance moyenne des correspondances
+    return np.mean([match.distance for match in matches])
+
 
 def bruteForceMatching(a, b):
-    a = np.array(a).astype('uint8')
-    b = np.array(b).astype('uint8')
-    if a.shape[0]==0 or b.shape[0]==0:
+    a = np.array(a).astype('float32')
+    b = np.array(b).astype('float32')
+    
+    if a.shape[0] == 0 or b.shape[0] == 0:
         return np.inf
-    bf = cv2.BFMatcher(cv2.NORM_HAMMING)
-    matches = list(map(lambda x: x.distance, bf.match(a, b)))
-    return np.mean(matches)
+    
+    # Vérification de la compatibilité des tailles des descripteurs
+    if a.shape[0] != b.shape[0]:
+        print(f"Erreur : Les descripteurs a ({a.shape}) et b ({b.shape}) ont des tailles différentes.")
+        return np.inf
+    
+    bf = cv2.BFMatcher(cv2.NORM_L2)  # Utilise NORM_L2 pour les descripteurs flottants
+    matches = bf.match(a, b)  # Trouve les correspondances
+    
+    # Retourne la distance moyenne des correspondances
+    return np.mean([match.distance for match in matches])
+
+
 
 def distance_f(l1,l2,distanceName):
     if distanceName=="Euclidienne":

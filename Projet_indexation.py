@@ -200,6 +200,9 @@ class Ui_MainWindow(object):
 
         if len(self.Dossier_images)<1:
             print("Merci de charger la base de données avec le bouton Ouvrir")
+            
+    def exit(self, MainWindow):
+        sys.exit()
 
 if __name__ == "__main__":
     import sys

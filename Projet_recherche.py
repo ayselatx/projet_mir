@@ -19,11 +19,11 @@ from skimage.io import imread
 from skimage.feature import hog 
 from skimage import exposure 
 from matplotlib import pyplot as plt 
-from functions import extractReqFeatures, showDialog, generateSIFT, generateHistogramme_HSV, generateHistogramme_Color, generateORB 
+from functions_recherche import extractReqFeatures, showDialog, generateSIFT, generateHistogramme_HSV, generateHistogramme_Color, generateORB 
 from distances import * 
-filenames= "imageWang1000" 
-folder_model="images_requête" 
-import functions
+filenames= "MIR_DATASETS_B" 
+folder_model="MIR_DATASETS_B" 
+import functions_recherche
 
 
 class Ui_MainWindow(object):
@@ -298,7 +298,8 @@ class Ui_MainWindow(object):
         self.charger_desc.clicked.connect(self.loadFeatures)
         self.chercher.clicked.connect(self.Recherche)
         self.calcul_RP .clicked.connect(self.rappel_precision )
-
+        self.Quitter.clicked.connect(self.exit )
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -335,162 +336,246 @@ class Ui_MainWindow(object):
         self.label_requete.height(), QtCore.Qt.KeepAspectRatio) 
         self.label_requete.setPixmap(pixmap) 
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
+    
         
-    def loadFeatures(self, MainWindow): 
-        folder_model="" 
-        if self.checkBox_HistC.isChecked(): 
-            folder_model = './BGR' 
-            self.algo_choice=1 
-        if self.checkBox_HSV.isChecked(): 
-            folder_model = './HSV' 
-            functions.generateHistogramme_HSV(filenames, self.progressBar)
-            self.algo_choice=2 
-        if self.checkBox_SIFT.isChecked(): 
-            folder_model = './SIFT' 
-            functions.generateSIFT(filenames, self.progressBar) 
-            self.algo_choice=3 
-        if self.checkBox_ORB.isChecked(): 
-            folder_model = './ORB' 
-            functions.generateORB(filenames, self.progressBar) 
-            self.algo_choice=4 
-        if self.checkBox_GLCM.isChecked(): 
-            folder_model = './GLCM' 
-            functions.generateGLCM(filenames, self.progressBar) 
-            self.algo_choice=5
-        if self.checkBox_LBP.isChecked(): 
-            folder_model = './LBP' 
-            functions.generateLBP(filenames, self.progressBar) 
-            self.algo_choice=6
-        for i in reversed(range(self.gridLayout.count())): 
-            self.gridLayout.itemAt(i).widget().setParent(None) 
-        if filenames: 
-            if self.algo_choice==3 or self.algo_choice==4: 
-                self.comboBox.clear() 
-                self.comboBox.addItems(["Brute force","Flann"]) 
-            else : 
-                self.comboBox.clear() 
-                self.comboBox.addItems(["Euclidienne","Correlation","Chi carre","Intersection","Bhattacharyya"]) 
-        if len(filenames)<1: 
-            print("Merci de charger une image avec le bouton Ouvrir") 
-        ##Charger les features de la base de données. 
-        self.features1 = [] 
-        pas=0 
-        print("chargement de descripteurs en cours ...") 
-        for j in os.listdir(folder_model): #folder_model : dossier de features 
-            data=os.path.join(folder_model,j) 
-            if not data.endswith(".txt"): 
-                continue 
-            feature = np.loadtxt(data)      
-            self.features1.append((os.path.join(filenames, 
-            os.path.basename(data).split('.')[0]+'.jpg'),feature)) 
-            pas += 1 
-            self.progressBar.setValue(int(100*((pas+1)/1000))) 
-        if not self.checkBox_SIFT.isChecked() and not self.checkBox_HistC.isChecked() and not self.checkBox_HSV.isChecked() and not self.checkBox_ORB.isChecked() : 
-            print("Merci de sélectionner au moins un descripteur dans le menu") 
-            showDialog() 
+    def loadFeatures(self, MainWindow):
+        folder_model = ""
+        
+        if self.checkBox_HistC.isChecked():
+            folder_model = './BGR'
+            self.algo_choice = 1
+        if self.checkBox_HSV.isChecked():
+            folder_model = './HSV'
+            #functions_recherche.generateHistogramme_HSV(filenames, self.progressBar)
+            self.algo_choice = 2
+        if self.checkBox_SIFT.isChecked():
+            folder_model = './SIFT'
+            #functions_recherche.generateSIFT(filenames, self.progressBar)
+            self.algo_choice = 3
+        if self.checkBox_ORB.isChecked():
+            folder_model = './ORB'
+            #functions_recherche.generateORB(filenames, self.progressBar)
+            self.algo_choice = 4
+        if self.checkBox_GLCM.isChecked():
+            folder_model = './GLCM'
+            #functions_recherche.generateGLCM(filenames, self.progressBar)
+            self.algo_choice = 5
+        if self.checkBox_HOG.isChecked():
+            folder_model = './HOG'
+            #functions_recherche.generateGLCM(filenames, self.progressBar)
+            self.algo_choice = 6
+        if self.checkBox_LBP.isChecked():
+            folder_model = './LBP'
+            #functions_recherche.generateLBP(filenames, self.progressBar)
+            self.algo_choice = 7
+    
+        # Nettoyage du layout
+        for i in reversed(range(self.gridLayout.count())):
+            self.gridLayout.itemAt(i).widget().setParent(None)
+    
+        # Configuration du comboBox en fonction de l'algorithme choisi
+        if filenames:
+            if self.algo_choice in [3, 4]:  # SIFT et ORB
+                self.comboBox.clear()
+                self.comboBox.addItems(["Brute force", "Flann"])
+            else:
+                self.comboBox.clear()
+                self.comboBox.addItems(["Euclidienne", "Correlation", "Chi carre", "Intersection", "Bhattacharyya"])
+    
+        if len(filenames) < 1:
+            print("Merci de charger une image avec le bouton Ouvrir")
+            return
+    
+        # Chargement des features
+        self.features1 = []
+        pas = 0
+        print("Chargement des descripteurs en cours ...")
+    
+        if not os.path.exists(folder_model):
+            print(f"Erreur : le dossier {folder_model} n'existe pas !")
+            return
+    
+        for root, _, files in os.walk(folder_model):  # Parcours récursif
+            for file in files:
+                if not file.endswith(".txt"):
+                    continue
+                
+                feature_path = os.path.join(root, file)
+                feature = np.loadtxt(feature_path)
+                
+                image_name = os.path.basename(file).split('.')[0] + '.jpg'
+                image_path = os.path.join(filenames, image_name)
+    
+                self.features1.append((image_path, feature))
+    
+                pas += 1
+                self.progressBar.setValue(int(100 * ((pas + 1) / 1000)))
+    
+        if not any([self.checkBox_SIFT.isChecked(), self.checkBox_HistC.isChecked(), 
+                    self.checkBox_HSV.isChecked(), self.checkBox_ORB.isChecked()]):
+            print("Merci de sélectionner au moins un descripteur dans le menu")
+            showDialog()
+    
         print(len(self.features1))
-    def Recherche(self, MainWindow): 
-        #Remise à 0 de la grille des voisins 
-        for i in reversed(range(self.gridLayout.count())): 
-            self.gridLayout.itemAt(i).widget().setParent(None) 
-            voisins="" 
- 
-        if self.algo_choice !=0: 
-            ##Generer les features de l'images requete 
-            req = extractReqFeatures(fileName, self.algo_choice) 
-            ##Definition du nombre de voisins 
-            self.sortie = 9 
-            #Aller chercher dans la liste de l'interface la distance choisie 
-            distanceName=self.comboBox.currentText() 
-            #Générer les voisins 
-            voisins=getkVoisins(self.features1, req, self.sortie, distanceName ) 
-            self.path_image_plus_proches = [] 
-            self.nom_image_plus_proches = [] 
-            for k in range(self.sortie): 
-                self.path_image_plus_proches.append(voisins[k][0]) 
-                self.nom_image_plus_proches.append(os.path.basename(voisins[k][0])) 
-            #Nombre de colonnes pour l'affichage 
-            col=3 
-            k=0 
-            for i in range(math.ceil(self.sortie/col)): 
-                for j in range(col): 
-                    img = cv2.imread(self.path_image_plus_proches[k],1) #load image 
-                    #Remise de l'image en RGB pour l'afficher correctement 
-                    b,g,r = cv2.split(img) 
-                    img = cv2.merge([r,g,b]) 
-                    # get b,g,r 
-                    # switch it to rgb 
-                    #convert image to QImage 
-                    height, width, channel = img.shape 
-                    bytesPerLine = 3 * width 
-                    qImg = QtGui.QImage(img.data, width, height, bytesPerLine, 
-                    QtGui.QImage.Format_RGB888) 
-                    pixmap=QtGui.QPixmap.fromImage(qImg) 
-                    label = QtWidgets.QLabel("") 
-                    label.setAlignment(QtCore.Qt.AlignCenter) 
-                    label.setPixmap(pixmap.scaled(0.3*width, 0.3*height, 
-                    QtCore.Qt.KeepAspectRatio,QtCore.Qt.SmoothTransformation)) 
-                    self.gridLayout.addWidget(label, i, j) 
-                    k+=1 
-        else : 
-            print("Il faut choisir une méthode !") 
+        
+    def Recherche(self, MainWindow):
+        # Remise à 0 de la grille des voisins
+        for i in reversed(range(self.gridLayout.count())):
+            self.gridLayout.itemAt(i).widget().setParent(None)
+            voisins = ""
+    
+        if self.algo_choice != 0:
+            # Générer les features de l'image requête
+            req = extractReqFeatures(fileName, self.algo_choice)
+            # Définition du nombre de voisins
+            self.sortie = 9
+            # Aller chercher dans la liste de l'interface la distance choisie
+            distanceName = self.comboBox.currentText()
+            # Générer les voisins
+            voisins = getkVoisins(self.features1, req, self.sortie, distanceName)
+            self.path_image_plus_proches = []
+            self.nom_image_plus_proches = []
             
+            base_path = os.path.dirname(os.path.abspath(__file__))  # Récupérer le dossier du script
+            base_path = os.path.join(base_path, "MIR_DATASETS_B")  # Construire le chemin vers MIR_DATASETS_B
+            
+            for k in range(self.sortie):
+                chemin_relatif = voisins[k][0]
+                image_name = chemin_relatif.split('/')[-1]
+                chemin_parts = chemin_relatif.split("_")
+                if len(chemin_parts) >= 4:
+                    categorie = chemin_parts[4]  # chiens, poissons ou singes
+                    race = chemin_parts[5]  # race spécifique
+                    chemin_complet = os.path.join(base_path, categorie, race, image_name)
+                else:
+                    print(f"Erreur : Format de chemin invalide pour {chemin_complet}")
+                    continue
+                
+                self.path_image_plus_proches.append(chemin_complet)
+                self.nom_image_plus_proches.append(image_name)
+            
+            # Nombre de colonnes pour l'affichage
+            col = 3
+            k = 0
+            
+            for i in range(math.ceil(self.sortie / col)):
+                for j in range(col):
+                    if k >= len(self.path_image_plus_proches):
+                        break
+                    
+                    chemin_image = self.path_image_plus_proches[k]
+                    
+                    # Vérifier si le fichier existe
+                    if not os.path.exists(chemin_image):
+                        print(f"Erreur : L'image {chemin_image} n'existe pas. Vérifiez le chemin.")
+                        k += 1
+                        continue
+                    
+                    # Charger l'image
+                    img = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
+                    if img is None:
+                        print(f"Erreur : Impossible de charger {chemin_image}. Format non supporté ou fichier corrompu.")
+                        k += 1
+                        continue
+                    
+                    # Convertir en RGB
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    
+                    # Convertir en QImage
+                    height, width, channel = img.shape
+                    bytesPerLine = 3 * width
+                    qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+                    pixmap = QtGui.QPixmap.fromImage(qImg)
+                    
+                    label = QtWidgets.QLabel("")
+                    label.setAlignment(QtCore.Qt.AlignCenter)
+                    label.setPixmap(pixmap.scaled(int(0.3 * width), int(0.3 * height), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+                    self.gridLayout.addWidget(label, i, j)
+                    
+                    k += 1
+        else:
+            print("Il faut choisir une méthode !")
+
+        
+
     def rappel_precision(self): 
-        rappel_precision=[] 
-        rappels=[] 
-        precisions=[] 
-        filename_req=os.path.basename(fileName) 
-        num_image, _ = filename_req.split(".") 
-        classe_image_requete = int(num_image)/100 
-        val =0 
+        rappel_precision = [] 
+        rappels = [] 
+        precisions = [] 
+        
+        filename_req = os.path.basename(fileName)  # Extraire le nom de fichier de fileName
+        match = filename_req.split("_")[4].split('.')[0]
+        if match:
+            classe_image_requete = int(match) / 100  # Calcul de la classe de l'image requête
+        else:
+            print(f"Erreur : Impossible d'extraire un numéro valide de {match}")
+            return  # Sortir de la fonction si l'extraction échoue
+    
+        val = 0 
+        # Comparer les classes pour chaque voisin
         for j in range(self.sortie): 
-            classe_image_proche=(int(self.nom_image_plus_proches[j].split('.')[0]))/100 
-            classe_image_requete = int(classe_image_requete) 
-            classe_image_proche = int(classe_image_proche) 
-            if classe_image_requete==classe_image_proche: 
-                rappel_precision.append(1) #Bonne classe (pertinant) 
+            
+            classe_image_proche = int(self.nom_image_plus_proches[j].split('_')[4].split('.')[0]) / 100
+            if classe_image_requete == classe_image_proche: 
+                rappel_precision.append(1)  # Bonne classe (pertinent) 
                 val += 1 
             else: 
-                rappel_precision.append(0) #Mauvaise classe (non pertinant) 
+                rappel_precision.append(0)  # Mauvaise classe (non pertinent) 
+    
+        # Calcul des rappels et des précisions
         for i in range(self.sortie): 
-            j=i 
-            val=0 
-            while(j>=0): 
+            val = 0
+            j = i
+            while j >= 0: 
                 if rappel_precision[j]: 
-                    val+=1 
-                j-=1 
-            precision =  val/len(rappel_precision)
-            rappel = val/sum(rappel_precision) 
-            rappels.append(rappel) 
-            precisions.append(precision) 
-        #Création de la courbe R/P 
-        plt.plot(rappels,precisions) 
+                    val += 1 
+                j -= 1
+            
+            precision = val / (i + 1)  # Précision pour le voisin i
+            rappel = val / sum(rappel_precision)  # Rappel pour le voisin i
+            
+            rappels.append(rappel)
+            precisions.append(precision)
+        
+        # Création de la courbe R/P
+        plt.plot(rappels, precisions) 
         plt.xlabel("Recall") 
         plt.ylabel("Precision") 
-        plt.title("R/P"+str(self.sortie)+" voisins de l'image n°"+num_image) 
-        #Enregistrement de la courbe RP 
-        save_folder=os.path.join(".",num_image) 
+        plt.title(f"R/P {self.sortie} voisins de l'image n°{match}") 
+    
+        # Enregistrement de la courbe R/P
+        save_folder = os.path.join(".", match)
         if not os.path.exists(save_folder): 
             os.makedirs(save_folder) 
-        save_name=os.path.join(save_folder,num_image+'.png') 
-        plt.savefig(save_name,format='png',dpi=600) 
-        plt.close() 
-        #Affichage de la courbe R/P 
-        img = cv2.imread(save_name,1) #load image in color 
-        #Remise de l'image en RGB pour l'afficher correctement 
-        b,g,r = cv2.split(img) 
-        # get b,g,r 
-        img = cv2.merge([r,g,b]) 
-        # switch it to rgb 
-        #convert image to QImage 
+        
+        save_name = os.path.join(save_folder, f'{match}.png') 
+        plt.savefig(save_name, format='png', dpi=600) 
+        plt.close()  # Fermer la figure pour libérer les ressources
+    
+        # Affichage de la courbe R/P
+        img = cv2.imread(save_name, 1)  # Charger l'image en couleur 
+        b, g, r = cv2.split(img)  # Séparer les canaux
+        img = cv2.merge([r, g, b])  # Convertir en RGB
+        
+        # Convertir l'image en QImage pour l'affichage dans l'interface
         height, width, channel = img.shape 
         bytesPerLine = 3 * width 
         qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888) 
-        pixmap=QtGui.QPixmap.fromImage(qImg) 
+        pixmap = QtGui.QPixmap.fromImage(qImg) 
+        
+        # Ajuster l'image dans la taille du label
         width = self.label_requete.frameGeometry().width() 
         height = self.label_requete.frameGeometry().height() 
+        
         self.label_courbe.setAlignment(QtCore.Qt.AlignCenter) 
-        self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio,QtCore.Qt.SmoothTransformation)) 
+        self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        
+    def exit(self, MainWindow):
+            sys.exit()
+
+
+
+
 
 
 if __name__ == "__main__":
