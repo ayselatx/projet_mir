@@ -32,6 +32,7 @@ class Ui_MainWindow(object):
         MainWindow.resize(1203, 544)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+        
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(120, 10, 251, 31))
         font = QtGui.QFont()
@@ -165,12 +166,24 @@ class Ui_MainWindow(object):
         self.label_5.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
         self.label_5.setObjectName("label_5")
-        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(380, 180, 551, 251))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
-        self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        # Create a scroll area to make the gridLayout scrollable
+        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+        self.scrollArea.setGeometry(QtCore.QRect(380, 180, 551, 251))  # Define size of the scroll area
+        self.scrollArea.setWidgetResizable(True)  # This allows the content to resize within the scroll area
+        self.scrollArea.setObjectName("scrollArea")
+        
+        # Create a widget to be placed inside the scroll area
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 551, 251))  # Set the widget size
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        
+        # Create the grid layout and set it to the widget inside the scroll area
+        self.gridLayout = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
+        
+        # Add the widget with the grid layout to the scroll area
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.label_courbe = QtWidgets.QLabel(self.centralwidget)
         self.label_courbe.setGeometry(QtCore.QRect(940, 180, 251, 251))
         font = QtGui.QFont()
@@ -328,6 +341,7 @@ class Ui_MainWindow(object):
         self.charger.setText(_translate("MainWindow", "Charger"))
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
+
     def Ouvrir(self, MainWindow): 
         global fileName 
         fileName, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "","Image Files (*.png *.jpeg *.jpg *.bmp)") 
