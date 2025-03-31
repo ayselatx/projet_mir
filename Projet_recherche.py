@@ -428,7 +428,7 @@ class Ui_MainWindow(object):
             # Générer les features de l'image requête
             req = extractReqFeatures(fileName, self.algo_choice)
             # Définition du nombre de voisins
-            self.sortie = 9
+            self.sortie = 20
             # Aller chercher dans la liste de l'interface la distance choisie
             distanceName = self.comboBox.currentText()
             # Générer les voisins
