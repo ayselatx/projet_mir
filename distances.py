@@ -29,11 +29,32 @@ def bhatta(l1, l2):
 
 
 def flann(a, b):
-    # Vérification des dimensions
-    if a.shape[1] != b.shape[1]:
-        print(f"Erreur : Les descripteurs a ({a.shape}) et b ({b.shape}) ont des tailles différentes.")
-        return np.inf  # Ou une autre gestion d'erreur appropriée
+    # Vérifier si `a` et `b` sont bien des tableaux numpy
+    a = np.array(a, dtype=np.float32)
+    b = np.array(b, dtype=np.float32)
 
+    #Correction : S'assurer que `a` et `b` sont en 2D
+    if a.ndim == 1:
+        a = a.reshape(1, -1)  # Convertir en (1, 128) si c'est un vecteur 1D
+    if b.ndim == 1:
+        b = b.reshape(1, -1)  # Convertir en (1, 128) si c'est un vecteur 1D
+
+    # Vérifier si les descripteurs existent et ont la bonne forme
+    if a.ndim != 2 or b.ndim != 2:
+        print(f"Erreur : a a {a.shape} dimensions et b a {b.shape} dimensions (attendu 2D)")
+        return np.inf
+
+    if a.shape[0] == 0 or b.shape[0] == 0:
+        print("Erreur : Un des descripteurs est vide.")
+        return np.inf
+
+    if a.shape[1] != b.shape[1]:  
+        print(f"Erreur : Les descripteurs ont des dimensions différentes ({a.shape[1]} ≠ {b.shape[1]})")
+        return np.inf
+
+    # Troncature pour avoir le même nombre de descripteurs
+    min_desc = min(a.shape[0], b.shape[0])
+    a, b = a[:min_desc], b[:min_desc]
     # Utilisation de FLANN pour la recherche des voisins
     flannIndexKDTREE = 1  # Type de recherche (K-D Tree)
     indexParams = dict(algorithm=flannIndexKDTREE, trees=10)
