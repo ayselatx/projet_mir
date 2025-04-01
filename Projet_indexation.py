@@ -193,51 +193,51 @@ class Ui_MainWindow(object):
         
 		# Appel de la fonction de calcul de l'histogramme de couleur BGR
         if self.Dossier_images and self.checkBox_HistC.isChecked():
-            functions_indexation.generateHistogramme_Color(self.Dossier_images, self.progressBar) 
+            functions_indexation_utf8.generateHistogramme_Color(self.Dossier_images, self.progressBar) 
         
         if self.Dossier_images and self.checkBox_HSV.isChecked():
 		# Appel de la fonction de calcul de l'histogramme de couleur HSV
-            functions_indexation.generateHistogramme_HSV(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateHistogramme_HSV(self.Dossier_images, self.progressBar)
 		
         if self.Dossier_images and self.checkBox_SIFT.isChecked():
 		# Appel de la fonction de calcul du descripteur SIFT
-            functions_indexation.generateSIFT(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateSIFT(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_ORB.isChecked():
 		# Appel de la fonction de calcul du descripteur ORB
-            functions_indexation.generateORB(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateORB(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_GLCM.isChecked():
       		# Appel de la fonction de calcul du descripteur GLCM
-            functions_indexation.generateGLCM(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateGLCM(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_LBP.isChecked():
     		# Appel de la fonction de calcul du descripteur LBP
-            functions_indexation.generateLBP(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateLBP(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_HOG.isChecked():
         	# Appel de la fonction de calcul du descripteur HOG
-            functions_indexation.generateHistogramme_HOG(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateHistogramme_HOG(self.Dossier_images, self.progressBar)
         
         if self.Dossier_images and self.checkBox_VGG16.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
-            functions_indexation.generateVGG16(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateVGG16(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_VGG19.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
-            functions_indexation.generateVGG19(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateVGG19(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_MobileNet.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
-            functions_indexation.generateMobileNet(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateMobileNet(self.Dossier_images, self.progressBar)
             
         if self.Dossier_images and self.checkBox_Inception.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
-            functions_indexation.generateInception(self.Dossier_images, self.progressBar)
+            functions_indexation_utf8.generateInception(self.Dossier_images, self.progressBar)
                     
         if not self.checkBox_SIFT.isChecked() and not self.checkBox_HistC.isChecked() and not self.checkBox_HSV.isChecked() and not self.checkBox_ORB.isChecked() and not self.checkBox_VGG16.isChecked() and not self.checkBox_VGG19.isChecked() and not self.checkBox_MobileNet.isChecked() and not self.checkBox_Inception.isChecked() :
             print("Merci de selectionner un descripteur via le Menu  ...")
-            functions_indexation.showDialog()
+            functions_indexation_utf8.showDialog()
 
         if len(self.Dossier_images)<1:
             print("Merci de charger la base de données avec le bouton Ouvrir")
