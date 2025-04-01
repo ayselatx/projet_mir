@@ -361,6 +361,62 @@ def extractReqFeatures(fileName,algo_choice):
             # finding key points and descriptors of both images using detectAndCompute() function
             print(len(vect_features))
 			
+        elif algo_choice == 8:  # VGG16
+            model = models.vgg16(pretrained=False)
+            model.eval()
+            transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            image = Image.open(fileName).convert('RGB')
+            image = transform(image).unsqueeze(0)
+            with torch.no_grad():
+                features = model.features(image)
+            vect_features = features.cpu().numpy().flatten()
+
+        elif algo_choice == 9:  # VGG19
+            model = models.vgg19(pretrained=False)
+            model.eval()
+            transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            image = Image.open(fileName).convert('RGB')
+            image = transform(image).unsqueeze(0)
+            with torch.no_grad():
+                features = model.features(image)
+            vect_features = features.cpu().numpy().flatten()
+
+        elif algo_choice == 10:  # MobileNet
+            model = models.mobilenet_v2(pretrained=False)
+            model.eval()
+            transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            image = Image.open(fileName).convert('RGB')
+            image = transform(image).unsqueeze(0)
+            with torch.no_grad():
+                features = model(image)
+            vect_features = features.cpu().numpy().flatten()
+
+        elif algo_choice == 11:  # Inception
+            model = models.inception_v3(pretrained=False)
+            model.eval()
+            transform = transforms.Compose([
+                transforms.Resize((299, 299)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+            image = Image.open(fileName).convert('RGB')
+            image = transform(image).unsqueeze(0)
+            with torch.no_grad():
+                features = model(image)
+            vect_features = features.cpu().numpy().flatten()
+        
         np.savetxt("Methode_"+str(algo_choice)+"_requete.txt" ,vect_features)
         print("saved")
         #print("vect_features", vect_features)

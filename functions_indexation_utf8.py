@@ -526,7 +526,7 @@ def generateMobileNet(filenames, progressBar):
         return
     
     # Load the MobileNet model
-    feature_extractor = models.mobilenet_v2(pretrained=True)
+    feature_extractor = models.mobilenet_v2(pretrained=False)
     feature_extractor.eval()
     
     transform = transforms.Compose([
@@ -561,10 +561,10 @@ def generateMobileNet(filenames, progressBar):
                 
     print(f"MobileNet indexing finished in {time.time() - start:.2f} seconds!")
 
-def generateInceptionV3(filenames, progressBar):
+def generateInception(filenames, progressBar):
     start = time.time()
-    if not os.path.isdir("InceptionV3"):
-        os.mkdir("InceptionV3")
+    if not os.path.isdir("Inception"):
+        os.mkdir("Inception")
     
     # Count the total number of images for the progress bar
     total_images = sum(len(files) for _, _, files in os.walk(filenames) if any(f.endswith((".jpg", ".png", ".jpeg")) for f in files))
@@ -573,7 +573,7 @@ def generateInceptionV3(filenames, progressBar):
         return
     
     # Load the InceptionV3 model
-    feature_extractor = models.inception_v3(pretrained=True)
+    feature_extractor = models.inception_v3(pretrained=False)
     feature_extractor.eval()
     
     transform = transforms.Compose([
