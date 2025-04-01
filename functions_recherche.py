@@ -315,7 +315,29 @@ def extractReqFeatures(fileName,algo_choice):
             glcmProperties5 = greycoprops(glcmMatrix,'correlation').ravel() 
             glcmProperties6 = greycoprops(glcmMatrix,'ASM').ravel() 
             vect_features = np.array([glcmProperties1,glcmProperties2,glcmProperties3,glcmProperties4,glcmProperties5, glcmProperties6]).ravel()
-        elif algo_choice==6: #LBP
+        elif algo_choice==6: #HOG
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            img = cv2.resize(img, (64,128))
+            
+            # Resize while maintaining aspect ratio
+            #img_resized = resize_and_pad(gray, (64, 128))
+
+            # HOG Descriptor
+            win_size = (64, 128)
+            block_size = (16, 16)
+            block_stride = (8, 8)
+            cell_size = (8, 8)
+            nbins = 9
+
+            hog_descriptor = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size, nbins)
+            vect_features = hog_descriptor.compute(img)
+
+            if vect_features is None or vect_features.shape[0] == 0:
+                print("Error: HOG feature extraction failed!")
+                return None
+            
+            vect_features = vect_features.ravel()
+        elif algo_choice==7: #LBP
             points=8 
             radius=1 
             method='default' 
@@ -330,6 +352,7 @@ def extractReqFeatures(fileName,algo_choice):
                     subHist,edges = np.histogram(subVector,bins=int(2**points),range=(0,2**points)) 
                     vect_features = np.concatenate((vect_features,subHist),axis=None)
             # finding key points and descriptors of both images using detectAndCompute() function
+            print(len(vect_features))
 			
         np.savetxt("Methode_"+str(algo_choice)+"_requete.txt" ,vect_features)
         print("saved")

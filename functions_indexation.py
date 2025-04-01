@@ -4,11 +4,10 @@ import os
 import cv2
 import numpy as np
 from skimage.transform import resize
-from skimage.feature import hog
 from skimage import exposure
 from skimage import io, color, img_as_ubyte
 from matplotlib import pyplot as plt
-from skimage.feature import hog, greycomatrix, greycoprops, local_binary_pattern
+from skimage.feature import greycomatrix, greycoprops, local_binary_pattern
 import time
 
 def showDialog():
@@ -36,6 +35,7 @@ def generateHistogramme_Color(filenames, progressBar):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifier les extensions
                 img_path = os.path.join(root, file)
                 img = cv2.imread(img_path)
+                #img = cv2.resize(img, (64,128))
 
                 if img is None:
                     print(f"Impossible de lire {img_path}, image ignoree.")
@@ -77,6 +77,7 @@ def generateHistogramme_HSV(filenames, progressBar):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifier les extensions
                 img_path = os.path.join(root, file)
                 img = cv2.imread(img_path)
+                #img = cv2.resize(img, (64,128))
 
                 if img is None:
                     print(f"Impossible de lire {img_path}, image ignoree.")
@@ -104,41 +105,62 @@ def generateHistogramme_HSV(filenames, progressBar):
 def generateHistogramme_HOG(filenames, progressBar):
     start = time.time()
     
-    # Crï¿½er le dossier s'il n'existe pas
+    # Créer le dossier HOG s'il n'existe pas
     if not os.path.isdir("HOG"):
         os.mkdir("HOG")
 
     # Compter le nombre total d'images pour la barre de progression
-    total_images = sum(1 for _, _, files in os.walk(filenames) for f in files if f.lower().endswith((".jpg", ".jpeg", ".png")))
+    total_images = sum(1 for _, _, files in os.walk(filenames) 
+                        for f in files if f.lower().endswith((".jpg", ".jpeg", ".png")))
     
     if total_images == 0:
-        print("Aucune image trouve !")
+        print("Aucune image trouvee !")
         return
 
-    hog = cv2.HOGDescriptor()  # Crï¿½ation du descripteur HOG
+    # Création du descripteur HOG avec des paramètres standard
+    win_size = (64, 128)  # Taille standard pour HOG
+    block_size = (16, 16)
+    block_stride = (8, 8)
+    cell_size = (8, 8)
+    nbins = 9
+
+    hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size, nbins)
+
     i = 0
 
-    for root, _, files in os.walk(filenames):  # Parcours rï¿½cursif des sous-dossiers
+    for root, _, files in os.walk(filenames):  # Parcours récursif des dossiers
         for file in files:
-            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifier les extensions
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vérifier les extensions
                 img_path = os.path.join(root, file)
                 
-                img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Lire en niveaux de gris
+                # Lire l'image en niveaux de gris
+                img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+                img = cv2.resize(img, (64,128))
                 if img is None:
                     print(f"Impossible de lire {img_path}, image ignoree.")
-                    continue  # Passer ï¿½ l'image suivante si erreur
-                
-                img = cv2.resize(img, (64, 128))  # Redimensionner pour HOG
-                feature = hog.compute(img)  # Extraire les caractï¿½ristiques HOG
-                
-                num_image = os.path.splitext(file)[0]
-                np.savetxt(f"HOG/{num_image}.txt", feature)
+                    continue  # Passer à l'image suivante
 
-                progressBar.setValue(int(100 * (i + 1) / total_images))  # Mise ï¿½ jour correcte
+                # Redimensionner à la taille attendue par HOG
+                #img = resize_and_pad(img, (64, 128))  # Resize while keeping aspect ratio
+
+                # Extraire les caractéristiques HOG
+                feature = hog.compute(img)
+                
+                # Vérifier que le descripteur est bien généré
+                if feature is None or feature.shape[0] == 0:
+                    print(f"Erreur : HOG non calcule pour {img_path}")
+                    continue
+
+                # Sauvegarder les caractéristiques sous forme de fichier texte
+                num_image = os.path.splitext(file)[0]
+                np.savetxt(f"HOG/{num_image}.txt", feature.ravel())
+
+                # Mettre à jour la barre de progression
+                progressBar.setValue(int(100 * (i + 1) / total_images))
                 i += 1
-    
-    print(f"Indexation HOG terminee en {time.time() - start:.2f} secondes !")   
-    
+
+    print(f"Indexation HOG terminee en {time.time() - start:.2f} secondes !")
+
 def generateSIFT(filenames, progressBar):
     start = time.time()
     
@@ -159,6 +181,7 @@ def generateSIFT(filenames, progressBar):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifie le format de l'image
                 img_path = os.path.join(root, file)
                 img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Lit en niveau de gris
+                img = cv2.resize(img, (64,128))
 
                 if img is None:
                     print(f"Impossible de lire {img_path}, passage a l'image suivante.")
@@ -213,7 +236,8 @@ def generateORB(filenames, progressBar):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifie le format de l'image
                 img_path = os.path.join(root, file)
                 img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Lit en niveau de gris
-
+                #img = cv2.resize(img, (64,128))
+                
                 if img is None:
                     print(f"Impossible de lire {img_path}, passage a l'image suivante.")
                     continue
@@ -271,7 +295,7 @@ def generateGLCM(filenames, progressBar):
             if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Vï¿½rifier format image
                 img_path = os.path.join(root, file)
                 image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)  # Lire en niveaux de gris
-
+                #image = cv2.resize(image, (64,128))
                 if image is None:
                     print(f"Impossible de lire {img_path}, passage a l'image suivante.")
                     continue
@@ -322,7 +346,6 @@ def generateGLCM(filenames, progressBar):
 
 def generateLBP(filenames, progressBar): 
     start = time.time()
-
     # Create LBP directory if it doesn't exist
     if not os.path.isdir("LBP"): 
         os.mkdir("LBP") 
@@ -387,7 +410,5 @@ def generateLBP(filenames, progressBar):
                         print(f"Echec de l'amelioration pour {file}")
 
                 i += 1
-                progressBar.setValue(int(100 * (i / total_images)))  
-
-    print(f"Indexation LBP terminee en {time.time() - start:.2f} secondes !!!!")
-
+                progressBar.setValue(int(100 * (i / total_images)))
+    print(f"Indexation GLCM terminee en {time.time() - start:.2f} secondes !!!!")

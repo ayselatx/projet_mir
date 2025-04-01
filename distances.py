@@ -9,8 +9,12 @@ import operator
 import collections 
 from collections import Counter
 
+
 def euclidean(l1, l2):
     return math.dist(l1, l2)
+
+
+
 
 def chiSquareDistance(l1, l2):
     s = 0.0
@@ -52,9 +56,6 @@ def flann(a, b):
         print(f"Erreur : Les descripteurs ont des dimensions différentes ({a.shape[1]} ≠ {b.shape[1]})")
         return np.inf
 
-    # Troncature pour avoir le même nombre de descripteurs
-    min_desc = min(a.shape[0], b.shape[0])
-    a, b = a[:min_desc], b[:min_desc]
     # Utilisation de FLANN pour la recherche des voisins
     flannIndexKDTREE = 1  # Type de recherche (K-D Tree)
     indexParams = dict(algorithm=flannIndexKDTREE, trees=10)
@@ -91,10 +92,6 @@ def bruteForceMatching(a, b):
     if a.shape[1] != b.shape[1]:  
         print(f"Erreur : Les descripteurs ont des dimensions différentes ({a.shape[1]} ≠ {b.shape[1]})")
         return np.inf
-
-    # Troncature pour avoir le même nombre de descripteurs
-    min_desc = min(a.shape[0], b.shape[0])
-    a, b = a[:min_desc], b[:min_desc]
 
     bf = cv2.BFMatcher(cv2.NORM_L2)  
     matches = bf.match(a, b)  # Trouve les correspondances
