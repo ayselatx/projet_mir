@@ -435,7 +435,7 @@ def generateVGG16(filenames, progressBar):
         return
     
     
-    feature_extractor = models.vgg16(pretrained=True)
+    feature_extractor = models.vgg16(pretrained=False)
     feature_extractor.eval()  
     
     transform = transforms.Compose([
@@ -468,3 +468,142 @@ def generateVGG16(filenames, progressBar):
                 
     print(f"Indexation VGG16 terminee en {time.time() - start:.2f} secondes !!!")
 
+
+def generateVGG19(filenames, progressBar):
+    start = time.time()
+    if not os.path.isdir("VGG19"):
+        os.mkdir("VGG19")
+    
+    # Compter le nombre total d'images pour la barre de progression
+    total_images = sum(len(files) for _, _, files in os.walk(filenames) if any(f.endswith((".jpg", ".png", ".jpeg")) for f in files))
+    if total_images == 0:
+        print("Aucune image trouvee !")
+        return
+    
+    
+    feature_extractor = models.vgg19(pretrained=False)
+    feature_extractor.eval()  
+    
+    transform = transforms.Compose([
+      transforms.Resize((224, 224)),  # Taille standard de VGG16
+      transforms.ToTensor(),
+      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    def extract_features(image_path):
+      image = Image.open(image_path).convert("RGB")
+      image = transform(image).unsqueeze(0)
+      with torch.no_grad():
+        features = feature_extractor(image)
+      return features.cpu().numpy().squeeze().flatten()
+
+    i = 0
+    for root, _, files in os.walk(filenames):  # Parcours recursif des sous-dossiers
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Verifier les extensions
+                img_path = os.path.join(root, file)
+                
+                feature = extract_features(img_path)
+
+                num_image = os.path.splitext(file)[0]
+                np.savetxt("VGG19/"+str(num_image)+".txt" ,feature)
+                
+                # Mise a jour de la barre de progression
+                i += 1
+                progressBar.setValue(int(100 * (i / total_images)))
+                
+    print(f"Indexation VGG19 terminee en {time.time() - start:.2f} secondes !!!")
+
+def generateMobileNet(filenames, progressBar):
+    start = time.time()
+    if not os.path.isdir("MobileNet"):
+        os.mkdir("MobileNet")
+    
+    # Count the total number of images for the progress bar
+    total_images = sum(len(files) for _, _, files in os.walk(filenames) if any(f.endswith((".jpg", ".png", ".jpeg")) for f in files))
+    if total_images == 0:
+        print("No images found!")
+        return
+    
+    # Load the MobileNet model
+    feature_extractor = models.mobilenet_v2(pretrained=True)
+    feature_extractor.eval()
+    
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),  # MobileNet input size
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    def extract_features(image_path):
+        image = Image.open(image_path).convert("RGB")
+        image = transform(image).unsqueeze(0)
+        with torch.no_grad():
+            features = feature_extractor(image)
+        return features.cpu().numpy().squeeze().flatten()
+
+    i = 0
+    for root, _, files in os.walk(filenames):  # Traverse through subfolders
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Check the file extension
+                img_path = os.path.join(root, file)
+                
+                # Extract features using MobileNet
+                feature = extract_features(img_path)
+
+                # Save the features to a text file
+                num_image = os.path.splitext(file)[0]
+                np.savetxt(f"MobileNet/{num_image}.txt", feature)
+                
+                # Update progress bar
+                i += 1
+                progressBar.setValue(int(100 * (i / total_images)))
+                
+    print(f"MobileNet indexing finished in {time.time() - start:.2f} seconds!")
+
+def generateInceptionV3(filenames, progressBar):
+    start = time.time()
+    if not os.path.isdir("InceptionV3"):
+        os.mkdir("InceptionV3")
+    
+    # Count the total number of images for the progress bar
+    total_images = sum(len(files) for _, _, files in os.walk(filenames) if any(f.endswith((".jpg", ".png", ".jpeg")) for f in files))
+    if total_images == 0:
+        print("No images found!")
+        return
+    
+    # Load the InceptionV3 model
+    feature_extractor = models.inception_v3(pretrained=True)
+    feature_extractor.eval()
+    
+    transform = transforms.Compose([
+        transforms.Resize((299, 299)),  # InceptionV3 input size
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    
+    def extract_features(image_path):
+        image = Image.open(image_path).convert("RGB")
+        image = transform(image).unsqueeze(0)
+        with torch.no_grad():
+            features = feature_extractor(image)
+        return features.cpu().numpy().squeeze().flatten()
+
+    i = 0
+    for root, _, files in os.walk(filenames):  # Traverse through subfolders
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Check the file extension
+                img_path = os.path.join(root, file)
+                
+                # Extract features using InceptionV3
+                feature = extract_features(img_path)
+
+                # Save the features to a text file
+                num_image = os.path.splitext(file)[0]
+                np.savetxt(f"InceptionV3/{num_image}.txt", feature)
+                
+                # Update progress bar
+                i += 1
+                progressBar.setValue(int(100 * (i / total_images)))
+                
+    print(f"InceptionV3 indexing finished in {time.time() - start:.2f} seconds!")
