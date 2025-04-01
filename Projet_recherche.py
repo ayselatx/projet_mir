@@ -575,7 +575,7 @@ class Ui_MainWindow(object):
         if not os.path.exists(folder_model):
             print(f"Erreur : le dossier {folder_model} n'existe pas !")
             return
-    
+        total_files = sum(1 for _, _, files in os.walk(folder_model) for file in files if file.endswith(".txt"))
         for root, _, files in os.walk(folder_model):  # Parcours récursif
             for file in files:
                 if not file.endswith(".txt"):
@@ -590,7 +590,7 @@ class Ui_MainWindow(object):
                 self.features1.append((image_path, feature))
     
                 pas += 1
-                self.progressBar.setValue(int(100 * ((pas + 1) / 1000)))
+                self.progressBar.setValue(int(100 * ((pas + 1) / total_files)))
     
         # if not any([self.checkBox_SIFT.isChecked(), self.checkBox_HistC.isChecked(), 
         #             self.checkBox_HSV.isChecked(), self.checkBox_ORB.isChecked()]):
