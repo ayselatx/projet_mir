@@ -26,6 +26,7 @@ folder_model="MIR_DATASETS_B"
 import functions_recherche
 
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -308,94 +309,74 @@ class Ui_MainWindow(object):
         self.calcul_RP.setFont(font)
         self.calcul_RP.setObjectName("calcul_RP")
         
-        # self.valeur_AP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeur_AP.setGeometry(QtCore.QRect(1160, 100, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeur_AP.setFont(font)
-        # self.valeur_AP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeur_AP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeur_AP.setObjectName("valeur_AP")
-        # self.resultAP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultAP.setGeometry(QtCore.QRect(1020, 100, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultAP.setFont(font)
-        # self.resultAP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultAP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultAP.setObjectName("resultAP")
+        self.valeur_AP = QtWidgets.QLabel(self.centralwidget)
+        self.valeur_AP.setGeometry(QtCore.QRect(1160, 100, 108, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.valeur_AP.setFont(font)
+        self.valeur_AP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.valeur_AP.setAlignment(QtCore.Qt.AlignCenter)
+        self.valeur_AP.setObjectName("valeur_AP")
+        self.resultAP = QtWidgets.QLabel(self.centralwidget)
+        self.resultAP.setGeometry(QtCore.QRect(1020, 100, 135, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.resultAP.setFont(font)
+        self.resultAP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.resultAP.setAlignment(QtCore.Qt.AlignCenter)
+        self.resultAP.setObjectName("resultAP")
         
-        # self.valeurMaP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeurMaP.setGeometry(QtCore.QRect(1160, 150, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeurMaP.setFont(font)
-        # self.valeurMaP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeurMaP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeurMaP.setObjectName("valeurMaP")
-        # self.resultMaP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultMaP.setFont(font)
-        # self.resultMaP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultMaP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultMaP.setObjectName("resultMaP")
+        self.valeurMaP = QtWidgets.QLabel(self.centralwidget)
+        self.valeurMaP.setGeometry(QtCore.QRect(1160, 150, 108, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.valeurMaP.setFont(font)
+        self.valeurMaP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.valeurMaP.setAlignment(QtCore.Qt.AlignCenter)
+        self.valeurMaP.setObjectName("valeurMaP")
+        self.resultMaP = QtWidgets.QLabel(self.centralwidget)
+        self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 135, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.resultMaP.setFont(font)
+        self.resultMaP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.resultMaP.setAlignment(QtCore.Qt.AlignCenter)
+        self.resultMaP.setObjectName("resultMaP")
         
-        # self.valeurRP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeurRP.setFont(font)
-        # self.valeurRP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeurRP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeurRP.setObjectName("valeurRP")
-        # self.resultRP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultRP.setGeometry(QtCore.QRect(1020, 200, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultRP.setFont(font)
-        # self.resultRP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultRP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultRP.setObjectName("resultRP")
-        
-        
-        # Bouton de calcul
-        self.calcul_RP = QtWidgets.QPushButton("Calculer", self.centralwidget)
-        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 251, 41))
-        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
-        self.calcul_RP.setFont(font)
-
-
-        # Labels des résultats
-        self.resultAP = self.create_label(1020, 100, "AP :")
-        self.valeur_AP = self.create_label(1160, 100, "")
-
-        self.resultMaP = self.create_label(1020, 150, "mAP :")
-        self.valeurMaP = self.create_label(1160, 150, "")
-
-        self.resultRP = self.create_label(1020, 200, "R-Precision :")
-        self.valeurRP = self.create_label(1160, 200, "")
-
-
+        self.valeurRP = QtWidgets.QLabel(self.centralwidget)
+        self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 108, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.valeurRP.setFont(font)
+        self.valeurRP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.valeurRP.setAlignment(QtCore.Qt.AlignCenter)
+        self.valeurRP.setObjectName("valeurRP")
+        self.resultRP = QtWidgets.QLabel(self.centralwidget)
+        self.resultRP.setGeometry(QtCore.QRect(1020, 200, 135, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.resultRP.setFont(font)
+        self.resultRP.setFrameShape(QtWidgets.QFrame.Panel)
+        self.resultRP.setAlignment(QtCore.Qt.AlignCenter)
+        self.resultRP.setObjectName("resultRP")
         
         self.checkBox_autre = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_autre.setGeometry(QtCore.QRect(380, 110, 81, 17))
@@ -474,16 +455,12 @@ class Ui_MainWindow(object):
         self.search.clicked.connect(self.loadFeaturesText)
         self.chargerText.clicked.connect(self.OuvrirText)
         self.chercher.clicked.connect(self.Recherche)
-        #self.calcul_RP.clicked.connect(self.rappel_precision )
-        # Connecter le bouton calcul_RP à la nouvelle méthode
-        self.calcul_RP.clicked.connect(self.calculer_metriques_et_rappel)
+        self.calcul_RP.clicked.connect(self.rappel_precision )
         self.Quitter.clicked.connect(self.exit )
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-
-        
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -508,7 +485,7 @@ class Ui_MainWindow(object):
         self.label_8.setText(_translate("MainWindow", "Résultats"))
         self.label_9.setText(_translate("MainWindow", "Courbe R/P"))
         self.chercher.setText(_translate("MainWindow", "Recherche"))
-        self.calcul_RP.setText(_translate("MainWindow", "Calculer les métriques"))
+        self.calcul_RP.setText(_translate("MainWindow", "Calculer la courbe R/P"))
         self.resultAP.setText(_translate("MainWindow", "Calcul de AP :"))
         self.resultMaP.setText(_translate("MainWindow", "Calcul de MaP :"))
         self.resultRP.setText(_translate("MainWindow", "Calcul de RP :"))
@@ -620,7 +597,8 @@ class Ui_MainWindow(object):
         #             self.checkBox_HSV.isChecked(), self.checkBox_ORB.isChecked()]):
         #     print("Merci de sélectionner au moins un descripteur dans le menu")
         #     showDialog()
-        #print(len(self.features1))
+    
+        print(len(self.features1))
         
     def Recherche(self, MainWindow):
         # Remise à 0 de la grille des voisins
@@ -706,90 +684,78 @@ class Ui_MainWindow(object):
         
 
     def rappel_precision(self): 
-            rappel_precision = [] 
-            rappels = [] 
-            precisions = [] 
-            
-            filename_req = os.path.basename(fileName)  # Extraire le nom de fichier de fileName
-            match = filename_req.split("_")[4].split('.')[0]
-            if match:
-                classe_image_requete = int(match) / 100  # Calcul de la classe de l'image requête
-            else:
-                print(f"Erreur : Impossible d'extraire un numéro valide de {match}")
-                return  # Sortir de la fonction si l'extraction échoue
+        rappel_precision = [] 
+        rappels = [] 
+        precisions = [] 
         
-            val = 0 
-            # Comparer les classes pour chaque voisin
-            for j in range(self.sortie): 
-                
-                classe_image_proche = int(self.nom_image_plus_proches[j].split('_')[4].split('.')[0]) / 100
-                if classe_image_requete == classe_image_proche: 
-                    rappel_precision.append(1)  # Bonne classe (pertinent) 
-                    val += 1 
-                else: 
-                    rappel_precision.append(0)  # Mauvaise classe (non pertinent) 
-        
-            # Calcul des rappels et des précisions
-            for i in range(self.sortie): 
-                val = 0
-                j = i
-                while j >= 0: 
-                    if rappel_precision[j]: 
-                        val += 1 
-                    j -= 1
-                
-                precision = val / (i + 1)  # Précision pour le voisin i
-                rappel = val / sum(rappel_precision)  # Rappel pour le voisin i
-                
-                rappels.append(rappel)
-                precisions.append(precision)
-            
-            # Création de la courbe R/P
-            plt.plot(rappels, precisions) 
-            plt.xlabel("Recall") 
-            plt.ylabel("Precision") 
-            plt.title(f"R/P {self.sortie} voisins de l'image n°{match}") 
-        
-            # Enregistrement de la courbe R/P
-            save_folder = os.path.join(".", match)
-            if not os.path.exists(save_folder): 
-                os.makedirs(save_folder) 
-            
-            save_name = os.path.join(save_folder, f'{match}.png') 
-            plt.savefig(save_name, format='png', dpi=600) 
-            plt.close()  # Fermer la figure pour libérer les ressources
-        
-            # Affichage de la courbe R/P
-            img = cv2.imread(save_name, 1)  # Charger l'image en couleur 
-            b, g, r = cv2.split(img)  # Séparer les canaux
-            img = cv2.merge([r, g, b])  # Convertir en RGB
-            
-            # Convertir l'image en QImage pour l'affichage dans l'interface
-            height, width, channel = img.shape 
-            bytesPerLine = 3 * width 
-            qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888) 
-            pixmap = QtGui.QPixmap.fromImage(qImg) 
-            
-            # Ajuster l'image dans la taille du label
-            width = self.label_requete.frameGeometry().width() 
-            height = self.label_requete.frameGeometry().height() 
-            
-            self.label_courbe.setAlignment(QtCore.Qt.AlignCenter) 
-            self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-            
-            return rappels, precisions, rappel_precision
-
+        filename_req = os.path.basename(fileName)  # Extraire le nom de fichier de fileName
+        match = filename_req.split("_")[4].split('.')[0]
+        if match:
+            classe_image_requete = int(match) / 100  # Calcul de la classe de l'image requête
+        else:
+            print(f"Erreur : Impossible d'extraire un numéro valide de {match}")
+            return  # Sortir de la fonction si l'extraction échoue
     
-    def create_label(self, x, y, text):
-        """Crée un QLabel avec du style."""
-        label = QtWidgets.QLabel(text, self.centralwidget)
-        label.setGeometry(QtCore.QRect(x, y, 135, 41))
-        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
-        label.setFont(font)
-        label.setFrameShape(QtWidgets.QFrame.Panel)
-        label.setAlignment(QtCore.Qt.AlignCenter)
-        return label
-    def average_precision(self, rappels, precisions):
+        val = 0 
+        # Comparer les classes pour chaque voisin
+        for j in range(self.sortie): 
+            
+            classe_image_proche = int(self.nom_image_plus_proches[j].split('_')[4].split('.')[0]) / 100
+            if classe_image_requete == classe_image_proche: 
+                rappel_precision.append(1)  # Bonne classe (pertinent) 
+                val += 1 
+            else: 
+                rappel_precision.append(0)  # Mauvaise classe (non pertinent) 
+    
+        # Calcul des rappels et des précisions
+        for i in range(self.sortie): 
+            val = 0
+            j = i
+            while j >= 0: 
+                if rappel_precision[j]: 
+                    val += 1 
+                j -= 1
+            
+            precision = val / (i + 1)  # Précision pour le voisin i
+            rappel = val / sum(rappel_precision)  # Rappel pour le voisin i
+            
+            rappels.append(rappel)
+            precisions.append(precision)
+        
+        # Création de la courbe R/P
+        plt.plot(rappels, precisions) 
+        plt.xlabel("Recall") 
+        plt.ylabel("Precision") 
+        plt.title(f"R/P {self.sortie} voisins de l'image n°{match}") 
+    
+        # Enregistrement de la courbe R/P
+        save_folder = os.path.join(".", match)
+        if not os.path.exists(save_folder): 
+            os.makedirs(save_folder) 
+        
+        save_name = os.path.join(save_folder, f'{match}.png') 
+        plt.savefig(save_name, format='png', dpi=600) 
+        plt.close()  # Fermer la figure pour libérer les ressources
+    
+        # Affichage de la courbe R/P
+        img = cv2.imread(save_name, 1)  # Charger l'image en couleur 
+        b, g, r = cv2.split(img)  # Séparer les canaux
+        img = cv2.merge([r, g, b])  # Convertir en RGB
+        
+        # Convertir l'image en QImage pour l'affichage dans l'interface
+        height, width, channel = img.shape 
+        bytesPerLine = 3 * width 
+        qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888) 
+        pixmap = QtGui.QPixmap.fromImage(qImg) 
+        
+        # Ajuster l'image dans la taille du label
+        width = self.label_requete.frameGeometry().width() 
+        height = self.label_requete.frameGeometry().height() 
+        
+        self.label_courbe.setAlignment(QtCore.Qt.AlignCenter) 
+        self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        
+    def average_precision(rappels, precisions):
         """
         Calcule l'Average Precision (AP) en intégrant la courbe de précision-rappel.
         """
@@ -806,75 +772,27 @@ class Ui_MainWindow(object):
         
         # AP en intégrant la courbe
         ap = np.sum((rappels[1:] - rappels[:-1]) * precisions[1:])
-        
-        # Si la précision est constante (par exemple, 1.0), l'AP doit aussi renvoyer une valeur correcte
-        if np.all(rappels == 1.0):
-            return precisions[0]  # Retourne la précision de la première valeur, ce qui est toujours 1.0
-        
         self.valeurAP.setText(f"average_precision = {ap}")
         return ap
-    def mean_average_precision(self, liste_AP):
+    
+    def mean_average_precision(liste_AP):
         """
         Calcule la Mean Average Precision (mAP) en moyennant les AP de plusieurs requêtes.
         """
         if not liste_AP:
             return 0.0
-        
-        # Si toutes les AP sont égales, renvoyer cette valeur directement
-        if np.all(np.array(liste_AP) == liste_AP[0]):
-            return liste_AP[0]  # Retourne directement la première valeur, car toutes les AP sont identiques
-    
-        # Calcul de la moyenne des précisions moyennes
+        self.valeurMaP.setText(f"mean_average_precision = {np.mean(liste_AP)}")
         return np.mean(liste_AP)
-
     
-    def r_precision(self, rappel_precision, R):
+    
+    def r_precision(rappel_precision, R):
         """
         Calcule la R-Precision : la précision au rang R (nombre d'éléments pertinents dans les R premiers résultats).
         """
         if R <= 0 or R > len(rappel_precision):
-            print("Erreur : R doit être un nombre valide entre 1 et la taille de la liste.")
             return 0.0
-        
-        # Calcul de la R-Precision
+        self.valeurRP.setText(f"rappel_precision = {sum(rappel_precision[:R]) / R}")
         return sum(rappel_precision[:R]) / R
-
-
-
-    def calculer_metriques(self):
-        """Calcul des métriques à partir des vraies données et affichage des résultats."""
-    
-        # Appeler la fonction rappel_precision() pour obtenir les valeurs de rappel et précision
-        rappels, precisions, rappel_precision = self.rappel_precision()  # récupérer les résultats de rappel et précision
-        # Calculer les métriques
-        ap = self.average_precision(rappels, precisions)  # Calculer l'Average Precision
-        map_value = self.mean_average_precision([ap])  # Calculer la Mean Average Precision (mAP)
-        if self.comboBoxTop.currentText() == "Top20":
-            R = 20
-        if self.comboBoxTop.currentText() == "Top50":
-            R = 50 
-        rp = self.r_precision(rappel_precision, R)  # Calculer la R-Precision
-        
-        # Afficher les résultats dans les labels
-        self.valeur_AP.setText(f"{ap:.4f}")
-        self.valeurMaP.setText(f"{map_value:.4f}")
-        self.valeurRP.setText(f"{rp:.4f}")
-        
-    def calculer_metriques_et_rappel(self):
-        """Appelle les fonctions rappel_precision et calculer_metriques."""
-        # Appeler la fonction rappel_precision pour calculer les valeurs
-        rappels, precisions, rappel_precision = self.rappel_precision()  # Cette ligne doit renvoyer les bonnes données
-        
-        # Vérifier si les rappels et précisions ne sont pas vides avant de continuer
-        if not rappels or not precisions or not rappel_precision:
-            print("Erreur dans le calcul des rappels ou précisions.")
-            return
-        
-        # Appeler la fonction calculer_metriques pour afficher les résultats dans les labels
-        self.calculer_metriques()  # Cela calcule et affiche les métriques (AP, mAP, R-Precision)
-
-
-
 
         
     def exit(self, MainWindow):
