@@ -7,6 +7,13 @@ from skimage.transform import resize
 from skimage import exposure
 from skimage import io, color, img_as_ubyte
 from matplotlib import pyplot as plt
+import torch 
+import torchvision.transforms as transforms 
+import torchvision.models as models 
+from PIL import Image 
+import operator, math, os, glob 
+import torch.nn as nn 
+from matplotlib.pyplot import imread as pyimread
 from skimage.feature import hog, greycomatrix, greycoprops, local_binary_pattern
 
 def showDialog():

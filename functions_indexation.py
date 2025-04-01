@@ -7,6 +7,13 @@ from skimage.transform import resize
 from skimage import exposure
 from skimage import io, color, img_as_ubyte
 from matplotlib import pyplot as plt
+import torch 
+import torchvision.transforms as transforms 
+import torchvision.models as models 
+from PIL import Image 
+import operator, math, os, glob 
+import torch.nn as nn 
+from matplotlib.pyplot import imread as pyimread
 from skimage.feature import greycomatrix, greycoprops, local_binary_pattern
 import time
 
@@ -412,3 +419,54 @@ def generateLBP(filenames, progressBar):
                 i += 1
                 progressBar.setValue(int(100 * (i / total_images)))
     print(f"Indexation GLCM terminee en {time.time() - start:.2f} secondes !!!!")
+
+#-----------------------------------------------------------------------------------------------
+
+
+
+
+def generateVGG16(filenames, progressBar):
+    start = time.time()
+    if not os.path.isdir("VGG16"):
+        os.mkdir("VGG16")
+    
+    # Compter le nombre total d'images pour la barre de progression
+    total_images = sum(len(files) for _, _, files in os.walk(filenames) if any(f.endswith((".jpg", ".png", ".jpeg")) for f in files))
+    if total_images == 0:
+        print("Aucune image trouvee !")
+        return
+    
+    
+    feature_extractor = models.vgg16(pretrained=True)
+    feature_extractor.eval()  # Mode évaluation
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #feature_extractor.to(device)
+    
+    transform = transforms.Compose([
+      transforms.Resize((224, 224)),  # Taille standard de VGG16
+      transforms.ToTensor(),
+      transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+    def extract_features(image_path):
+      image = Image.open(image_path).convert("RGB")
+      image = transform(image).unsqueeze(0)
+      with torch.no_grad():
+        features = feature_extractor(image)
+      return features.cpu().numpy().squeeze().flatten()
+
+    i = 0
+    for root, _, files in os.walk(filenames):  # Parcours recursif des sous-dossiers
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png')):  # Verifier les extensions
+                img_path = os.path.join(root, file)
+                
+                feature = extract_features(img_path)
+
+                num_image = os.path.splitext(file)[0]
+                np.savetxt("VGG16/"+str(num_image)+".txt" ,feature)
+                
+                # Mise a jour de la barre de progression
+                i += 1
+                progressBar.setValue(int(100 * (i / total_images)))
+                
+    print(f"Indexation VGG16 terminee en {time.time() - start:.2f} secondes !!!")
