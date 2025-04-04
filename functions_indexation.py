@@ -426,14 +426,9 @@ def generateLBP(filenames, progressBar):
     print(f"Indexation GLCM terminee en {time.time() - start:.2f} secondes !!!!")
 
 
-def Embedding(filenames, progressBar, input_file="captions.json", output_text_file="text_embeddings.pkl", output_image_file="image_embeddings.pkl"):
-
+def embedding_text(input_file="captions.json", output_text_file="text_embeddings.pkl", progressBar=None):
     try:
-        print("Début de l'extraction des embeddings...")
-        progressBar.setValue(0)  # Initialisation de la barre de progression
-
-        # ------ Traitement du texte ------
-        print("\nTraitement des descriptions textuelles...")
+        print("Début du traitement des descriptions textuelles...")
 
         # Charger le fichier contenant les descriptions textuelles
         with open(input_file, "r") as f:
@@ -442,36 +437,54 @@ def Embedding(filenames, progressBar, input_file="captions.json", output_text_fi
 
         if not descriptions:
             print("Le fichier JSON est vide.")
-            progressBar.setValue(100)  # Compléter la barre en cas d'erreur
+            if progressBar:
+                progressBar.setValue(100)
             return
 
         # Charger le modèle Sentence Transformer
-        text_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')  # 768 dimensions
+        text_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
         # Transformer les descriptions en embeddings avec mise à jour de la barre
         print("Génération des embeddings textuels...")
         text_embeddings = {}
         total_texts = len(descriptions)
+
         for i, (img, desc) in enumerate(descriptions.items()):
             text_embeddings[img] = text_model.encode(desc)
-            progressBar.setValue(int((i + 1) / total_texts * 40))  # Mise à jour (40% max pour le texte)
+            if progressBar:
+                progressBar.setValue(int((i + 1) / total_texts * 100))  # Mise à jour de la barre de progression (100%)
 
         # Sauvegarde des embeddings textuels
         with open(output_text_file, "wb") as f:
             pickle.dump(text_embeddings, f)
         print(f"Embeddings textuels sauvegardés dans {output_text_file}")
 
-        # ------ Traitement des images ------
-        print("\nTraitement des images...")
+    except FileNotFoundError:
+        print(f"Erreur : Le fichier {input_file} est introuvable.")
+        if progressBar:
+            progressBar.setValue(100)
+    except json.JSONDecodeError:
+        print(f"Erreur : Le fichier {input_file} n'est pas un JSON valide.")
+        if progressBar:
+            progressBar.setValue(100)
+    except Exception as e:
+        print(f"Une erreur inattendue est survenue : {e}")
+        if progressBar:
+            progressBar.setValue(100)
+
+
+def embedding_image(filenames, output_image_file="image_embeddings.pkl", progressBar=None):
+    try:
+        print("Début du traitement des images...")
 
         # Charger un modèle pré-entraîné pour extraire les features des images
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        image_model = models.vit_l_16(pretrained=True)  # Large model produit 768 dimensions
+        image_model = models.vit_b_16(pretrained=True)  # Vision Transformer large (384 dimensions)
         image_model.heads = torch.nn.Identity()  # Supprimer la dernière couche de classification
         image_model = image_model.to(device)
         image_model.eval()
 
-        # Définition des transformations pour prétraiter les images
+        # Définir les transformations pour prétraiter les images
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -490,7 +503,8 @@ def Embedding(filenames, progressBar, input_file="captions.json", output_text_fi
 
         if total_images == 0:
             print("Aucun fichier image trouvé.")
-            progressBar.setValue(100)  # Compléter la barre en cas d'erreur
+            if progressBar:
+                progressBar.setValue(100)
             return
 
         # Extraction des embeddings des images avec mise à jour de la barre
@@ -511,24 +525,24 @@ def Embedding(filenames, progressBar, input_file="captions.json", output_text_fi
             except Exception as e:
                 print(f"Erreur avec {file_name} : {e}")
 
-            progressBar.setValue(40 + int((i + 1) / total_images * 60))  # Mise à jour (60% max pour les images)
+            if progressBar:
+                progressBar.setValue(int(40 + (i + 1) / total_images * 60))  # Mise à jour de la barre (60% max pour les images)
 
         # Sauvegarde des embeddings d'images
         with open(output_image_file, "wb") as f:
             pickle.dump(image_embeddings, f)
 
         print(f"Embeddings d'images sauvegardés dans {output_image_file}")
-        progressBar.setValue(100)  # Terminer la barre de progression
 
     except FileNotFoundError:
-        print(f"Erreur : Le fichier {input_file} ou le dossier {filenames} est introuvable.")
-        progressBar.setValue(100)
-    except json.JSONDecodeError:
-        print(f"Erreur : Le fichier {input_file} n'est pas un JSON valide.")
-        progressBar.setValue(100)
+        print(f"Erreur : Le dossier {filenames} est introuvable.")
+        if progressBar:
+            progressBar.setValue(100)
     except Exception as e:
         print(f"Une erreur inattendue est survenue : {e}")
-        progressBar.setValue(100)
+        if progressBar:
+            progressBar.setValue(100)
+
 
 
 
