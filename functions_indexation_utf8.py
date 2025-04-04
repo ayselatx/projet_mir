@@ -435,7 +435,7 @@ def generateVGG16(filenames, progressBar):
         return
     
     
-    feature_extractor = models.vgg16(pretrained=False)
+    feature_extractor = models.vgg16(pretrained=True)
     feature_extractor.eval()  
     
     transform = transforms.Compose([
@@ -445,11 +445,12 @@ def generateVGG16(filenames, progressBar):
     ])
     
     def extract_features(image_path):
-      image = Image.open(image_path).convert("RGB")
-      image = transform(image).unsqueeze(0)
-      with torch.no_grad():
-        features = feature_extractor(image)
-      return features.cpu().numpy().squeeze().flatten()
+        image = Image.open(image_path).convert("RGB")
+        image = transform(image).unsqueeze(0)
+        with torch.no_grad():
+            features = feature_extractor(image)  # Extraire les features convolutionnels
+        return features.cpu().numpy().squeeze().flatten()  # La sortie sera de taille 25088
+
 
     i = 0
     for root, _, files in os.walk(filenames):  # Parcours recursif des sous-dossiers
@@ -481,7 +482,7 @@ def generateVGG19(filenames, progressBar):
         return
     
     
-    feature_extractor = models.vgg19(pretrained=False)
+    feature_extractor = models.vgg19(pretrained=True)
     feature_extractor.eval()  
     
     transform = transforms.Compose([
@@ -491,11 +492,12 @@ def generateVGG19(filenames, progressBar):
     ])
     
     def extract_features(image_path):
-      image = Image.open(image_path).convert("RGB")
-      image = transform(image).unsqueeze(0)
-      with torch.no_grad():
-        features = feature_extractor(image)
-      return features.cpu().numpy().squeeze().flatten()
+        image = Image.open(image_path).convert("RGB")
+        image = transform(image).unsqueeze(0)
+        with torch.no_grad():
+            features = feature_extractor(image)  # Extraire les features convolutionnels
+        return features.cpu().numpy().squeeze().flatten()  # La sortie sera de taille 25088
+
 
     i = 0
     for root, _, files in os.walk(filenames):  # Parcours recursif des sous-dossiers

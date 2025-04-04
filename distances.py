@@ -11,6 +11,8 @@ from collections import Counter
 
 
 def euclidean(l1, l2):
+    print(len(l1))
+    print(len(l2))
     return math.dist(l1, l2)
 
 
