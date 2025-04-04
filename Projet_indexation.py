@@ -85,20 +85,25 @@ class Ui_MainWindow(object):
         self.checkBox_HOG.setObjectName("checkBox_HOG")
         
         self.checkBox_mini_LLM = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_mini_LLM.setGeometry(QtCore.QRect(140, 40, 71, 21))
+        self.checkBox_mini_LLM.setGeometry(QtCore.QRect(650, 40, 101, 21))
         self.checkBox_mini_LLM.setObjectName("checkBox_mini_LLM")
         self.checkBox_ViT = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_ViT.setGeometry(QtCore.QRect(270, 40, 71, 21))
+        self.checkBox_ViT.setGeometry(QtCore.QRect(800, 40, 61, 21))
         self.checkBox_ViT.setObjectName("checkBox_ViT")
+        self.checkBox_VGG16 = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_VGG16.setGeometry(QtCore.QRect(20, 40, 85, 21))
+        self.checkBox_VGG16.setObjectName("checkBox_VGG16")
+        self.checkBox_VGG19 = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_VGG19.setGeometry(QtCore.QRect(140, 40, 85, 21))
+        self.checkBox_VGG19.setObjectName("checkBox_VGG19")
         self.checkBox_MobileNet = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_MobileNet.setGeometry(QtCore.QRect(470, 40, 101, 21))
+        self.checkBox_MobileNet.setGeometry(QtCore.QRect(270, 40, 101, 21))
         self.checkBox_MobileNet.setObjectName("checkBox_MobileNet")
         self.checkBox_Inception = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Inception.setGeometry(QtCore.QRect(650, 40, 101, 21))
+        self.checkBox_Inception.setGeometry(QtCore.QRect(470, 40, 101, 21))
         self.checkBox_Inception.setObjectName("checkBox_Inception")
-        
         self.indexer_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.indexer_2.setGeometry(QtCore.QRect(930, 50, 71, 51))
+        self.indexer_2.setGeometry(QtCore.QRect(930, 65, 70, 51))
         self.indexer_2.setObjectName("indexer_2")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -131,9 +136,10 @@ class Ui_MainWindow(object):
         self.checkBox_GLCM.setText(_translate("MainWindow", "GLCM"))
         self.checkBox_LBP.setText(_translate("MainWindow", "LBP"))
         self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))
-        
         self.checkBox_mini_LLM.setText(_translate("MainWindow", "mini_LLM"))
         self.checkBox_ViT.setText(_translate("MainWindow", "ViT"))
+        self.checkBox_VGG16.setText(_translate("MainWindow", "VGG16"))
+        self.checkBox_VGG19.setText(_translate("MainWindow", "VGG19"))
         self.checkBox_MobileNet.setText(_translate("MainWindow", "MobileNet"))
         self.checkBox_Inception.setText(_translate("MainWindow", "Inception"))
         
@@ -227,8 +233,16 @@ class Ui_MainWindow(object):
         if self.Dossier_images and self.checkBox_ViT.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation.embedding_image(self.Dossier_images, self.progressBar)
+
+        if self.Dossier_images and self.checkBox_VGG16.isChecked():
+         	# Appel de la fonction de calcul du descripteur HOG
+            functions_indexation_utf8.generateVGG16(self.Dossier_images, self.progressBar)
             
-        if self.Dossier_images and self.checkBox_MobileNet.isChecked():
+        if self.Dossier_images and self.checkBox_VGG19.isChecked():
+         	# Appel de la fonction de calcul du descripteur HOG
+            functions_indexation_utf8.generateVGG19(self.Dossier_images, self.progressBar) 
+             
+        if self.Dossier_images and self.checkBox_VGG19.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation_utf8.generateMobileNet(self.Dossier_images, self.progressBar)
             
