@@ -1072,6 +1072,10 @@ class Ui_MainWindow(object):
                 k += 1
 
 
+
+
+
+
         
     def exit(self, MainWindow):
             sys.exit()
