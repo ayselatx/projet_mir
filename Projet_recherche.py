@@ -93,7 +93,7 @@ class Ui_MainWindow(object):
         self.checkBox_GLCM.setFont(font)
         self.checkBox_GLCM.setObjectName("checkBox_GLCM")
         self.checkBox_LBP = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_LBP.setGeometry(QtCore.QRect(210, 110, 81, 17))
+        self.checkBox_LBP.setGeometry(QtCore.QRect(360, 80, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -110,15 +110,6 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.checkBox_HOG.setFont(font)
         self.checkBox_HOG.setObjectName("checkBox_HOG")
-        self.checkBox_Moments = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Moments.setGeometry(QtCore.QRect(360, 80, 81, 16))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.checkBox_Moments.setFont(font)
-        self.checkBox_Moments.setObjectName("checkBox_Moments")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(10, 250, 431, 31))
         font = QtGui.QFont()
@@ -211,7 +202,7 @@ class Ui_MainWindow(object):
         self.Quitter.setFont(font)
         self.Quitter.setObjectName("Quitter")
         self.comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.comboBox.setGeometry(QtCore.QRect(560, 50, 131, 41))
+        self.comboBox.setGeometry(QtCore.QRect(560, 50, 350, 41))
         self.comboBox.setObjectName("comboBox")
         self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(460, 50, 101, 41))
@@ -226,7 +217,7 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         
         self.recherche_sur = QtWidgets.QLabel(self.centralwidget)
-        self.recherche_sur.setGeometry(QtCore.QRect(460, 100, 151, 41))
+        self.recherche_sur.setGeometry(QtCore.QRect(460, 200, 151, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -238,7 +229,7 @@ class Ui_MainWindow(object):
         self.recherche_sur.setObjectName("recherche_sur")
         
         self.checkBox_Image = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Image.setGeometry(QtCore.QRect(620, 100, 100, 41))
+        self.checkBox_Image.setGeometry(QtCore.QRect(620, 200, 100, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -247,7 +238,7 @@ class Ui_MainWindow(object):
         self.checkBox_Image.setFont(font)
         self.checkBox_Image.setObjectName("checkBox_Image")
         self.checkBox_Text = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Text.setGeometry(QtCore.QRect(705, 100, 70, 41))
+        self.checkBox_Text.setGeometry(QtCore.QRect(705, 200, 70, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -257,10 +248,10 @@ class Ui_MainWindow(object):
         self.checkBox_Text.setObjectName("checkBox_Text")
         
         self.comboBoxTop = QtWidgets.QComboBox(self.centralwidget)
-        self.comboBoxTop.setGeometry(QtCore.QRect(765, 50, 131, 41))
+        self.comboBoxTop.setGeometry(QtCore.QRect(850, 200, 131, 41))
         self.comboBoxTop.setObjectName("comboBoxTop")
         self.top_show = QtWidgets.QLabel(self.centralwidget)
-        self.top_show.setGeometry(QtCore.QRect(704, 50, 61, 41))
+        self.top_show.setGeometry(QtCore.QRect(785, 200, 61, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -389,14 +380,20 @@ class Ui_MainWindow(object):
 
 
         # Labels des résultats
-        self.resultAP = self.create_label(1020, 100, "AP :")
+        self.resultAP = self.create_label(1020, 150, "AP :")
+        self.resultAP.setGeometry(QtCore.QRect(1020, 100, 135, 41))
         self.valeur_AP = self.create_label(1160, 100, "")
+        self.valeur_AP.setGeometry(QtCore.QRect(1160, 100, 110, 41))
 
         self.resultMaP = self.create_label(1020, 150, "mAP :")
+        self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 135, 41))
         self.valeurMaP = self.create_label(1160, 150, "")
+        self.valeurMaP.setGeometry(QtCore.QRect(1160, 150, 110, 41))
 
         self.resultRP = self.create_label(1020, 200, "R-Precision :")
+        self.resultRP.setGeometry(QtCore.QRect(1020, 200, 135, 41))
         self.valeurRP = self.create_label(1160, 200, "")
+        self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 110, 41))
 
 
         
@@ -409,44 +406,7 @@ class Ui_MainWindow(object):
         # font.setWeight(75)
         # self.checkBox_autre.setFont(font)
         # self.checkBox_autre.setObjectName("checkBox_autre")
-        
-        self.checkBox_VGG16 = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_VGG16.setGeometry(QtCore.QRect(210, 140, 81, 17))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.checkBox_VGG16.setFont(font)
-        self.checkBox_VGG16.setObjectName("checkBox_VGG16")
-        self.checkBox_VGG19 = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_VGG19.setGeometry(QtCore.QRect(290, 140, 81, 17))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.checkBox_VGG19.setFont(font)
-        self.checkBox_VGG19.setObjectName("checkBox_VGG19")
-        self.checkBox_MobileNet = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_MobileNet.setGeometry(QtCore.QRect(360, 140, 81, 17))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.checkBox_MobileNet.setFont(font)
-        self.checkBox_MobileNet.setObjectName("checkBox_MobileNet")
-        self.checkBox_Inception = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Inception.setGeometry(QtCore.QRect(360, 110, 81, 17))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.checkBox_Inception.setFont(font)
-        self.checkBox_Inception.setObjectName("checkBox_Inception")
-        
+               
         
         self.charger = QtWidgets.QPushButton(self.centralwidget)
         self.charger.setGeometry(QtCore.QRect(10, 60, 151, 41))
@@ -457,15 +417,15 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.charger.setFont(font)
         self.charger.setObjectName("charger")
-        self.chargerText = QtWidgets.QPushButton(self.centralwidget)
-        self.chargerText.setGeometry(QtCore.QRect(10, 190, 151, 41))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.chargerText.setFont(font)
-        self.chargerText.setObjectName("chargerText")
+        # self.chargerText = QtWidgets.QPushButton(self.centralwidget)
+        # self.chargerText.setGeometry(QtCore.QRect(10, 190, 151, 41))
+        # font = QtGui.QFont()
+        # font.setFamily("Calibri")
+        # font.setPointSize(11)
+        # font.setBold(True)
+        # font.setWeight(75)
+        # self.chargerText.setFont(font)
+        # self.chargerText.setObjectName("chargerText")
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(10, 10, 181, 31))
         font = QtGui.QFont()
@@ -478,7 +438,7 @@ class Ui_MainWindow(object):
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.charger_desc = QtWidgets.QPushButton(self.centralwidget)
-        self.charger_desc.setGeometry(QtCore.QRect(10, 120, 190, 41))
+        self.charger_desc.setGeometry(QtCore.QRect(230, 140, 190, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -488,7 +448,7 @@ class Ui_MainWindow(object):
         self.charger_desc.setObjectName("charger_desc")
         
         self.search = QtWidgets.QPushButton(self.centralwidget)
-        self.search.setGeometry(QtCore.QRect(367, 190, 70, 41))
+        self.search.setGeometry(QtCore.QRect(375, 200, 70, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -499,7 +459,7 @@ class Ui_MainWindow(object):
         
         self.searchBar = QtWidgets.QLineEdit(self.centralwidget)
         self.searchBar.setPlaceholderText("Enter search term...")
-        self.searchBar.setGeometry(QtCore.QRect(200, 190, 160, 41))
+        self.searchBar.setGeometry(QtCore.QRect(10, 200, 360, 41))
 
         
         MainWindow.setCentralWidget(self.centralwidget)
@@ -514,7 +474,7 @@ class Ui_MainWindow(object):
         self.charger.clicked.connect(self.Ouvrir)
         self.charger_desc.clicked.connect(self.loadFeatures)
         self.search.clicked.connect(self.loadFeaturesText)
-        self.chargerText.clicked.connect(self.OuvrirText)
+        # self.chargerText.clicked.connect(self.OuvrirText)
         self.chercher.clicked.connect(self.Recherche)
         #self.calcul_RP.clicked.connect(self.rappel_precision )
         # Connecter le bouton calcul_RP à la nouvelle méthode
@@ -536,14 +496,7 @@ class Ui_MainWindow(object):
         self.checkBox_ORB.setText(_translate("MainWindow", "ORB"))
         self.checkBox_GLCM.setText(_translate("MainWindow", "GLCM"))
         self.checkBox_LBP.setText(_translate("MainWindow", "LBP"))
-        self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))
-        self.checkBox_Moments.setText(_translate("MainWindow", "Mom."))
-        
-        self.checkBox_VGG16.setText(_translate("MainWindow", "VGG16"))
-        self.checkBox_VGG19.setText(_translate("MainWindow", "VGG19"))
-        self.checkBox_MobileNet.setText(_translate("MainWindow", "MobileNet"))
-        self.checkBox_Inception.setText(_translate("MainWindow", "Inception"))
-        
+        self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))        
         self.label_2.setText(_translate("MainWindow", "Image requête"))
         self.label_4.setText(_translate("MainWindow", "Recherche"))
         self.label_5.setText(_translate("MainWindow", "Rappel/Précision"))
@@ -562,7 +515,7 @@ class Ui_MainWindow(object):
         self.resultRP.setText(_translate("MainWindow", "Calcul de RP :"))
         #self.checkBox_autre.setText(_translate("MainWindow", "Autre"))
         self.charger.setText(_translate("MainWindow", "Charger Image"))
-        self.chargerText.setText(_translate("MainWindow", "Charger Text"))
+        # self.chargerText.setText(_translate("MainWindow", "Charger Text"))
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
         self.search.setText(_translate("MainWindow", "Search"))
@@ -618,22 +571,7 @@ class Ui_MainWindow(object):
             folder_model = './LBP'
             #functions_recherche.generateLBP(filenames, self.progressBar)
             self.algo_choice = 7
-        if self.checkBox_VGG16.isChecked():
-            folder_model = './VGG16'
-            #functions_recherche.generateVGG16(filenames, self.progressBar)
-            self.algo_choice = 8
-        if self.checkBox_VGG19.isChecked():
-            folder_model = './VGG19'
-            #functions_recherche.generateVGG19(filenames, self.progressBar)
-            self.algo_choice = 9
-        if self.checkBox_MobileNet.isChecked():
-            folder_model = './MobileNet'
-            #functions_recherche.generateMobileNet(filenames, self.progressBar)
-            self.algo_choice = 10
-        if self.checkBox_Inception.isChecked():
-            folder_model = './Inception'
-            #functions_recherche.generateInception(filenames, self.progressBar)
-            self.algo_choice = 11            
+        
         # Nettoyage du layout
         for i in reversed(range(self.gridLayout.count())):
             self.gridLayout.itemAt(i).widget().setParent(None)
