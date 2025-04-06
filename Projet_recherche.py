@@ -170,7 +170,7 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName("label_4")
         
         self.label_5 = QtWidgets.QLabel(self.centralwidget)
-        self.label_5.setGeometry(QtCore.QRect(1020, 10, 251, 31))
+        self.label_5.setGeometry(QtCore.QRect(1020, 10, 300, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -200,9 +200,9 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         
         self.label_precision = QtWidgets.QLabel(self.centralwidget)
-        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 580, 251))
+        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 300 , 200))
         self.label_rappel = QtWidgets.QLabel(self.centralwidget)
-        self.label_rappel.setGeometry(QtCore.QRect(1020, 570, 251, 251))
+        self.label_rappel.setGeometry(QtCore.QRect(1020, 491, 300 , 200))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -223,32 +223,32 @@ class Ui_MainWindow(object):
 
         
         
-        # Créer une QScrollArea pour la box de précision et de rappel
-        self.scrollAreaPrecisionRecall = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollAreaPrecisionRecall.setGeometry(QtCore.QRect(1020, 290, 251, 400))  # Définir la taille de la zone défilante
-        self.scrollAreaPrecisionRecall.setWidgetResizable(True)  # Permet au contenu de se redimensionner
-        self.scrollAreaPrecisionRecall.setObjectName("scrollAreaPrecisionRecall")
+        # # Créer une QScrollArea pour la box de précision et de rappel
+        # self.scrollAreaPrecisionRecall = QtWidgets.QScrollArea(self.centralwidget)
+        # self.scrollAreaPrecisionRecall.setGeometry(QtCore.QRect(1020, 290, 251, 400))  # Définir la taille de la zone défilante
+        # self.scrollAreaPrecisionRecall.setWidgetResizable(True)  # Permet au contenu de se redimensionner
+        # self.scrollAreaPrecisionRecall.setObjectName("scrollAreaPrecisionRecall")
         
-        # Créer un widget pour contenir les labels precision et rappel
-        self.scrollAreaWidgetContentsPrecisionRecall = QtWidgets.QWidget()
-        self.scrollAreaWidgetContentsPrecisionRecall.setGeometry(QtCore.QRect(0, 0, 251, 251))  # Définir la taille du widget
-        self.scrollAreaWidgetContentsPrecisionRecall.setObjectName("scrollAreaWidgetContentsPrecisionRecall")
+        # # Créer un widget pour contenir les labels precision et rappel
+        # self.scrollAreaWidgetContentsPrecisionRecall = QtWidgets.QWidget()
+        # self.scrollAreaWidgetContentsPrecisionRecall.setGeometry(QtCore.QRect(0, 0, 251, 251))  # Définir la taille du widget
+        # self.scrollAreaWidgetContentsPrecisionRecall.setObjectName("scrollAreaWidgetContentsPrecisionRecall")
         
-        # Créer une disposition verticale pour les labels
-        self.layoutPrecisionRecall = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContentsPrecisionRecall)
-        self.layoutPrecisionRecall.setContentsMargins(0, 0, 0, 0)  # Supprimer les marges
+        # # Créer une disposition verticale pour les labels
+        # self.layoutPrecisionRecall = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContentsPrecisionRecall)
+        # self.layoutPrecisionRecall.setContentsMargins(0, 0, 0, 0)  # Supprimer les marges
         
-        # Ajouter les labels à la disposition
-        self.layoutPrecisionRecall.addWidget(self.label_precision)
-        self.layoutPrecisionRecall.addWidget(self.label_rappel)
+        # # Ajouter les labels à la disposition
+        # self.layoutPrecisionRecall.addWidget(self.label_precision)
+        # self.layoutPrecisionRecall.addWidget(self.label_rappel)
         
-        # Ajouter le widget contenant les labels dans la zone défilante
-        self.scrollAreaPrecisionRecall.setWidget(self.scrollAreaWidgetContentsPrecisionRecall)
+        # # Ajouter le widget contenant les labels dans la zone défilante
+        # self.scrollAreaPrecisionRecall.setWidget(self.scrollAreaWidgetContentsPrecisionRecall)
         
         
         
         self.Quitter = QtWidgets.QPushButton(self.centralwidget)
-        self.Quitter.setGeometry(QtCore.QRect(1120, 700, 150, 41))
+        self.Quitter.setGeometry(QtCore.QRect(1120, 700, 200, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -346,7 +346,7 @@ class Ui_MainWindow(object):
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
         self.label_9 = QtWidgets.QLabel(self.centralwidget)
-        self.label_9.setGeometry(QtCore.QRect(1020, 250, 251, 31))
+        self.label_9.setGeometry(QtCore.QRect(1020, 250, 300, 31))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -366,7 +366,7 @@ class Ui_MainWindow(object):
         self.chercher.setFont(font)
         self.chercher.setObjectName("chercher")
         self.calcul_RP = QtWidgets.QPushButton(self.centralwidget)
-        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 251, 41))
+        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 300, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -378,19 +378,19 @@ class Ui_MainWindow(object):
 
         # Labels des résultats
         self.resultAP = self.create_label(1020, 150, "AP :")
-        self.resultAP.setGeometry(QtCore.QRect(1020, 100, 135, 41))
-        self.valeur_AP = self.create_label(1160, 100, "")
-        self.valeur_AP.setGeometry(QtCore.QRect(1160, 100, 110, 41))
+        self.resultAP.setGeometry(QtCore.QRect(1020, 100, 200, 41))
+        self.valeur_AP = self.create_label(1230, 100, "")
+        self.valeur_AP.setGeometry(QtCore.QRect(1230, 100, 90, 41))
 
         self.resultMaP = self.create_label(1020, 150, "mAP :")
-        self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 135, 41))
-        self.valeurMaP = self.create_label(1160, 150, "")
-        self.valeurMaP.setGeometry(QtCore.QRect(1160, 150, 110, 41))
+        self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 200, 41))
+        self.valeurMaP = self.create_label(1230, 150, "")
+        self.valeurMaP.setGeometry(QtCore.QRect(1230, 150, 90, 41))
 
         self.resultRP = self.create_label(1020, 200, "R-Precision :")
-        self.resultRP.setGeometry(QtCore.QRect(1020, 200, 135, 41))
-        self.valeurRP = self.create_label(1160, 200, "")
-        self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 110, 41))
+        self.resultRP.setGeometry(QtCore.QRect(1020, 200, 200, 41))
+        self.valeurRP = self.create_label(1230, 200, "")
+        self.valeurRP.setGeometry(QtCore.QRect(1230, 200, 90, 41))
 
         self.charger = QtWidgets.QPushButton(self.centralwidget)
         self.charger.setGeometry(QtCore.QRect(10, 60, 181, 41))
@@ -473,7 +473,7 @@ class Ui_MainWindow(object):
         self.checkBox_CLIP.setText(_translate("MainWindow", "CLIP"))
         self.top_show.setText(_translate("MainWindow", "Top :"))
         self.label_8.setText(_translate("MainWindow", "Résultats"))
-        self.label_9.setText(_translate("MainWindow", "Courbe R/P"))
+        self.label_9.setText(_translate("MainWindow", "Courbe R et P"))
         self.chercher.setText(_translate("MainWindow", "Recherche"))
         self.calcul_RP.setText(_translate("MainWindow", "Calculer les métriques"))
         self.resultAP.setText(_translate("MainWindow", "Calcul de AP :"))
@@ -865,127 +865,131 @@ class Ui_MainWindow(object):
                 k += 1
 
     def rappel_precision(self): 
-            nb_images_pertinentes =0
-            nb_images_pertinentes_recuperees=0
-            liste_nb_images_pertinentes_recuperees = []
-            rappels = [] 
-            precisions = [] 
-            
-            #Race de l'image requête
-            filename_req = os.path.basename(fileName)
-            try:
-                classe_image_requete = filename_req.split("_")[3]
-                match = filename_req.split("_")[4]
-            except IndexError:
-                print(f"Erreur : Impossible d'extraire une classe depuis le nom {filename_req}")
-                return
-            
-            #Calcul du nombre d'images pertinentes
-            dossier_racine = "MIR_DATASETS_B"
-            for dossier_principal in os.listdir(dossier_racine):
-                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)
-                if os.path.isdir(chemin_dossier_principal):
-                    for dossier_race in os.listdir(chemin_dossier_principal):
-                        if dossier_race == classe_image_requete:
-                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_race)
-                            nb_images_pertinentes = len([
-                                f for f in os.listdir(chemin_dossier_race)
-                                if os.path.isfile(os.path.join(chemin_dossier_race, f))
-                            ])
-                            break
-            
-            if nb_images_pertinentes == 0:
-                print(f"Aucune image trouvée pour la classe {classe_image_requete}")
-                return
-            print(f'nb_images_pertinentes : {nb_images_pertinentes}')
-            
-            #Calcul du nombre d'image pertinentes récupérées
-            for i in range(self.sortie):
-                print(f'____________image {i+1}____________')
-                nom_proche = self.nom_image_plus_proches[i]
-                try:
-                    classe_image_proche = nom_proche.split("_")[3]
-                except IndexError:
-                    print(f"Erreur : Impossible d'extraire une classe depuis le nom {nom_proche}")
-                    liste_nb_images_pertinentes_recuperees.append(0)
-                    continue
-            
-                if classe_image_requete == classe_image_proche:
-                    liste_nb_images_pertinentes_recuperees.append(1)  # Bonne classe (pertinent)
-                    nb_images_pertinentes_recuperees+=1
-                    print('Bonne classe!')
-                else:
-                    liste_nb_images_pertinentes_recuperees.append(0)  # Mauvaise classe (non pertinent)
-                    print(f'nb_images_pertinentes_recuperees : {nb_images_pertinentes_recuperees}')
-                
-                #Calcul rappel et precision
-                
-                precision = nb_images_pertinentes_recuperees / (i + 1)  # Précision pour le voisin i
-                rappel = nb_images_pertinentes_recuperees / nb_images_pertinentes  # Rappel pour le voisin i
-                print(f'Rappel : {rappel}')
-                print(f'Precision : {precision}')
-                rappels.append(rappel)
-                precisions.append(precision)
-            
-            # Création de la courbe R/P
-            # Courbe 1 : Précision en fonction du nombre d’images
-            plt.figure(figsize=(8, 5))
-            plt.plot(range(1, len(precisions)+1), precisions, marker='o', color='blue')
-            plt.xlabel("Nombre d'images récupérées")
-            plt.ylabel("Précision")
-            plt.title(f"Courbe de Précision - Image {match}")
-            plt.grid(True)
-            
-            save_folder = os.path.join(".", match)
-            if not os.path.exists(save_folder): 
-                os.makedirs(save_folder) 
-            
-            save_precision = os.path.join(save_folder, f'{match}_precision.png')
-            plt.savefig(save_precision, format='png', dpi=600)
-            plt.close()
-            
-            # Courbe 2 : Rappel en fonction du nombre d’images
-            plt.figure(figsize=(8, 5))
-            plt.plot(range(1, len(rappels)+1), rappels, marker='o', color='green')
-            plt.xlabel("Nombre d'images récupérées")
-            plt.ylabel("Rappel")
-            plt.title(f"Courbe de Rappel - Image {match}")
-            plt.grid(True)
-            
-            save_rappel = os.path.join(save_folder, f'{match}_rappel.png')
-            plt.savefig(save_rappel, format='png', dpi=600)
-            plt.close()
-
-
+        nb_images_pertinentes = 0
+        nb_images_pertinentes_recuperees = 0
+        liste_nb_images_pertinentes_recuperees = []
+        rappels = [] 
+        precisions = [] 
         
-            # Affichage des courbes dans Qt (précision)
-            img_prec = cv2.imread(save_precision, 1)
-            b, g, r = cv2.split(img_prec)
-            img_prec = cv2.merge([r, g, b])
-            h, w, c = img_prec.shape
-            qImg_prec = QtGui.QImage(img_prec.data, w, h, 3 * w, QtGui.QImage.Format_RGB888)
-            pixmap_prec = QtGui.QPixmap.fromImage(qImg_prec)
-            self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
-            self.label_precision.setPixmap(pixmap_prec.scaled(w, h, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        # Race de l'image requête
+        filename_req = os.path.basename(fileName)
+        try:
+            classe_image_requete = filename_req.split("_")[3]
+            match = filename_req.split("_")[4]
+        except IndexError:
+            print(f"Erreur : Impossible d'extraire une classe depuis le nom {filename_req}")
+            return
+        
+        # Calcul du nombre d'images pertinentes
+        dossier_racine = "MIR_DATASETS_B"
+        for dossier_principal in os.listdir(dossier_racine):
+            chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)
+            if os.path.isdir(chemin_dossier_principal):
+                for dossier_race in os.listdir(chemin_dossier_principal):
+                    if dossier_race == classe_image_requete:
+                        chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_race)
+                        nb_images_pertinentes = len([
+                            f for f in os.listdir(chemin_dossier_race)
+                            if os.path.isfile(os.path.join(chemin_dossier_race, f))
+                        ])
+                        break
+        
+        if nb_images_pertinentes == 0:
+            print(f"Aucune image trouvée pour la classe {classe_image_requete}")
+            return
+        print(f'nb_images_pertinentes : {nb_images_pertinentes}')
+        
+        # Calcul du nombre d'images pertinentes récupérées
+        for i in range(self.sortie):
+            print(f'____________image {i+1}____________')
+            nom_proche = self.nom_image_plus_proches[i]
+            try:
+                classe_image_proche = nom_proche.split("_")[3]
+            except IndexError:
+                print(f"Erreur : Impossible d'extraire une classe depuis le nom {nom_proche}")
+                liste_nb_images_pertinentes_recuperees.append(0)
+                continue
+        
+            if classe_image_requete == classe_image_proche:
+                liste_nb_images_pertinentes_recuperees.append(1)
+                nb_images_pertinentes_recuperees += 1
+                print('Bonne classe!')
+            else:
+                liste_nb_images_pertinentes_recuperees.append(0)
+                print(f'nb_images_pertinentes_recuperees : {nb_images_pertinentes_recuperees}')
             
-            # Affichage des courbes dans Qt (rappel)
-            img_rapp = cv2.imread(save_rappel, 1)
-            b, g, r = cv2.split(img_rapp)
-            img_rapp = cv2.merge([r, g, b])
-            h, w, c = img_rapp.shape
-            qImg_rapp = QtGui.QImage(img_rapp.data, w, h, 3 * w, QtGui.QImage.Format_RGB888)
-            pixmap_rapp = QtGui.QPixmap.fromImage(qImg_rapp)
-            self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
-            self.label_rappel.setPixmap(pixmap_rapp.scaled(w, h, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            precision = nb_images_pertinentes_recuperees / (i + 1)
+            rappel = nb_images_pertinentes_recuperees / nb_images_pertinentes
+            print(f'Rappel : {rappel}')
+            print(f'Precision : {precision}')
+            rappels.append(rappel)
+            precisions.append(precision)
+        
+        # Sauvegarde des courbes
+        save_folder = os.path.join(".", match)
+        if not os.path.exists(save_folder): 
+            os.makedirs(save_folder) 
+        
+        save_precision = os.path.join(save_folder, f'{match}_precision.png')
+        save_rappel = os.path.join(save_folder, f'{match}_rappel.png')
+    
+        # Courbe Précision
+        plt.figure(figsize=(8, 5))
+        plt.plot(range(1, len(precisions)+1), precisions, marker='o', color='blue')
+        plt.xlabel("Nombre d'images récupérées")
+        plt.ylabel("Précision")
+        plt.title(f"Courbe de Précision - Image {match}")
+        plt.grid(True)
+        plt.savefig(save_precision, format='png', dpi=600)
+        plt.close()
+    
+        # Courbe Rappel
+        plt.figure(figsize=(8, 5))
+        plt.plot(range(1, len(rappels)+1), rappels, marker='o', color='green')
+        plt.xlabel("Nombre d'images récupérées")
+        plt.ylabel("Rappel")
+        plt.title(f"Courbe de Rappel - Image {match}")
+        plt.grid(True)
+        plt.savefig(save_rappel, format='png', dpi=600)
+        plt.close()
+    
+        # Affichage dans Qt
+        # Précision
+        img_prec = cv2.imread(save_precision, 1)
+        b, g, r = cv2.split(img_prec)
+        img_prec = cv2.merge([r, g, b])
+    
+        label_prec_width = self.label_precision.width()
+        label_prec_height = self.label_precision.height()
+        resized_prec = cv2.resize(img_prec, (label_prec_width, label_prec_height), interpolation=cv2.INTER_AREA)
+    
+        qImg_prec = QtGui.QImage(resized_prec.data, label_prec_width, label_prec_height, 3 * label_prec_width, QtGui.QImage.Format_RGB888)
+        pixmap_prec = QtGui.QPixmap.fromImage(qImg_prec)
+        self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_precision.setPixmap(pixmap_prec)
+    
+        # Rappel
+        img_rapp = cv2.imread(save_rappel, 1)
+        b, g, r = cv2.split(img_rapp)
+        img_rapp = cv2.merge([r, g, b])
+    
+        label_rapp_width = self.label_rappel.width()
+        label_rapp_height = self.label_rappel.height()
+        resized_rapp = cv2.resize(img_rapp, (label_rapp_width, label_rapp_height), interpolation=cv2.INTER_AREA)
+    
+        qImg_rapp = QtGui.QImage(resized_rapp.data, label_rapp_width, label_rapp_height, 3 * label_rapp_width, QtGui.QImage.Format_RGB888)
+        pixmap_rapp = QtGui.QPixmap.fromImage(qImg_rapp)
+        self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_rappel.setPixmap(pixmap_rapp)
+    
+        return rappels, precisions, liste_nb_images_pertinentes_recuperees
 
-            
-            return rappels, precisions, liste_nb_images_pertinentes_recuperees
 
     
     def create_label(self, x, y, text):
         """Crée un QLabel avec du style."""
         label = QtWidgets.QLabel(text, self.centralwidget)
-        label.setGeometry(QtCore.QRect(x, y, 135, 41))
+        label.setGeometry(QtCore.QRect(x, y, 250, 41))
         font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
         label.setFont(font)
         label.setFrameShape(QtWidgets.QFrame.Panel)
