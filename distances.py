@@ -118,24 +118,24 @@ def distance_f(l1,l2,distanceName):
             distance = cv2.compareHist(np.float32(l1), np.float32(l2), methode)
         elif distanceName=="Bhattacharyya":
             distance = bhatta(l1, l2)   
-    elif distanceName=="Brute force":
+    elif distanceName=="Brute Force":
         distance = bruteForceMatching(l1, l2)
-    elif distanceName=="Flann":
+    elif distanceName=="FLANN":
         distance= flann(l1,l2)
     return distance
 
-def getkVoisins(lfeatures, req, k,distanceName) : 
+def getkVoisins(lfeatures, req, k, distanceName):
     ldistances = [] 
     for i in range(len(lfeatures)): 
-        dist = distance_f(req, lfeatures[i][1],distanceName)
-        ldistances.append((lfeatures[i][0], lfeatures[i][1], dist)) 
-    if distanceName in ["Correlation","Intersection"]:
-        ordre=True
-    else:
-        ordre=False
-    ldistances.sort(key=operator.itemgetter(2),reverse=ordre) 
+        dist = distance_f(req, lfeatures[i][1], distanceName)  # lfeatures[i][1] = feature
+        ldistances.append((lfeatures[i][0], lfeatures[i][1], dist))  # image_path, feature, distance
 
-    lvoisins = [] 
-    for i in range(k): 
-        lvoisins.append(ldistances[i]) 
+    # Déterminer l'ordre du tri en fonction de la métrique choisie
+    ordre = True if distanceName in ["Correlation", "Intersection"] else False
+
+    # Tri des distances
+    ldistances.sort(key=operator.itemgetter(2), reverse=ordre)
+
+    # Retour des k plus proches voisins
+    lvoisins = ldistances[:k]
     return lvoisins

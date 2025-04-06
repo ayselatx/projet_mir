@@ -26,7 +26,12 @@ folder_model="MIR_DATASETS_B"
 import functions_recherche
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
+import torch
+import torchvision.transforms as transforms
 import pickle
+from PIL import Image
+import json
+from scipy.spatial.distance import cosine
 
 
 class Ui_MainWindow(object):
@@ -84,7 +89,7 @@ class Ui_MainWindow(object):
         self.checkBox_ORB.setFont(font)
         self.checkBox_ORB.setObjectName("checkBox_ORB")
         self.checkBox_GLCM = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_GLCM.setGeometry(QtCore.QRect(290, 110, 81, 17))
+        self.checkBox_GLCM.setGeometry(QtCore.QRect(245, 110, 81, 17))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -92,6 +97,15 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.checkBox_GLCM.setFont(font)
         self.checkBox_GLCM.setObjectName("checkBox_GLCM")
+        self.checkBox_ViT = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_ViT.setGeometry(QtCore.QRect(325, 110, 81, 17))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.checkBox_ViT.setFont(font)
+        self.checkBox_ViT.setObjectName("checkBox_ViT")
         self.checkBox_LBP = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_LBP.setGeometry(QtCore.QRect(360, 80, 81, 17))
         font = QtGui.QFont()
@@ -202,8 +216,13 @@ class Ui_MainWindow(object):
         self.Quitter.setFont(font)
         self.Quitter.setObjectName("Quitter")
         self.comboBox = QtWidgets.QComboBox(self.centralwidget)
-        self.comboBox.setGeometry(QtCore.QRect(570, 50, 335, 41))
+        self.comboBox.setGeometry(QtCore.QRect(570, 50, 200, 41))
         self.comboBox.setObjectName("comboBox")
+        self.comboBoxOrbSift = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBoxOrbSift.setGeometry(QtCore.QRect(775, 50, 200, 41))
+        self.comboBoxOrbSift.setObjectName("comboBoxOrbSift")
+        self.comboBoxOrbSift.setVisible(False)
+        self.comboBoxOrbSift.addItems(["Brute Force", "FLANN"])
         self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(460, 50, 101, 41))
         font = QtGui.QFont()
@@ -217,7 +236,7 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         
         self.recherche_sur = QtWidgets.QLabel(self.centralwidget)
-        self.recherche_sur.setGeometry(QtCore.QRect(460, 200, 151, 41))
+        self.recherche_sur.setGeometry(QtCore.QRect(460, 100, 151, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -229,7 +248,7 @@ class Ui_MainWindow(object):
         self.recherche_sur.setObjectName("recherche_sur")
         
         self.checkBox_Image = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Image.setGeometry(QtCore.QRect(620, 200, 100, 41))
+        self.checkBox_Image.setGeometry(QtCore.QRect(620, 100, 100, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -238,7 +257,7 @@ class Ui_MainWindow(object):
         self.checkBox_Image.setFont(font)
         self.checkBox_Image.setObjectName("checkBox_Image")
         self.checkBox_Text = QtWidgets.QCheckBox(self.centralwidget)
-        self.checkBox_Text.setGeometry(QtCore.QRect(705, 200, 70, 41))
+        self.checkBox_Text.setGeometry(QtCore.QRect(705, 100, 70, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -246,12 +265,25 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.checkBox_Text.setFont(font)
         self.checkBox_Text.setObjectName("checkBox_Text")
-        
+        self.checkBox_CLIP = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_CLIP.setGeometry(QtCore.QRect(790, 100, 70, 41))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.checkBox_CLIP.setFont(font)
+        self.checkBox_CLIP.setObjectName("checkBox_CLIP")
+        self.comboBoxCombine = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBoxCombine.setGeometry(QtCore.QRect(705, 200, 100, 41))
+        self.comboBoxCombine.setObjectName("comboBoxCombine")
+        self.comboBoxCombine.setVisible(True)
+
         self.comboBoxTop = QtWidgets.QComboBox(self.centralwidget)
-        self.comboBoxTop.setGeometry(QtCore.QRect(850, 200, 131, 41))
+        self.comboBoxTop.setGeometry(QtCore.QRect(545, 200, 301, 41))
         self.comboBoxTop.setObjectName("comboBoxTop")
         self.top_show = QtWidgets.QLabel(self.centralwidget)
-        self.top_show.setGeometry(QtCore.QRect(785, 200, 61, 41))
+        self.top_show.setGeometry(QtCore.QRect(460, 200, 61, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -284,7 +316,7 @@ class Ui_MainWindow(object):
         self.label_9.setAlignment(QtCore.Qt.AlignCenter)
         self.label_9.setObjectName("label_9")
         self.chercher = QtWidgets.QPushButton(self.centralwidget)
-        self.chercher.setGeometry(QtCore.QRect(910, 50, 101, 41))
+        self.chercher.setGeometry(QtCore.QRect(910, 200, 101, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -301,76 +333,7 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.calcul_RP.setFont(font)
         self.calcul_RP.setObjectName("calcul_RP")
-        
-        # self.valeur_AP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeur_AP.setGeometry(QtCore.QRect(1160, 100, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeur_AP.setFont(font)
-        # self.valeur_AP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeur_AP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeur_AP.setObjectName("valeur_AP")
-        # self.resultAP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultAP.setGeometry(QtCore.QRect(1020, 100, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultAP.setFont(font)
-        # self.resultAP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultAP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultAP.setObjectName("resultAP")
-        
-        # self.valeurMaP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeurMaP.setGeometry(QtCore.QRect(1160, 150, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeurMaP.setFont(font)
-        # self.valeurMaP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeurMaP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeurMaP.setObjectName("valeurMaP")
-        # self.resultMaP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultMaP.setGeometry(QtCore.QRect(1020, 150, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultMaP.setFont(font)
-        # self.resultMaP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultMaP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultMaP.setObjectName("resultMaP")
-        
-        # self.valeurRP = QtWidgets.QLabel(self.centralwidget)
-        # self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 108, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.valeurRP.setFont(font)
-        # self.valeurRP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.valeurRP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.valeurRP.setObjectName("valeurRP")
-        # self.resultRP = QtWidgets.QLabel(self.centralwidget)
-        # self.resultRP.setGeometry(QtCore.QRect(1020, 200, 135, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.resultRP.setFont(font)
-        # self.resultRP.setFrameShape(QtWidgets.QFrame.Panel)
-        # self.resultRP.setAlignment(QtCore.Qt.AlignCenter)
-        # self.resultRP.setObjectName("resultRP")
-        
+               
         
         # Bouton de calcul
         self.calcul_RP = QtWidgets.QPushButton("Calculer", self.centralwidget)
@@ -395,19 +358,6 @@ class Ui_MainWindow(object):
         self.valeurRP = self.create_label(1160, 200, "")
         self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 110, 41))
 
-
-        
-        # self.checkBox_autre = QtWidgets.QCheckBox(self.centralwidget)
-        # self.checkBox_autre.setGeometry(QtCore.QRect(380, 110, 81, 17))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.checkBox_autre.setFont(font)
-        # self.checkBox_autre.setObjectName("checkBox_autre")
-               
-        
         self.charger = QtWidgets.QPushButton(self.centralwidget)
         self.charger.setGeometry(QtCore.QRect(10, 60, 151, 41))
         font = QtGui.QFont()
@@ -417,15 +367,7 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.charger.setFont(font)
         self.charger.setObjectName("charger")
-        # self.chargerText = QtWidgets.QPushButton(self.centralwidget)
-        # self.chargerText.setGeometry(QtCore.QRect(10, 190, 151, 41))
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.chargerText.setFont(font)
-        # self.chargerText.setObjectName("chargerText")
+
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(10, 10, 181, 31))
         font = QtGui.QFont()
@@ -495,6 +437,7 @@ class Ui_MainWindow(object):
         self.checkBox_SIFT.setText(_translate("MainWindow", "SIFT"))
         self.checkBox_ORB.setText(_translate("MainWindow", "ORB"))
         self.checkBox_GLCM.setText(_translate("MainWindow", "GLCM"))
+        self.checkBox_ViT.setText(_translate("MainWindow", "ViT"))
         self.checkBox_LBP.setText(_translate("MainWindow", "LBP"))
         self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))        
         self.label_2.setText(_translate("MainWindow", "Image requête"))
@@ -505,6 +448,7 @@ class Ui_MainWindow(object):
         self.recherche_sur.setText(_translate("MainWindow", "Recherche Sur :"))
         self.checkBox_Image.setText(_translate("MainWindow", "Image"))
         self.checkBox_Text.setText(_translate("MainWindow", "Text"))
+        self.checkBox_CLIP.setText(_translate("MainWindow", "CLIP"))
         self.top_show.setText(_translate("MainWindow", "Top :"))
         self.label_8.setText(_translate("MainWindow", "Résultats"))
         self.label_9.setText(_translate("MainWindow", "Courbe R/P"))
@@ -519,6 +463,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
         self.search.setText(_translate("MainWindow", "Search"))
+
 
 
     def Ouvrir(self, MainWindow): 
@@ -542,48 +487,59 @@ class Ui_MainWindow(object):
     
         
     def loadFeatures(self, MainWindow):
-        folder_model = ""
+        folder_models = []
+        self.algo_choices = []  # Liste des choix d'algorithmes
         
         if self.checkBox_HistC.isChecked():
-            folder_model = './BGR'
-            self.algo_choice = 1
+            folder_models.append('./BGR')
+            self.algo_choices.append(1)
         if self.checkBox_HSV.isChecked():
-            folder_model = './HSV'
-            #functions_recherche.generateHistogramme_HSV(filenames, self.progressBar)
-            self.algo_choice = 2
+            folder_models.append('./HSV')
+            self.algo_choices.append(2)
         if self.checkBox_SIFT.isChecked():
-            folder_model = './SIFT'
-            #functions_recherche.generateSIFT(filenames, self.progressBar)
-            self.algo_choice = 3
+            folder_models.append('./SIFT')
+            self.algo_choices.append(3)
         if self.checkBox_ORB.isChecked():
-            folder_model = './ORB'
-            #functions_recherche.generateORB(filenames, self.progressBar)
-            self.algo_choice = 4
+            folder_models.append('./ORB')
+            self.algo_choices.append(4)
         if self.checkBox_GLCM.isChecked():
-            folder_model = './GLCM'
-            #functions_recherche.generateGLCM(filenames, self.progressBar)
-            self.algo_choice = 5
+            folder_models.append('./GLCM')
+            self.algo_choices.append(5)
         if self.checkBox_HOG.isChecked():
-            folder_model = './HOG'
-            #functions_recherche.generateGLCM(filenames, self.progressBar)
-            self.algo_choice = 6
+            folder_models.append('./HOG')
+            self.algo_choices.append(6)
         if self.checkBox_LBP.isChecked():
-            folder_model = './LBP'
-            #functions_recherche.generateLBP(filenames, self.progressBar)
-            self.algo_choice = 7
-        
+            folder_models.append('./LBP')
+            self.algo_choices.append(7)
+        if self.checkBox_ViT.isChecked():
+            folder_models.append('./ViT')
+            self.algo_choices.append(8)
+
         # Nettoyage du layout
         for i in reversed(range(self.gridLayout.count())):
             self.gridLayout.itemAt(i).widget().setParent(None)
     
         # Configuration du comboBox en fonction de l'algorithme choisi
         if filenames:
-            if self.algo_choice in [3, 4]:  # SIFT et ORB
-                self.comboBox.clear()
-                self.comboBox.addItems(["Brute force", "Flann"])
+            # Remise à zéro de la comboBox pour les distances
+            self.comboBox.clear()                
+
+            # Liste des distances à ajouter
+            distance_metrics = []
+
+            # Vérifier si SIFT ou ORB est sélectionné
+            if (len(self.algo_choices) == 1 and (3 in self.algo_choices or 4 in self.algo_choices)) or (len(self.algo_choices) == 2 and (3 in self.algo_choices and 4 in self.algo_choices)):
+                self.comboBox.addItems(["Brute force", "Flann"])  # Special options for SIFT and ORB
             else:
-                self.comboBox.clear()
-                self.comboBox.addItems(["Euclidienne", "Correlation", "Chi carre", "Intersection", "Bhattacharyya"])
+                if 3 in self.algo_choices or 4 in self.algo_choices:  # Si SIFT ou ORB sont sélectionnés
+                    self.comboBoxOrbSift.setVisible(True)
+                else:
+                    self.comboBoxOrbSift.setVisible(False)
+
+                # Vérifier si d'autres descripteurs nécessitent d'autres distances
+                if any(algo in self.algo_choices for algo in [1, 2, 5, 6, 7, 8]):  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
+                    self.comboBox.addItems(["Euclidienne", "Correlation", "Chi carre", "Intersection", "Bhattacharyya"])  # Default options for other algorithms
+
         if filenames:
             self.comboBoxTop.addItems(["Top20", "Top50"])
     
@@ -591,119 +547,260 @@ class Ui_MainWindow(object):
             print("Merci de charger une image avec le bouton Ouvrir")
             return
     
-        # Chargement des features
-        self.features1 = []
+        # Vérifier qu'au moins un descripteur est sélectionné
+        if not folder_models:
+            print("Merci de sélectionner au moins un descripteur.")
+            return
+        
+        # Chargement des features de chaque descripteur sélectionné
+        self.features1 = []  # Liste des features
         pas = 0
         print("Chargement des descripteurs en cours ...")
-    
-        if not os.path.exists(folder_model):
-            print(f"Erreur : le dossier {folder_model} n'existe pas !")
-            return
-        total_files = sum(1 for _, _, files in os.walk(folder_model) for file in files if file.endswith(".txt"))
-        for root, _, files in os.walk(folder_model):  # Parcours récursif
-            for file in files:
-                if not file.endswith(".txt"):
-                    continue
-                
-                feature_path = os.path.join(root, file)
-                feature = np.loadtxt(feature_path)
-                
-                image_name = os.path.basename(file).split('.')[0] + '.jpg'
-                image_path = os.path.join(filenames, image_name)
-    
-                self.features1.append((image_path, feature))
-    
-                pas += 1
-                self.progressBar.setValue(int(100 * ((pas + 1) / total_files)))
-    
-        # if not any([self.checkBox_SIFT.isChecked(), self.checkBox_HistC.isChecked(), 
-        #             self.checkBox_HSV.isChecked(), self.checkBox_ORB.isChecked()]):
-        #     print("Merci de sélectionner au moins un descripteur dans le menu")
-        #     showDialog()
-        #print(len(self.features1))
+        
+        count = 1 
+        total_files_all_folders = sum(1 for folder_model in folder_models for _, _, files in os.walk(folder_model) for file in files if file.endswith(".txt"))
+
+        for folder_model in folder_models:
+            if not os.path.exists(folder_model):
+                print(f"Erreur : le dossier {folder_model} n'existe pas !")
+                return
+            total_files = sum(1 for _, _, files in os.walk(folder_model) for file in files if file.endswith(".txt"))
+            for root, _, files in os.walk(folder_model):  # Parcours récursif
+                for file in files:
+                    if not file.endswith(".txt"):
+                        continue
+                    
+                    feature_path = os.path.join(root, file)
+                    feature = np.loadtxt(feature_path)
+                    
+                    image_name = os.path.basename(file).split('.')[0] + '.jpg'
+                    image_path = os.path.join(filenames, image_name)
+        
+                    self.features1.append((image_path, feature, self.algo_choices[count - 1]))
+        
+                    pas += 1
+                    progress_percentage = (pas / total_files_all_folders) * 100  # Calcul de la progression en pourcentage
+                    self.progressBar.setValue(int(progress_percentage))            
+            count +=1
+        print(f"Chargement terminé : {len(self.features1)} descripteurs chargés.")
+
         
     def Recherche(self, MainWindow):
-        # Remise à 0 de la grille des voisins
+        # Nettoyage de l'affichage précédent
         for i in reversed(range(self.gridLayout.count())):
             self.gridLayout.itemAt(i).widget().setParent(None)
-            voisins = ""
-    
-        if self.algo_choice != 0:
-            # Générer les features de l'image requête
-            req = extractReqFeatures(fileName, self.algo_choice)
-            # Définition du nombre de voisins
-            if self.comboBoxTop.currentText() == "Top20":
-                self.sortie = 20
-            if self.comboBoxTop.currentText() == "Top50":
-                self.sortie = 50 
-            # Aller chercher dans la liste de l'interface la distance choisie
-            distanceName = self.comboBox.currentText()
-            # Générer les voisins
-            voisins = getkVoisins(self.features1, req, self.sortie, distanceName)
-            self.path_image_plus_proches = []
-            self.nom_image_plus_proches = []
+        self.path_image_plus_proches = []
+        self.nom_image_plus_proches = []
+
+        if not self.algo_choices:
+            print("Il faut choisir au moins une méthode !")
+            return
+
+        # Définition du nombre de voisins
+        if self.comboBoxTop.currentText() == "Top20":
+            self.sortie = 20
+        elif self.comboBoxTop.currentText() == "Top50":
+            self.sortie = 50
+        else:
+            print("Erreur : Veuillez choisir un Top valide.")
+            return
+        
+        voisins_total = []
+        text_results = []
+
+        if self.checkBox_Image.isChecked():
+            for algo in self.algo_choices:
+                # Extraire les features de la requête pour l'algo courant
+                req = extractReqFeatures(fileName, algo)
+
+                # Filtrer les features de la base correspondant à l'algo courant
+                features_par_algo = [f for f in self.features1 if f[2] == algo]
+
+                if not features_par_algo:
+                    print(f"Aucun descripteur trouvé pour l'algorithme {algo}.")
+                    continue
+
+                # Calculer les voisins
+                if (len(self.algo_choices) == 1 and (algo == 3 or algo == 4)):
+                    distanceName = self.comboBox.currentText()
+                else:
+                    if algo in [3, 4]:
+                        distanceName = self.comboBoxOrbSift.currentText()
+                    if algo in [1, 2, 5, 6, 7, 8]:  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
+                        distanceName = self.comboBox.currentText()
+                voisins = getkVoisins(features_par_algo, req, self.sortie, distanceName)
+
+                # Normaliser les distances entre 0 et 1 si nécessaire (optionnel)
+                distances = [v[2] for v in voisins]
+                dmin, dmax = min(distances), max(distances)
+                if dmax > dmin:
+                    voisins = [(v[0], v[1], (v[2] - dmin) / (dmax - dmin)) for v in voisins]
+
+                voisins_total.extend(voisins)
+
+                if not voisins_total:
+                    print("Aucun voisin trouvé.")
+                    return
+
+                # Tri global des voisins (distance croissante ou décroissante selon la métrique)
+                ordre = True if distanceName in ["Correlation", "Intersection"] else False
+                voisins_total.sort(key=lambda x: x[2], reverse=ordre)
+
+                # Garder uniquement les K premiers voisins finaux
+                voisins_total = voisins_total[:self.sortie]
+
+
+        if self.checkBox_Text.isChecked():
+            query_text = self.searchBar.text().strip()  # Récupérer et nettoyer la requête
+            if query_text:
+                print(f"Recherche pour : {query_text}")
+                # Charger le modèle pour l'encodage du texte
+                model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+
+                # Charger les embeddings textuels et d'images
+                with open("text_embeddings.pkl", "rb") as f:
+                    text_embeddings = pickle.load(f)
+
+                with open("image_embeddings.pkl", "rb") as f:
+                    image_embeddings = pickle.load(f)
+
+                if not text_embeddings or not image_embeddings:
+                    print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
+                    return
+
+                # Encodage de la requête utilisateur
+                query_embedding = model.encode(query_text).reshape(1, -1)
+
+                # Calcul des similarités entre la requête et chaque image
+                similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
+
+                # Trier les images par score de similarité décroissant
+                sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+
+                # Sélectionner seulement le Top choisi (20 ou 50)
+                sorted_results = sorted_results[:self.sortie]
+
+                print(f"\nTop {self.sortie} résultats :")
+                for img, similarity in sorted_results:
+                    print(f"{img}: Similarité = {similarity:.4f}")
+
+                text_results = sorted_results
+
+        if self.checkBox_Image.isChecked() and self.checkBox_Text.isChecked():
+            combined_results = []
+            self.comboBoxCombine.clear()
+            self.comboBoxCombine.addItems(["Addition", "Multiplication"]) 
+
+            # Choisir la méthode de combinaison, ex: addition, multiplication
+            metric_choice = self.comboBoxCombine.currentText()  
+
+            if metric_choice == "Addition":
+                # Additionner les scores de similarité
+                for img, _, similarity in voisins_total:
+                    text_sim = next((sim for sim_img, sim in text_results if sim_img == img), 0)
+                    combined_similarity = similarity + text_sim
+                    combined_results.append((img, combined_similarity))
+
+            elif metric_choice == "Multiplication":
+                # Multiplier les scores de similarité
+                for img, similarity in voisins_total:
+                    text_sim = next((sim for sim_img, sim in text_results if sim_img == img), 0)
+                    combined_similarity = similarity * text_sim
+                    combined_results.append((img, combined_similarity))
+
+            # Trier les résultats combinés par similarité
+            combined_results.sort(key=lambda x: x[1], reverse=True)
             
+            # Garder les meilleurs résultats
+            combined_results = combined_results[:self.sortie]
+
+            # Ajouter les résultats combinés à self.path_image_plus_proches
+            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
+            for img, _ in combined_results:
+                image_name = os.path.basename(img)
+                chemin_parts = image_name.split("_")
+                if len(chemin_parts) >= 6:
+                    categorie = chemin_parts[4]  # chiens, poissons ou singes
+                    race = chemin_parts[5]  # race spécifique
+                    chemin_complet = os.path.join(base_path, categorie, race, image_name)
+                
+                if len(chemin_parts) == 5:
+                    categorie = chemin_parts[2]
+                    race = chemin_parts[3]
+                    img_number = chemin_parts[4]
+                    img = os.path.join(base_path, categorie, race, image_name)
+
+                self.path_image_plus_proches.append(img)
+                self.nom_image_plus_proches.append(img)
+                
+        elif self.checkBox_Image.isChecked():
+            # Reconstruction des chemins complets et affichage
             base_path = os.path.dirname(os.path.abspath(__file__))  # Récupérer le dossier du script
             base_path = os.path.join(base_path, "MIR_DATASETS_B")  # Construire le chemin vers MIR_DATASETS_B
             
             for k in range(self.sortie):
-                chemin_relatif = voisins[k][0]
+                chemin_relatif = voisins_total[k][0]
+                print(chemin_relatif)
                 image_name = chemin_relatif.split('/')[-1]
                 chemin_parts = chemin_relatif.split("_")
-                if len(chemin_parts) >= 4:
+                if len(chemin_parts) >= 6:
                     categorie = chemin_parts[4]  # chiens, poissons ou singes
                     race = chemin_parts[5]  # race spécifique
                     chemin_complet = os.path.join(base_path, categorie, race, image_name)
                 else:
-                    print(f"Erreur : Format de chemin invalide pour {chemin_complet}")
+                    print(f"Erreur : Format de chemin invalide pour {chemin_relatif}")
                     continue
-                
+
                 self.path_image_plus_proches.append(chemin_complet)
                 self.nom_image_plus_proches.append(image_name)
-            
-            # Nombre de colonnes pour l'affichage
-            col = 3
-            k = 0
-            
-            for i in range(math.ceil(self.sortie / col)):
-                for j in range(col):
-                    if k >= len(self.path_image_plus_proches):
-                        break
-                    
-                    chemin_image = self.path_image_plus_proches[k]
-                    
-                    # Vérifier si le fichier existe
-                    if not os.path.exists(chemin_image):
-                        print(f"Erreur : L'image {chemin_image} n'existe pas. Vérifiez le chemin.")
-                        k += 1
-                        continue
-                    
-                    # Charger l'image
-                    img = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
-                    if img is None:
-                        print(f"Erreur : Impossible de charger {chemin_image}. Format non supporté ou fichier corrompu.")
-                        k += 1
-                        continue
-                    
-                    # Convertir en RGB
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    
-                    # Convertir en QImage
-                    height, width, channel = img.shape
-                    bytesPerLine = 3 * width
-                    qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-                    pixmap = QtGui.QPixmap.fromImage(qImg)
-                    
-                    label = QtWidgets.QLabel("")
-                    label.setAlignment(QtCore.Qt.AlignCenter)
-                    label.setPixmap(pixmap.scaled(min(int(0.3 * width),150), min(150,int(0.3 * height)), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-                    self.gridLayout.addWidget(label, i, j)
-                    
-                    k += 1
-        else:
-            print("Il faut choisir une méthode !")
 
         
+        elif self.checkBox_Text.isChecked():
+            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
+            for img, _ in text_results:
+                image_name = os.path.basename(img)
+                chemin_parts = image_name.split("_")
+                if len(chemin_parts) == 5:
+                        categorie = chemin_parts[2]
+                        race = chemin_parts[3]
+                        img_number = chemin_parts[4]
+                        img = os.path.join(base_path, categorie, race, image_name)
+                self.path_image_plus_proches.append(img)
+                self.nom_image_plus_proches.append(img)
+
+        # Affichage dans la grille
+        col = 3
+        k = 0
+        for i in range(math.ceil(len(self.path_image_plus_proches) / col)):
+            for j in range(col):
+                if k >= len(self.path_image_plus_proches):
+                    break
+
+                chemin_image = self.path_image_plus_proches[k]
+                if not os.path.exists(chemin_image):
+                    print(f"Erreur : L'image {chemin_image} n'existe pas.")
+                    k += 1
+                    continue
+
+                img = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
+                if img is None:
+                    print(f"Erreur : Impossible de charger {chemin_image}.")
+                    k += 1
+                    continue
+
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                h, w, c = img.shape
+                bytesPerLine = 3 * w
+                qImg = QtGui.QImage(img.data, w, h, bytesPerLine, QtGui.QImage.Format_RGB888)
+                pixmap = QtGui.QPixmap.fromImage(qImg)
+
+                label = QtWidgets.QLabel("")
+                label.setAlignment(QtCore.Qt.AlignCenter)
+                label.setPixmap(pixmap.scaled(min(int(0.3 * w), 150), min(150, int(0.3 * h)),
+                                            QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+                self.gridLayout.addWidget(label, i, j)
+
+                k += 1
 
     def rappel_precision(self): 
             rappel_precision = [] 
