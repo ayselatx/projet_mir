@@ -1,18 +1,10 @@
 import math
 import cv2
-#from sklearn.metrics.pairwise import euclidean_distances
 import numpy as np
-from skimage import feature
-from matplotlib import pyplot as plt
-from skimage.feature import hog, greycomatrix, greycoprops, local_binary_pattern
 import operator
-import collections 
-from collections import Counter
 
 
 def euclidean(l1, l2):
-    print(len(l1))
-    print(len(l2))
     return math.dist(l1, l2)
 
 

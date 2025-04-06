@@ -1,21 +1,15 @@
-#Defintion de toute les fonctions à appeller dans l'interface
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
-import os
+from PyQt5.QtWidgets import  QMessageBox
 import cv2
 import numpy as np
 from skimage.transform import resize
-from skimage import exposure
-from skimage import io, color, img_as_ubyte
-from matplotlib import pyplot as plt
+from skimage import img_as_ubyte
 import torch 
 import torchvision.transforms as transforms 
 from sentence_transformers import SentenceTransformer
 import torchvision.models as models 
 from PIL import Image 
-import operator, math, os, glob 
-import torch.nn as nn 
-from matplotlib.pyplot import imread as pyimread
-from skimage.feature import hog, greycomatrix, greycoprops, local_binary_pattern
+import os
+from skimage.feature import greycomatrix, greycoprops, local_binary_pattern
 
 def showDialog():
     msgBox = QMessageBox()
@@ -23,7 +17,6 @@ def showDialog():
     msgBox.setText("Merci de sélectionner un descripteur via le menu ci-dessus")
     msgBox.setWindowTitle("Pas de Descripteur sélectionné")
     msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    returnValue = msgBox.exec()
 
 def generateHistogramme_HSV(filenames, progressBar):
     
@@ -284,7 +277,6 @@ def extractReqFeatures(fileName,algo_choice):
     print(algo_choice)
     if fileName : 
         img = cv2.imread(fileName)
-        resized_img = resize(img, (128*4, 64*4))
             
         if algo_choice==1: #Couleurs
             histB = cv2.calcHist([img],[0],None,[256],[0,256])

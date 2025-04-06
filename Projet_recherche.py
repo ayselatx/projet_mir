@@ -223,29 +223,6 @@ class Ui_MainWindow(object):
 
         
         
-        # # Créer une QScrollArea pour la box de précision et de rappel
-        # self.scrollAreaPrecisionRecall = QtWidgets.QScrollArea(self.centralwidget)
-        # self.scrollAreaPrecisionRecall.setGeometry(QtCore.QRect(1020, 290, 251, 400))  # Définir la taille de la zone défilante
-        # self.scrollAreaPrecisionRecall.setWidgetResizable(True)  # Permet au contenu de se redimensionner
-        # self.scrollAreaPrecisionRecall.setObjectName("scrollAreaPrecisionRecall")
-        
-        # # Créer un widget pour contenir les labels precision et rappel
-        # self.scrollAreaWidgetContentsPrecisionRecall = QtWidgets.QWidget()
-        # self.scrollAreaWidgetContentsPrecisionRecall.setGeometry(QtCore.QRect(0, 0, 251, 251))  # Définir la taille du widget
-        # self.scrollAreaWidgetContentsPrecisionRecall.setObjectName("scrollAreaWidgetContentsPrecisionRecall")
-        
-        # # Créer une disposition verticale pour les labels
-        # self.layoutPrecisionRecall = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContentsPrecisionRecall)
-        # self.layoutPrecisionRecall.setContentsMargins(0, 0, 0, 0)  # Supprimer les marges
-        
-        # # Ajouter les labels à la disposition
-        # self.layoutPrecisionRecall.addWidget(self.label_precision)
-        # self.layoutPrecisionRecall.addWidget(self.label_rappel)
-        
-        # # Ajouter le widget contenant les labels dans la zone défilante
-        # self.scrollAreaPrecisionRecall.setWidget(self.scrollAreaWidgetContentsPrecisionRecall)
-        
-        
         
         self.Quitter = QtWidgets.QPushButton(self.centralwidget)
         self.Quitter.setGeometry(QtCore.QRect(1120, 700, 200, 41))
@@ -542,9 +519,6 @@ class Ui_MainWindow(object):
             # Remise à zéro de la comboBox pour les distances
             self.comboBox.clear()                
 
-            # Liste des distances à ajouter
-            distance_metrics = []
-
             # Vérifier si SIFT ou ORB est sélectionné
             if (len(self.algo_choices) == 1 and (3 in self.algo_choices or 4 in self.algo_choices)) or (len(self.algo_choices) == 2 and (3 in self.algo_choices and 4 in self.algo_choices)):
                 self.comboBox.addItems(["Brute force", "Flann"])  # Special options for SIFT and ORB
@@ -582,7 +556,6 @@ class Ui_MainWindow(object):
             if not os.path.exists(folder_model):
                 print(f"Erreur : le dossier {folder_model} n'existe pas !")
                 return
-            total_files = sum(1 for _, _, files in os.walk(folder_model) for file in files if file.endswith(".txt"))
             for root, _, files in os.walk(folder_model):  # Parcours récursif
                 for file in files:
                     if not file.endswith(".txt"):
@@ -601,26 +574,25 @@ class Ui_MainWindow(object):
                     self.progressBar.setValue(int(progress_percentage))            
             count +=1
         print(f"Chargement terminé : {len(self.features1)} descripteurs chargés.")
+    
 
         
     def Recherche(self, MainWindow):
-        # Vérification si aucune des cases à cocher n'est sélectionnée
         if not self.checkBox_Image.isChecked() and not self.checkBox_Text.isChecked():
-            # Afficher un message d'erreur
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Critical)
             msg.setWindowTitle("Erreur")
             msg.setText("Veuillez cocher au moins une des options : Image ou Text.")
             msg.exec_()
-            return  # Sortie de la fonction pour éviter la recherche
-        # Nettoyage de l'affichage précédent
+            return
+    
         for i in reversed(range(self.gridLayout.count())):
             self.gridLayout.itemAt(i).widget().setParent(None)
+    
         self.path_image_plus_proches = []
         self.nom_image_plus_proches = []
-
-        
-        # Définition du nombre de voisins
+        images_deja_ajoutees = set()
+    
         if self.comboBoxTop.currentText() == "Top20":
             self.sortie = 20
         elif self.comboBoxTop.currentText() == "Top50":
@@ -628,113 +600,110 @@ class Ui_MainWindow(object):
         else:
             print("Erreur : Veuillez choisir un Top valide.")
             return
-        
+    
         voisins_total = []
         text_results = []
-
+    
         if self.checkBox_Image.isChecked():
             if self.checkBox_CLIP.isChecked():
                 model = SentenceTransformer('clip-ViT-B-32')
                 model.eval()
                 image = Image.open(fileName).convert("RGB")
                 query_image_embedding = model.encode([image])[0].reshape(1, -1)
-
+    
                 with open("image_embeddings_CLIP.pkl", "rb") as f:
                     image_embeddings = pickle.load(f)
-
+    
                 sim_image = {
                     img: cosine_similarity(query_image_embedding, emb.reshape(1, -1))[0][0]
                     for img, emb in image_embeddings.items()
                 }
-                
-                sorted_img_sim = sorted(sim_image.items(), key=lambda x: x[1], reverse=True)[:self.sortie]
-                voisins_total = [(img, os.path.basename(img), score) for img, score in sorted_img_sim]
-
-
+    
+                sorted_img_sim = sorted(sim_image.items(), key=lambda x: x[1], reverse=True)
+    
+                for img, score in sorted_img_sim:
+                    nom = os.path.basename(img)
+                    if nom not in images_deja_ajoutees:
+                        voisins_total.append((img, nom, score))
+                        images_deja_ajoutees.add(nom)
+                    if len(voisins_total) >= self.sortie:
+                        break
+    
             else:
                 for algo in self.algo_choices:
-                    # Extraire les features de la requête pour l'algo courant
                     req = extractReqFeatures(fileName, algo)
-
-                    # Filtrer les features de la base correspondant à l'algo courant
                     features_par_algo = [f for f in self.features1 if f[2] == algo]
-
+    
                     if not features_par_algo:
                         print(f"Aucun descripteur trouvé pour l'algorithme {algo}.")
                         continue
-
-                    # Calculer les voisins
+    
                     if (len(self.algo_choices) == 1 and (algo == 3 or algo == 4)):
                         distanceName = self.comboBox.currentText()
                     else:
                         if algo in [3, 4]:
                             distanceName = self.comboBoxOrbSift.currentText()
-                        if algo in [1, 2, 5, 6, 7, 8]:  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
+                        if algo in [1, 2, 5, 6, 7, 8]:
                             distanceName = self.comboBox.currentText()
-                    voisins = getkVoisins(features_par_algo, req, self.sortie, distanceName)
-
-                    # Normaliser les distances entre 0 et 1 si nécessaire (optionnel)
+    
+                    voisins = getkVoisins(features_par_algo, req, self.sortie * 2, distanceName)
+    
                     distances = [v[2] for v in voisins]
                     dmin, dmax = min(distances), max(distances)
                     if dmax > dmin:
                         voisins = [(v[0], v[1], (v[2] - dmin) / (dmax - dmin)) for v in voisins]
-
-                    voisins_total.extend(voisins)
-
-                    if not voisins_total:
-                        print("Aucun voisin trouvé.")
-                        return
-
-                    # Tri global des voisins (distance croissante ou décroissante selon la métrique)
-                    ordre = True if distanceName in ["Correlation", "Intersection"] else False
-                    voisins_total.sort(key=lambda x: x[2], reverse=ordre)
-
-                    # Garder uniquement les K premiers voisins finaux
-                    voisins_total = voisins_total[:self.sortie]
-
-
+    
+                    for v in voisins:
+                        nom = os.path.basename(v[0])
+                        if nom not in images_deja_ajoutees:
+                            voisins_total.append(v)
+                            images_deja_ajoutees.add(nom)
+                        if len(voisins_total) >= self.sortie:
+                            break
+    
+                if not voisins_total:
+                    print("Aucun voisin trouvé.")
+                    return
+    
+                ordre = True if distanceName in ["Correlation", "Intersection"] else False
+                voisins_total.sort(key=lambda x: x[2], reverse=ordre)
+                voisins_total = voisins_total[:self.sortie]
+    
         if self.checkBox_Text.isChecked():
-            query_text = self.searchBar.text().strip()  # Récupérer et nettoyer la requête
+            query_text = self.searchBar.text().strip()
             if query_text:
                 print(f"Recherche pour : {query_text}")
-                # Charger le modèle pour l'encodage du texte
-
+    
                 if self.checkBox_CLIP.isChecked():
                     model = SentenceTransformer('clip-ViT-B-32')
-                    # Charger les embeddings textuels et d'images
                     with open("text_embeddings_CLIP.pkl", "rb") as f:
                         text_embeddings = pickle.load(f)
                     with open("image_embeddings_CLIP.pkl", "rb") as f:
                         image_embeddings = pickle.load(f)
                 else:
                     model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-                    # Charger les embeddings textuels et d'images
                     with open("text_embeddings_LLM.pkl", "rb") as f:
                         text_embeddings = pickle.load(f)
                     with open("image_embeddings_VIT.pkl", "rb") as f:
                         image_embeddings = pickle.load(f)
-
+    
                 if not text_embeddings or not image_embeddings:
                     print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
                     return
-
-                # Encodage de la requête utilisateur
+    
                 query_embedding = model.encode(query_text).reshape(1, -1)
-
-                # Calcul des similarités entre la requête et chaque image
+    
                 similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
-
-                # Trier les images par score de similarité décroissant
                 sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
-
-                # Sélectionner seulement le Top choisi (20 ou 50)
-                sorted_results = sorted_results[:self.sortie]
-
-                print(f"\nTop {self.sortie} résultats :")
-                for img, similarity in sorted_results:
-                    print(f"{img}: Similarité = {similarity:.4f}")
-
-                text_results = sorted_results
+    
+                for img, sim in sorted_results:
+                    nom = os.path.basename(img)
+                    if nom not in images_deja_ajoutees:
+                        text_results.append((img, sim))
+                        images_deja_ajoutees.add(nom)
+                    if len(text_results) >= self.sortie:
+                        break
+    
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -742,127 +711,113 @@ class Ui_MainWindow(object):
                 msg.setText("Veuillez entrer un texte de recherche.")
                 msg.exec_()
                 return
-
+    
         if self.checkBox_Image.isChecked() and self.checkBox_Text.isChecked():
             combined_results = []
             self.comboBoxCombine.clear()
-            self.comboBoxCombine.addItems(["Addition", "Multiplication"]) 
-
-            # Choisir la méthode de combinaison, ex: addition, multiplication
-            metric_choice = self.comboBoxCombine.currentText()  
-
+            self.comboBoxCombine.addItems(["Addition", "Multiplication"])
+            metric_choice = self.comboBoxCombine.currentText()
+    
             if metric_choice == "Addition":
-                # Additionner les scores de similarité
                 for img, _, similarity in voisins_total:
                     text_sim = next((sim for sim_img, sim in text_results if sim_img == img), 0)
                     combined_similarity = similarity + text_sim
                     combined_results.append((img, combined_similarity))
-
             elif metric_choice == "Multiplication":
-                # Multiplier les scores de similarité
                 for img, similarity in voisins_total:
                     text_sim = next((sim for sim_img, sim in text_results if sim_img == img), 0)
                     combined_similarity = similarity * text_sim
                     combined_results.append((img, combined_similarity))
-
-            # Trier les résultats combinés par similarité
-            combined_results.sort(key=lambda x: x[1], reverse=True)
-            
-            # Garder les meilleurs résultats
-            combined_results = combined_results[:self.sortie]
-
-            # Ajouter les résultats combinés à self.path_image_plus_proches
+    
+            seen = set()
+            final_combined = []
+            for img, sim in sorted(combined_results, key=lambda x: x[1], reverse=False):
+                nom = os.path.basename(img)
+                if nom not in seen:
+                    final_combined.append((img, sim))
+                    seen.add(nom)
+                if len(final_combined) >= self.sortie:
+                    break
+    
             base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
-            for img, _ in combined_results:
+            for img, _ in final_combined:
                 image_name = os.path.basename(img)
                 chemin_parts = image_name.split("_")
                 if len(chemin_parts) >= 6:
-                    categorie = chemin_parts[4]  # chiens, poissons ou singes
-                    race = chemin_parts[5]  # race spécifique
+                    categorie = chemin_parts[4]
+                    race = chemin_parts[5]
                     chemin_complet = os.path.join(base_path, categorie, race, image_name)
-                
-                if len(chemin_parts) == 5:
+                elif len(chemin_parts) == 5:
                     categorie = chemin_parts[2]
                     race = chemin_parts[3]
-                    img_number = chemin_parts[4]
-                    img = os.path.join(base_path, categorie, race, image_name)
-
-                self.path_image_plus_proches.append(img)
+                    chemin_complet = os.path.join(base_path, categorie, race, image_name)
+    
+                self.path_image_plus_proches.append(chemin_complet)
                 self.nom_image_plus_proches.append(img)
-                
+    
         elif self.checkBox_Image.isChecked():
-            # Reconstruction des chemins complets et affichage
-            base_path = os.path.dirname(os.path.abspath(__file__))  # Récupérer le dossier du script
-            base_path = os.path.join(base_path, "MIR_DATASETS_B")  # Construire le chemin vers MIR_DATASETS_B
-            
-            for k in range(self.sortie):
+            base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
+            for k in range(len(voisins_total)):
                 chemin_relatif = voisins_total[k][0]
-                print(chemin_relatif)
                 image_name = chemin_relatif.split('/')[-1]
                 chemin_parts = chemin_relatif.split("_")
                 if len(chemin_parts) >= 6:
-                    categorie = chemin_parts[4]  # chiens, poissons ou singes
-                    race = chemin_parts[5]  # race spécifique
+                    categorie = chemin_parts[4]
+                    race = chemin_parts[5]
                     chemin_complet = os.path.join(base_path, categorie, race, image_name)
                 elif len(chemin_parts) == 5:
                     categorie = chemin_parts[2]
                     race = chemin_parts[3]
                     chemin_complet = os.path.join(base_path, categorie, race, image_name)
                 else:
-                    print(f"Erreur : Format de chemin invalide pour {chemin_relatif}")
                     continue
-
+    
                 self.path_image_plus_proches.append(chemin_complet)
                 self.nom_image_plus_proches.append(image_name)
-
-        
+    
         elif self.checkBox_Text.isChecked():
             base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
             for img, _ in text_results:
                 image_name = os.path.basename(img)
                 chemin_parts = image_name.split("_")
                 if len(chemin_parts) == 5:
-                        categorie = chemin_parts[2]
-                        race = chemin_parts[3]
-                        img_number = chemin_parts[4]
-                        img = os.path.join(base_path, categorie, race, image_name)
+                    categorie = chemin_parts[2]
+                    race = chemin_parts[3]
+                    img = os.path.join(base_path, categorie, race, image_name)
                 self.path_image_plus_proches.append(img)
                 self.nom_image_plus_proches.append(img)
-        
-        
-        # Affichage dans la grille
+    
+        # Affichage
         col = 3
         k = 0
         for i in range(math.ceil(len(self.path_image_plus_proches) / col)):
             for j in range(col):
                 if k >= len(self.path_image_plus_proches):
                     break
-
+    
                 chemin_image = self.path_image_plus_proches[k]
                 if not os.path.exists(chemin_image):
-                    print(f"Erreur : L'image {chemin_image} n'existe pas.")
                     k += 1
                     continue
-
+    
                 img = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
                 if img is None:
-                    print(f"Erreur : Impossible de charger {chemin_image}.")
                     k += 1
                     continue
-
+    
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 h, w, c = img.shape
                 bytesPerLine = 3 * w
                 qImg = QtGui.QImage(img.data, w, h, bytesPerLine, QtGui.QImage.Format_RGB888)
                 pixmap = QtGui.QPixmap.fromImage(qImg)
-
+    
                 label = QtWidgets.QLabel("")
                 label.setAlignment(QtCore.Qt.AlignCenter)
                 label.setPixmap(pixmap.scaled(min(int(0.3 * w), 150), min(150, int(0.3 * h)),
-                                            QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+                                              QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
                 self.gridLayout.addWidget(label, i, j)
-
                 k += 1
+
 
     def rappel_precision(self): 
         nb_images_pertinentes = 0
