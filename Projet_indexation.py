@@ -90,6 +90,9 @@ class Ui_MainWindow(object):
         self.checkBox_ViT = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_ViT.setGeometry(QtCore.QRect(800, 40, 61, 21))
         self.checkBox_ViT.setObjectName("checkBox_ViT")
+        self.checkBox_CLIP = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_CLIP.setGeometry(QtCore.QRect(930, 40, 61, 21))
+        self.checkBox_CLIP.setObjectName("checkBox_CLIP")
         self.checkBox_VGG16 = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_VGG16.setGeometry(QtCore.QRect(20, 40, 85, 21))
         self.checkBox_VGG16.setObjectName("checkBox_VGG16")
@@ -138,6 +141,7 @@ class Ui_MainWindow(object):
         self.checkBox_HOG.setText(_translate("MainWindow", "HOG"))
         self.checkBox_mini_LLM.setText(_translate("MainWindow", "mini_LLM"))
         self.checkBox_ViT.setText(_translate("MainWindow", "ViT"))
+        self.checkBox_CLIP.setText(_translate("MainWindow", "CLIP"))
         self.checkBox_VGG16.setText(_translate("MainWindow", "VGG16"))
         self.checkBox_VGG19.setText(_translate("MainWindow", "VGG19"))
         self.checkBox_MobileNet.setText(_translate("MainWindow", "MobileNet"))
@@ -233,6 +237,10 @@ class Ui_MainWindow(object):
         if self.Dossier_images and self.checkBox_ViT.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation.embedding_image(self.Dossier_images, self.progressBar)
+        
+        if self.Dossier_images and self.checkBox_CLIP.isChecked():
+         	# Appel de la fonction de calcul du descripteur HOG
+            functions_indexation.embedding_imageCLIP(self.Dossier_images, self.progressBar)
 
         if self.Dossier_images and self.checkBox_VGG16.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
@@ -242,7 +250,7 @@ class Ui_MainWindow(object):
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation_utf8.generateVGG19(self.Dossier_images, self.progressBar) 
              
-        if self.Dossier_images and self.checkBox_VGG19.isChecked():
+        if self.Dossier_images and self.checkBox_MobileNet.isChecked():
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation_utf8.generateMobileNet(self.Dossier_images, self.progressBar)
             
@@ -250,7 +258,7 @@ class Ui_MainWindow(object):
          	# Appel de la fonction de calcul du descripteur HOG
             functions_indexation_utf8.generateInception(self.Dossier_images, self.progressBar)
                     
-        if not self.checkBox_SIFT.isChecked() and not self.checkBox_HistC.isChecked() and not self.checkBox_HSV.isChecked() and not self.checkBox_ORB.isChecked() and not self.checkBox_mini_LLM.isChecked() and not self.checkBox_ViT.isChecked() and not self.checkBox_MobileNet.isChecked() and not self.checkBox_Inception.isChecked() :
+        if not self.checkBox_SIFT.isChecked() and not self.checkBox_HistC.isChecked() and not self.checkBox_HSV.isChecked() and not self.checkBox_ORB.isChecked() and not self.checkBox_mini_LLM.isChecked() and not self.checkBox_ViT.isChecked() and not self.checkBox_MobileNet.isChecked() and not self.checkBox_Inception.isChecked() and not self.checkBox_CLIP.isChecked() :
             print("Merci de selectionner un descripteur via le Menu  ...")
             functions_indexation_utf8.showDialog()
 

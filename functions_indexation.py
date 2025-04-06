@@ -426,7 +426,7 @@ def generateLBP(filenames, progressBar):
     print(f"Indexation GLCM terminee en {time.time() - start:.2f} secondes !!!!")
 
 
-def embedding_text(progressBar, input_file="captions.json", output_text_file="text_embeddings.pkl"):
+def embedding_text(progressBar, input_file="captions.json", output_text_file="text_embeddings_LLM.pkl"):
     try:
         print("Début du traitement des descriptions textuelles...")
 
@@ -473,7 +473,7 @@ def embedding_text(progressBar, input_file="captions.json", output_text_file="te
             progressBar.setValue(100)
 
 
-def embedding_image(filenames, progressBar, output_image_file="image_embeddings.pkl"):
+def embedding_image(filenames, progressBar, output_image_file="image_embeddings_VIT.pkl"):
     try:
         print("Début du traitement des images...")
 
@@ -536,6 +536,103 @@ def embedding_image(filenames, progressBar, output_image_file="image_embeddings.
 
     except FileNotFoundError:
         print(f"Erreur : Le dossier {filenames} est introuvable.")
+        if progressBar:
+            progressBar.setValue(100)
+    except Exception as e:
+        print(f"Une erreur inattendue est survenue : {e}")
+        if progressBar:
+            progressBar.setValue(100)
+
+def embedding_imageCLIP(folder_path, progressBar, output_image_file="image_embeddings_CLIP.pkl", output_text_file="text_embeddings_CLIP.pkl", captions_file="captions.json"):
+    try:
+        print("Chargement du modèle CLIP...")
+        model = SentenceTransformer('clip-ViT-B-32')
+        model.eval()
+
+        # --------- TRAITEMENT DES IMAGES ---------
+        print("Début du traitement des images...")
+
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+        image_embeddings = {}
+
+        # Récupération des fichiers image dans le dossier
+        image_files = [
+            os.path.join(root, file)
+            for root, _, files in os.walk(folder_path)
+            for file in files if file.lower().endswith(('.jpg', '.jpeg', '.png'))
+        ]
+        total_images = len(image_files)
+
+        if total_images == 0:
+            print("Aucune image trouvée dans le dossier.")
+            if progressBar:
+                progressBar.setValue(100)
+            return
+
+        for i, img_path in enumerate(image_files):
+            file_name = os.path.basename(img_path)
+            try:
+                image = Image.open(img_path).convert("RGB")
+
+                # Extraire les embeddings avec CLIP
+                with torch.no_grad():
+                    embedding = model.encode([image])[0]
+
+                image_embeddings[file_name] = embedding
+
+            except Exception as e:
+                print(f"Erreur lors du traitement de l'image {file_name} : {e}")
+
+            if progressBar:
+                progressBar.setValue(int((i + 1) / (total_images + 1) * 50))  # Barre à 50% max pour images
+
+        # Sauvegarde des embeddings d’images
+        with open(output_image_file, "wb") as f:
+            pickle.dump(image_embeddings, f)
+
+        print(f"Embeddings d’images sauvegardés dans {output_image_file}")
+
+        # --------- TRAITEMENT DES DESCRIPTIONS TEXTUELLES ---------
+        print("Début du traitement des descriptions textuelles...")
+
+        with open(captions_file, "r", encoding="utf-8") as f:
+            descriptions = json.load(f)
+
+        if not descriptions:
+            print("Fichier captions.json vide.")
+            if progressBar:
+                progressBar.setValue(100)
+            return
+
+        text_embeddings = {}
+        total_texts = len(descriptions)
+
+        for i, (img_name, desc) in enumerate(descriptions.items()):
+            try:
+                embedding = model.encode(desc)
+                text_embeddings[img_name] = embedding
+            except Exception as e:
+                print(f"Erreur lors de l'encodage du texte pour {img_name} : {e}")
+
+            if progressBar:
+                progressBar.setValue(50 + int((i + 1) / total_texts * 50))  # Mise à jour barre de 50% à 100%
+
+        with open(output_text_file, "wb") as f:
+            pickle.dump(text_embeddings, f)
+
+        print(f"Embeddings textuels sauvegardés dans {output_text_file}")
+
+    except FileNotFoundError as fnf_error:
+        print(f"Erreur : {fnf_error}")
+        if progressBar:
+            progressBar.setValue(100)
+    except json.JSONDecodeError:
+        print(f"Erreur : Le fichier {captions_file} n'est pas un JSON valide.")
         if progressBar:
             progressBar.setValue(100)
     except Exception as e:

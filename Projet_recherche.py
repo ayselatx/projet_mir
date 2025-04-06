@@ -633,45 +633,64 @@ class Ui_MainWindow(object):
         text_results = []
 
         if self.checkBox_Image.isChecked():
-            for algo in self.algo_choices:
-                # Extraire les features de la requête pour l'algo courant
-                req = extractReqFeatures(fileName, algo)
+            if self.checkBox_CLIP.isChecked():
+                model = SentenceTransformer('clip-ViT-B-32')
+                model.eval()
+                image = Image.open(fileName).convert("RGB")
+                query_image_embedding = model.encode([image])[0].reshape(1, -1)
 
-                # Filtrer les features de la base correspondant à l'algo courant
-                features_par_algo = [f for f in self.features1 if f[2] == algo]
+                with open("image_embeddings_CLIP.pkl", "rb") as f:
+                    image_embeddings = pickle.load(f)
 
-                if not features_par_algo:
-                    print(f"Aucun descripteur trouvé pour l'algorithme {algo}.")
-                    continue
+                sim_image = {
+                    img: cosine_similarity(query_image_embedding, emb.reshape(1, -1))[0][0]
+                    for img, emb in image_embeddings.items()
+                }
+                
+                sorted_img_sim = sorted(sim_image.items(), key=lambda x: x[1], reverse=True)[:self.sortie]
+                voisins_total = [(img, os.path.basename(img), score) for img, score in sorted_img_sim]
 
-                # Calculer les voisins
-                if (len(self.algo_choices) == 1 and (algo == 3 or algo == 4)):
-                    distanceName = self.comboBox.currentText()
-                else:
-                    if algo in [3, 4]:
-                        distanceName = self.comboBoxOrbSift.currentText()
-                    if algo in [1, 2, 5, 6, 7, 8]:  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
+
+            else:
+                for algo in self.algo_choices:
+                    # Extraire les features de la requête pour l'algo courant
+                    req = extractReqFeatures(fileName, algo)
+
+                    # Filtrer les features de la base correspondant à l'algo courant
+                    features_par_algo = [f for f in self.features1 if f[2] == algo]
+
+                    if not features_par_algo:
+                        print(f"Aucun descripteur trouvé pour l'algorithme {algo}.")
+                        continue
+
+                    # Calculer les voisins
+                    if (len(self.algo_choices) == 1 and (algo == 3 or algo == 4)):
                         distanceName = self.comboBox.currentText()
-                voisins = getkVoisins(features_par_algo, req, self.sortie, distanceName)
+                    else:
+                        if algo in [3, 4]:
+                            distanceName = self.comboBoxOrbSift.currentText()
+                        if algo in [1, 2, 5, 6, 7, 8]:  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
+                            distanceName = self.comboBox.currentText()
+                    voisins = getkVoisins(features_par_algo, req, self.sortie, distanceName)
 
-                # Normaliser les distances entre 0 et 1 si nécessaire (optionnel)
-                distances = [v[2] for v in voisins]
-                dmin, dmax = min(distances), max(distances)
-                if dmax > dmin:
-                    voisins = [(v[0], v[1], (v[2] - dmin) / (dmax - dmin)) for v in voisins]
+                    # Normaliser les distances entre 0 et 1 si nécessaire (optionnel)
+                    distances = [v[2] for v in voisins]
+                    dmin, dmax = min(distances), max(distances)
+                    if dmax > dmin:
+                        voisins = [(v[0], v[1], (v[2] - dmin) / (dmax - dmin)) for v in voisins]
 
-                voisins_total.extend(voisins)
+                    voisins_total.extend(voisins)
 
-                if not voisins_total:
-                    print("Aucun voisin trouvé.")
-                    return
+                    if not voisins_total:
+                        print("Aucun voisin trouvé.")
+                        return
 
-                # Tri global des voisins (distance croissante ou décroissante selon la métrique)
-                ordre = True if distanceName in ["Correlation", "Intersection"] else False
-                voisins_total.sort(key=lambda x: x[2], reverse=ordre)
+                    # Tri global des voisins (distance croissante ou décroissante selon la métrique)
+                    ordre = True if distanceName in ["Correlation", "Intersection"] else False
+                    voisins_total.sort(key=lambda x: x[2], reverse=ordre)
 
-                # Garder uniquement les K premiers voisins finaux
-                voisins_total = voisins_total[:self.sortie]
+                    # Garder uniquement les K premiers voisins finaux
+                    voisins_total = voisins_total[:self.sortie]
 
 
         if self.checkBox_Text.isChecked():
@@ -679,14 +698,21 @@ class Ui_MainWindow(object):
             if query_text:
                 print(f"Recherche pour : {query_text}")
                 # Charger le modèle pour l'encodage du texte
-                model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
-                # Charger les embeddings textuels et d'images
-                with open("text_embeddings.pkl", "rb") as f:
-                    text_embeddings = pickle.load(f)
-
-                with open("image_embeddings.pkl", "rb") as f:
-                    image_embeddings = pickle.load(f)
+                if self.checkBox_CLIP.isChecked():
+                    model = SentenceTransformer('clip-ViT-B-32')
+                    # Charger les embeddings textuels et d'images
+                    with open("text_embeddings_CLIP.pkl", "rb") as f:
+                        text_embeddings = pickle.load(f)
+                    with open("image_embeddings_CLIP.pkl", "rb") as f:
+                        image_embeddings = pickle.load(f)
+                else:
+                    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+                    # Charger les embeddings textuels et d'images
+                    with open("text_embeddings_LLM.pkl", "rb") as f:
+                        text_embeddings = pickle.load(f)
+                    with open("image_embeddings_VIT.pkl", "rb") as f:
+                        image_embeddings = pickle.load(f)
 
                 if not text_embeddings or not image_embeddings:
                     print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
@@ -778,6 +804,10 @@ class Ui_MainWindow(object):
                     categorie = chemin_parts[4]  # chiens, poissons ou singes
                     race = chemin_parts[5]  # race spécifique
                     chemin_complet = os.path.join(base_path, categorie, race, image_name)
+                elif len(chemin_parts) == 5:
+                    categorie = chemin_parts[2]
+                    race = chemin_parts[3]
+                    chemin_complet = os.path.join(base_path, categorie, race, image_name)
                 else:
                     print(f"Erreur : Format de chemin invalide pour {chemin_relatif}")
                     continue
@@ -798,7 +828,8 @@ class Ui_MainWindow(object):
                         img = os.path.join(base_path, categorie, race, image_name)
                 self.path_image_plus_proches.append(img)
                 self.nom_image_plus_proches.append(img)
-
+        
+        
         # Affichage dans la grille
         col = 3
         k = 0
