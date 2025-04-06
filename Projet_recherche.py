@@ -193,19 +193,27 @@ class Ui_MainWindow(object):
         
         # Add the widget with the grid layout to the scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
-        self.label_courbe = QtWidgets.QLabel(self.centralwidget)
-        self.label_courbe.setGeometry(QtCore.QRect(1020, 290, 251, 251))
+        self.label_precision = QtWidgets.QLabel(self.centralwidget)
+        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 251, 251))
+        self.label_rappel = QtWidgets.QLabel(self.centralwidget)
+        self.label_rappel.setGeometry(QtCore.QRect(1020, 570, 251, 251))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
         font.setBold(True)
         font.setWeight(75)
-        self.label_courbe.setFont(font)
-        self.label_courbe.setFrameShape(QtWidgets.QFrame.Panel)
-        self.label_courbe.setText("")
-        self.label_courbe.setScaledContents(True)
-        self.label_courbe.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_courbe.setObjectName("label_courbe")
+        self.label_precision.setFont(font)
+        self.label_precision.setFrameShape(QtWidgets.QFrame.Panel)
+        self.label_precision.setText("")
+        self.label_precision.setScaledContents(True)
+        self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_precision.setObjectName("label_precision")
+        self.label_rappel.setFont(font)
+        self.label_rappel.setFrameShape(QtWidgets.QFrame.Panel)
+        self.label_rappel.setText("")
+        self.label_rappel.setScaledContents(True)
+        self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_rappel.setObjectName("label_rappel")
         self.Quitter = QtWidgets.QPushButton(self.centralwidget)
         self.Quitter.setGeometry(QtCore.QRect(1120, 700, 150, 41))
         font = QtGui.QFont()
@@ -359,7 +367,7 @@ class Ui_MainWindow(object):
         self.valeurRP.setGeometry(QtCore.QRect(1160, 200, 110, 41))
 
         self.charger = QtWidgets.QPushButton(self.centralwidget)
-        self.charger.setGeometry(QtCore.QRect(10, 60, 151, 41))
+        self.charger.setGeometry(QtCore.QRect(10, 60, 181, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -389,19 +397,9 @@ class Ui_MainWindow(object):
         self.charger_desc.setFont(font)
         self.charger_desc.setObjectName("charger_desc")
         
-        self.search = QtWidgets.QPushButton(self.centralwidget)
-        self.search.setGeometry(QtCore.QRect(375, 200, 70, 41))
-        font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(11)
-        font.setBold(True)
-        font.setWeight(75)
-        self.search.setFont(font)
-        self.search.setObjectName("search")
-        
         self.searchBar = QtWidgets.QLineEdit(self.centralwidget)
         self.searchBar.setPlaceholderText("Enter search term...")
-        self.searchBar.setGeometry(QtCore.QRect(10, 200, 360, 41))
+        self.searchBar.setGeometry(QtCore.QRect(10, 200, 181, 41))
 
         
         MainWindow.setCentralWidget(self.centralwidget)
@@ -415,7 +413,6 @@ class Ui_MainWindow(object):
         
         self.charger.clicked.connect(self.Ouvrir)
         self.charger_desc.clicked.connect(self.loadFeatures)
-        self.search.clicked.connect(self.loadFeaturesText)
         # self.chargerText.clicked.connect(self.OuvrirText)
         self.chercher.clicked.connect(self.Recherche)
         #self.calcul_RP.clicked.connect(self.rappel_precision )
@@ -462,7 +459,6 @@ class Ui_MainWindow(object):
         # self.chargerText.setText(_translate("MainWindow", "Charger Text"))
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
-        self.search.setText(_translate("MainWindow", "Search"))
 
 
 
@@ -803,78 +799,121 @@ class Ui_MainWindow(object):
                 k += 1
 
     def rappel_precision(self): 
-            rappel_precision = [] 
+            nb_images_pertinentes =0
+            nb_images_pertinentes_recuperees=0
+            liste_nb_images_pertinentes_recuperees = []
             rappels = [] 
             precisions = [] 
             
-            filename_req = os.path.basename(fileName)  # Extraire le nom de fichier de fileName
-            match = filename_req.split("_")[4].split('.')[0]
-            if match:
-                classe_image_requete = int(match) / 100  # Calcul de la classe de l'image requête
-            else:
-                print(f"Erreur : Impossible d'extraire un numéro valide de {match}")
-                return  # Sortir de la fonction si l'extraction échoue
-        
-            val = 0 
-            # Comparer les classes pour chaque voisin
-            for j in range(self.sortie): 
+            #Race de l'image requête
+            filename_req = os.path.basename(fileName)
+            try:
+                classe_image_requete = filename_req.split("_")[3]
+                match = filename_req.split("_")[4]
+            except IndexError:
+                print(f"Erreur : Impossible d'extraire une classe depuis le nom {filename_req}")
+                return
+            
+            #Calcul du nombre d'images pertinentes
+            dossier_racine = "MIR_DATASETS_B"
+            for dossier_principal in os.listdir(dossier_racine):
+                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)
+                if os.path.isdir(chemin_dossier_principal):
+                    for dossier_race in os.listdir(chemin_dossier_principal):
+                        if dossier_race == classe_image_requete:
+                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_race)
+                            nb_images_pertinentes = len([
+                                f for f in os.listdir(chemin_dossier_race)
+                                if os.path.isfile(os.path.join(chemin_dossier_race, f))
+                            ])
+                            break
+            
+            if nb_images_pertinentes == 0:
+                print(f"Aucune image trouvée pour la classe {classe_image_requete}")
+                return
+            print(f'nb_images_pertinentes : {nb_images_pertinentes}')
+            
+            #Calcul du nombre d'image pertinentes récupérées
+            for i in range(self.sortie):
+                print(f'____________image {i+1}____________')
+                nom_proche = self.nom_image_plus_proches[i]
+                try:
+                    classe_image_proche = nom_proche.split("_")[3]
+                except IndexError:
+                    print(f"Erreur : Impossible d'extraire une classe depuis le nom {nom_proche}")
+                    liste_nb_images_pertinentes_recuperees.append(0)
+                    continue
+            
+                if classe_image_requete == classe_image_proche:
+                    liste_nb_images_pertinentes_recuperees.append(1)  # Bonne classe (pertinent)
+                    nb_images_pertinentes_recuperees+=1
+                    print('Bonne classe!')
+                else:
+                    liste_nb_images_pertinentes_recuperees.append(0)  # Mauvaise classe (non pertinent)
+                    print(f'nb_images_pertinentes_recuperees : {nb_images_pertinentes_recuperees}')
                 
-                classe_image_proche = int(self.nom_image_plus_proches[j].split('_')[4].split('.')[0]) / 100
-                if classe_image_requete == classe_image_proche: 
-                    rappel_precision.append(1)  # Bonne classe (pertinent) 
-                    val += 1 
-                else: 
-                    rappel_precision.append(0)  # Mauvaise classe (non pertinent) 
-        
-            # Calcul des rappels et des précisions
-            for i in range(self.sortie): 
-                val = 0
-                j = i
-                while j >= 0: 
-                    if rappel_precision[j]: 
-                        val += 1 
-                    j -= 1
+                #Calcul rappel et precision
                 
-                precision = val / (i + 1)  # Précision pour le voisin i
-                rappel = val / sum(rappel_precision)  # Rappel pour le voisin i
-                
+                precision = nb_images_pertinentes_recuperees / (i + 1)  # Précision pour le voisin i
+                rappel = nb_images_pertinentes_recuperees / nb_images_pertinentes  # Rappel pour le voisin i
+                print(f'Rappel : {rappel}')
+                print(f'Precision : {precision}')
                 rappels.append(rappel)
                 precisions.append(precision)
             
             # Création de la courbe R/P
-            plt.plot(rappels, precisions) 
-            plt.xlabel("Recall") 
-            plt.ylabel("Precision") 
-            plt.title(f"R/P {self.sortie} voisins de l'image n°{match}") 
-        
-            # Enregistrement de la courbe R/P
+            # Courbe 1 : Précision en fonction du nombre d’images
+            plt.figure(figsize=(8, 5))
+            plt.plot(range(1, len(precisions)+1), precisions, marker='o', color='blue')
+            plt.xlabel("Nombre d'images récupérées")
+            plt.ylabel("Précision")
+            plt.title(f"Courbe de Précision - Image {match}")
+            plt.grid(True)
+            
             save_folder = os.path.join(".", match)
             if not os.path.exists(save_folder): 
                 os.makedirs(save_folder) 
             
-            save_name = os.path.join(save_folder, f'{match}.png') 
-            plt.savefig(save_name, format='png', dpi=600) 
-            plt.close()  # Fermer la figure pour libérer les ressources
+            save_precision = os.path.join(save_folder, f'{match}_precision.png')
+            plt.savefig(save_precision, format='png', dpi=600)
+            plt.close()
+            
+            # Courbe 2 : Rappel en fonction du nombre d’images
+            plt.figure(figsize=(8, 5))
+            plt.plot(range(1, len(rappels)+1), rappels, marker='o', color='green')
+            plt.xlabel("Nombre d'images récupérées")
+            plt.ylabel("Rappel")
+            plt.title(f"Courbe de Rappel - Image {match}")
+            plt.grid(True)
+            
+            save_rappel = os.path.join(save_folder, f'{match}_rappel.png')
+            plt.savefig(save_rappel, format='png', dpi=600)
+            plt.close()
+
+
         
-            # Affichage de la courbe R/P
-            img = cv2.imread(save_name, 1)  # Charger l'image en couleur 
-            b, g, r = cv2.split(img)  # Séparer les canaux
-            img = cv2.merge([r, g, b])  # Convertir en RGB
+            # Affichage des courbes dans Qt (précision)
+            img_prec = cv2.imread(save_precision, 1)
+            b, g, r = cv2.split(img_prec)
+            img_prec = cv2.merge([r, g, b])
+            h, w, c = img_prec.shape
+            qImg_prec = QtGui.QImage(img_prec.data, w, h, 3 * w, QtGui.QImage.Format_RGB888)
+            pixmap_prec = QtGui.QPixmap.fromImage(qImg_prec)
+            self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_precision.setPixmap(pixmap_prec.scaled(w, h, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             
-            # Convertir l'image en QImage pour l'affichage dans l'interface
-            height, width, channel = img.shape 
-            bytesPerLine = 3 * width 
-            qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888) 
-            pixmap = QtGui.QPixmap.fromImage(qImg) 
+            # Affichage des courbes dans Qt (rappel)
+            img_rapp = cv2.imread(save_rappel, 1)
+            b, g, r = cv2.split(img_rapp)
+            img_rapp = cv2.merge([r, g, b])
+            h, w, c = img_rapp.shape
+            qImg_rapp = QtGui.QImage(img_rapp.data, w, h, 3 * w, QtGui.QImage.Format_RGB888)
+            pixmap_rapp = QtGui.QPixmap.fromImage(qImg_rapp)
+            self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_rappel.setPixmap(pixmap_rapp.scaled(w, h, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+
             
-            # Ajuster l'image dans la taille du label
-            width = self.label_requete.frameGeometry().width() 
-            height = self.label_requete.frameGeometry().height() 
-            
-            self.label_courbe.setAlignment(QtCore.Qt.AlignCenter) 
-            self.label_courbe.setPixmap(pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-            
-            return rappels, precisions, rappel_precision
+            return rappels, precisions, liste_nb_images_pertinentes_recuperees
 
     
     def create_label(self, x, y, text):
@@ -887,62 +926,36 @@ class Ui_MainWindow(object):
         label.setAlignment(QtCore.Qt.AlignCenter)
         return label
     def average_precision(self, rappels, precisions):
-        """
-        Calcule l'Average Precision (AP) en intégrant la courbe de précision-rappel.
-        """
-        if not rappels or not precisions:
-            return 0.0
-        
-        rappels = np.array(rappels)
-        precisions = np.array(precisions)
-        
-        # Tri des rappels et précisions
-        sorted_indices = np.argsort(rappels)
-        rappels = rappels[sorted_indices]
-        precisions = precisions[sorted_indices]
-        
-        # AP en intégrant la courbe
-        ap = np.sum((rappels[1:] - rappels[:-1]) * precisions[1:])
-        
-        # Si la précision est constante (par exemple, 1.0), l'AP doit aussi renvoyer une valeur correcte
-        if np.all(rappels == 1.0):
-            return precisions[0]  # Retourne la précision de la première valeur, ce qui est toujours 1.0
-        
-        self.valeurAP.setText(f"average_precision = {ap}")
+        """Calcul de l'Average Precision (AP) : moyenne des précisions aux points où un rappel augmente."""
+        ap = 0.0
+        prev_recall = 0.0
+    
+        for recall, precision in zip(rappels, precisions):
+            delta_recall = recall - prev_recall
+            ap += precision * delta_recall
+            prev_recall = recall
+    
         return ap
+
     def mean_average_precision(self, liste_AP):
-        """
-        Calcule la Mean Average Precision (mAP) en moyennant les AP de plusieurs requêtes.
-        """
         if not liste_AP:
             return 0.0
-        
-        # Si toutes les AP sont égales, renvoyer cette valeur directement
-        if np.all(np.array(liste_AP) == liste_AP[0]):
-            return liste_AP[0]  # Retourne directement la première valeur, car toutes les AP sont identiques
-    
-        # Calcul de la moyenne des précisions moyennes
-        return np.mean(liste_AP)
+        return sum(liste_AP) / len(liste_AP)
 
     
-    def r_precision(self, rappel_precision, R):
-        """
-        Calcule la R-Precision : la précision au rang R (nombre d'éléments pertinents dans les R premiers résultats).
-        """
-        if R <= 0 or R > len(rappel_precision):
-            print("Erreur : R doit être un nombre valide entre 1 et la taille de la liste.")
-            return 0.0
+    def r_precision(self, liste_pertinentes_recuperees, R):
+        top_R = liste_pertinentes_recuperees[:R]  # Prendre les R premiers résultats
+        nb_pertinents_dans_top_R = sum(top_R)
         
-        # Calcul de la R-Precision
-        return sum(rappel_precision[:R]) / R
-
+        r_precision_value = nb_pertinents_dans_top_R / R
+        return r_precision_value
 
 
     def calculer_metriques(self):
         """Calcul des métriques à partir des vraies données et affichage des résultats."""
     
         # Appeler la fonction rappel_precision() pour obtenir les valeurs de rappel et précision
-        rappels, precisions, rappel_precision = self.rappel_precision()  # récupérer les résultats de rappel et précision
+        rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # récupérer les résultats de rappel et précision
         # Calculer les métriques
         ap = self.average_precision(rappels, precisions)  # Calculer l'Average Precision
         map_value = self.mean_average_precision([ap])  # Calculer la Mean Average Precision (mAP)
@@ -950,7 +963,7 @@ class Ui_MainWindow(object):
             R = 20
         if self.comboBoxTop.currentText() == "Top50":
             R = 50 
-        rp = self.r_precision(rappel_precision, R)  # Calculer la R-Precision
+        rp = self.r_precision(liste_nb_images_pertinentes_recuperees, R)  # Calculer la R-Precision
         
         # Afficher les résultats dans les labels
         self.valeur_AP.setText(f"{ap:.4f}")
@@ -960,10 +973,10 @@ class Ui_MainWindow(object):
     def calculer_metriques_et_rappel(self):
         """Appelle les fonctions rappel_precision et calculer_metriques."""
         # Appeler la fonction rappel_precision pour calculer les valeurs
-        rappels, precisions, rappel_precision = self.rappel_precision()  # Cette ligne doit renvoyer les bonnes données
+        rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # Cette ligne doit renvoyer les bonnes données
         
         # Vérifier si les rappels et précisions ne sont pas vides avant de continuer
-        if not rappels or not precisions or not rappel_precision:
+        if not rappels or not precisions or not liste_nb_images_pertinentes_recuperees:
             print("Erreur dans le calcul des rappels ou précisions.")
             return
         
