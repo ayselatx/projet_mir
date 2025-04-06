@@ -32,14 +32,19 @@ import pickle
 from PIL import Image
 import json
 from scipy.spatial.distance import cosine
+from PyQt5.QtWidgets import QMessageBox
+
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1400, 800)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        
+        # Créer un widget central qui sera ajouté à la QScrollArea
+        self.centralwidget = QtWidgets.QWidget()
         self.centralwidget.setObjectName("centralwidget")
+        
         
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(200, 10, 251, 31))
@@ -193,8 +198,9 @@ class Ui_MainWindow(object):
         
         # Add the widget with the grid layout to the scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        
         self.label_precision = QtWidgets.QLabel(self.centralwidget)
-        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 251, 251))
+        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 580, 251))
         self.label_rappel = QtWidgets.QLabel(self.centralwidget)
         self.label_rappel.setGeometry(QtCore.QRect(1020, 570, 251, 251))
         font = QtGui.QFont()
@@ -214,6 +220,33 @@ class Ui_MainWindow(object):
         self.label_rappel.setScaledContents(True)
         self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
         self.label_rappel.setObjectName("label_rappel")
+
+        
+        
+        # Créer une QScrollArea pour la box de précision et de rappel
+        self.scrollAreaPrecisionRecall = QtWidgets.QScrollArea(self.centralwidget)
+        self.scrollAreaPrecisionRecall.setGeometry(QtCore.QRect(1020, 290, 251, 400))  # Définir la taille de la zone défilante
+        self.scrollAreaPrecisionRecall.setWidgetResizable(True)  # Permet au contenu de se redimensionner
+        self.scrollAreaPrecisionRecall.setObjectName("scrollAreaPrecisionRecall")
+        
+        # Créer un widget pour contenir les labels precision et rappel
+        self.scrollAreaWidgetContentsPrecisionRecall = QtWidgets.QWidget()
+        self.scrollAreaWidgetContentsPrecisionRecall.setGeometry(QtCore.QRect(0, 0, 251, 251))  # Définir la taille du widget
+        self.scrollAreaWidgetContentsPrecisionRecall.setObjectName("scrollAreaWidgetContentsPrecisionRecall")
+        
+        # Créer une disposition verticale pour les labels
+        self.layoutPrecisionRecall = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContentsPrecisionRecall)
+        self.layoutPrecisionRecall.setContentsMargins(0, 0, 0, 0)  # Supprimer les marges
+        
+        # Ajouter les labels à la disposition
+        self.layoutPrecisionRecall.addWidget(self.label_precision)
+        self.layoutPrecisionRecall.addWidget(self.label_rappel)
+        
+        # Ajouter le widget contenant les labels dans la zone défilante
+        self.scrollAreaPrecisionRecall.setWidget(self.scrollAreaWidgetContentsPrecisionRecall)
+        
+        
+        
         self.Quitter = QtWidgets.QPushButton(self.centralwidget)
         self.Quitter.setGeometry(QtCore.QRect(1120, 700, 150, 41))
         font = QtGui.QFont()
@@ -341,13 +374,6 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.calcul_RP.setFont(font)
         self.calcul_RP.setObjectName("calcul_RP")
-               
-        
-        # Bouton de calcul
-        self.calcul_RP = QtWidgets.QPushButton("Calculer", self.centralwidget)
-        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 251, 41))
-        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
-        self.calcul_RP.setFont(font)
 
 
         # Labels des résultats
@@ -412,13 +438,12 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         
         self.charger.clicked.connect(self.Ouvrir)
+        self.searchBar.textChanged.connect(self.on_text_changed)
         self.charger_desc.clicked.connect(self.loadFeatures)
-        # self.chargerText.clicked.connect(self.OuvrirText)
         self.chercher.clicked.connect(self.Recherche)
-        #self.calcul_RP.clicked.connect(self.rappel_precision )
-        # Connecter le bouton calcul_RP à la nouvelle méthode
         self.calcul_RP.clicked.connect(self.calculer_metriques_et_rappel)
         self.Quitter.clicked.connect(self.exit )
+         
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -454,9 +479,7 @@ class Ui_MainWindow(object):
         self.resultAP.setText(_translate("MainWindow", "Calcul de AP :"))
         self.resultMaP.setText(_translate("MainWindow", "Calcul de MaP :"))
         self.resultRP.setText(_translate("MainWindow", "Calcul de RP :"))
-        #self.checkBox_autre.setText(_translate("MainWindow", "Autre"))
         self.charger.setText(_translate("MainWindow", "Charger Image"))
-        # self.chargerText.setText(_translate("MainWindow", "Charger Text"))
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
 
@@ -470,17 +493,16 @@ class Ui_MainWindow(object):
         self.label_requete.height(), QtCore.Qt.KeepAspectRatio) 
         self.label_requete.setPixmap(pixmap) 
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
-    
-    def OuvrirText(self, MainWindow): 
-        global fileName 
-        fileName, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select Image", "","Image Files (*.png *.jpeg *.jpg *.bmp)") 
-        pixmap = QtGui.QPixmap(fileName) 
-        pixmap = pixmap.scaled(self.label_requete.width(), 
-        self.label_requete.height(), QtCore.Qt.KeepAspectRatio) 
-        self.label_requete.setPixmap(pixmap) 
-        self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
-    
-    
+        self.comboBoxTop.addItems(['Top20','Top50'])
+        
+    def on_text_changed(self, text):
+        # Vérifiez si le texte n'est pas vide
+        if text:
+            self.comboBoxTop.clear()  # Effacez les éléments précédents
+            self.comboBoxTop.addItems(['Top20', 'Top50'])  # Ajoutez les options
+        else:
+            self.comboBoxTop.clear()  # Si le champ est vide, effacez les éléments
+       
         
     def loadFeatures(self, MainWindow):
         folder_models = []
@@ -582,16 +604,22 @@ class Ui_MainWindow(object):
 
         
     def Recherche(self, MainWindow):
+        # Vérification si aucune des cases à cocher n'est sélectionnée
+        if not self.checkBox_Image.isChecked() and not self.checkBox_Text.isChecked():
+            # Afficher un message d'erreur
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Erreur")
+            msg.setText("Veuillez cocher au moins une des options : Image ou Text.")
+            msg.exec_()
+            return  # Sortie de la fonction pour éviter la recherche
         # Nettoyage de l'affichage précédent
         for i in reversed(range(self.gridLayout.count())):
             self.gridLayout.itemAt(i).widget().setParent(None)
         self.path_image_plus_proches = []
         self.nom_image_plus_proches = []
 
-        if not self.algo_choices:
-            print("Il faut choisir au moins une méthode !")
-            return
-
+        
         # Définition du nombre de voisins
         if self.comboBoxTop.currentText() == "Top20":
             self.sortie = 20
@@ -681,6 +709,13 @@ class Ui_MainWindow(object):
                     print(f"{img}: Similarité = {similarity:.4f}")
 
                 text_results = sorted_results
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Erreur")
+                msg.setText("Veuillez entrer un texte de recherche.")
+                msg.exec_()
+                return
 
         if self.checkBox_Image.isChecked() and self.checkBox_Text.isChecked():
             combined_results = []
@@ -984,147 +1019,147 @@ class Ui_MainWindow(object):
         self.calculer_metriques()  # Cela calcule et affiche les métriques (AP, mAP, R-Precision)
 
 
-    def loadFeaturesText(self):
-        query_text = self.searchBar.text().strip()  # Récupérer et nettoyer la requête
-        self.comboBoxTop.addItems(['Top20','Top50'])
-        if query_text:
-            print(f"🔍 Recherche pour : {query_text}")
+    # def loadFeaturesText(self):
+    #     query_text = self.searchBar.text().strip()  # Récupérer et nettoyer la requête
+    #     self.comboBoxTop.addItems(['Top20','Top50'])
+    #     if query_text:
+    #         print(f"🔍 Recherche pour : {query_text}")
             
-            # Vérifier le choix Top 20 ou Top 50
-            if self.comboBoxTop.currentText() == "Top20":
-                self.sortie = 20
-            elif self.comboBoxTop.currentText() == "Top50":
-                self.sortie = 50
-            else:
-                self.sortie = 5  # Valeur par défaut
+    #         # Vérifier le choix Top 20 ou Top 50
+    #         if self.comboBoxTop.currentText() == "Top20":
+    #             self.sortie = 20
+    #         elif self.comboBoxTop.currentText() == "Top50":
+    #             self.sortie = 50
+    #         else:
+    #             self.sortie = 5  # Valeur par défaut
     
-            self.perform_search(query_text)  # Lancer la recherche
-        else:
-            print("⚠ Aucun texte saisi dans la barre de recherche.")
+    #         self.perform_search(query_text)  # Lancer la recherche
+    #     else:
+    #         print("⚠ Aucun texte saisi dans la barre de recherche.")
     
-    def perform_search(self, query):
-       try:
-           # 🔹 Récupérer le nombre d’images à afficher (Top 20 ou Top 50)
-           if self.comboBoxTop.currentText() == "Top20":
-               self.sortie = 20
-           elif self.comboBoxTop.currentText() == "Top50":
-               self.sortie = 50
-           else:
-               self.sortie = 5  # Valeur par défaut si rien n'est sélectionné
+    # def perform_search(self, query):
+    #    try:
+    #        # 🔹 Récupérer le nombre d’images à afficher (Top 20 ou Top 50)
+    #        if self.comboBoxTop.currentText() == "Top20":
+    #            self.sortie = 20
+    #        elif self.comboBoxTop.currentText() == "Top50":
+    #            self.sortie = 50
+    #        else:
+    #            self.sortie = 5  # Valeur par défaut si rien n'est sélectionné
        
-           # Charger le modèle pour l'encodage du texte
-           model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+    #        # Charger le modèle pour l'encodage du texte
+    #        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
        
-           # Charger les embeddings textuels et d'images
-           with open("text_embeddings.pkl", "rb") as f:
-               text_embeddings = pickle.load(f)
+    #        # Charger les embeddings textuels et d'images
+    #        with open("text_embeddings.pkl", "rb") as f:
+    #            text_embeddings = pickle.load(f)
        
-           with open("image_embeddings.pkl", "rb") as f:
-               image_embeddings = pickle.load(f)
+    #        with open("image_embeddings.pkl", "rb") as f:
+    #            image_embeddings = pickle.load(f)
        
-           if not text_embeddings or not image_embeddings:
-               print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
-               return
+    #        if not text_embeddings or not image_embeddings:
+    #            print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
+    #            return
        
-           # 🔹 Encodage de la requête utilisateur
-           query_embedding = model.encode(query).reshape(1, -1)
+    #        # 🔹 Encodage de la requête utilisateur
+    #        query_embedding = model.encode(query).reshape(1, -1)
        
-           # 🔹 Calcul des similarités entre la requête et chaque image
-           similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
+    #        # 🔹 Calcul des similarités entre la requête et chaque image
+    #        similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
        
-           # 🔹 Trier les images par score de similarité décroissant
-           sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+    #        # 🔹 Trier les images par score de similarité décroissant
+    #        sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
        
-           # 🔹 Sélectionner seulement le Top choisi (20 ou 50)
-           sorted_results = sorted_results[:self.sortie]
+    #        # 🔹 Sélectionner seulement le Top choisi (20 ou 50)
+    #        sorted_results = sorted_results[:self.sortie]
        
-           # 🔹 Afficher les résultats dans la console
-           print(f"\n✅ Top {self.sortie} résultats :")
-           for img, similarity in sorted_results:
-               print(f"🖼 {img}: Similarité = {similarity:.4f}")
+    #        # 🔹 Afficher les résultats dans la console
+    #        print(f"\n✅ Top {self.sortie} résultats :")
+    #        for img, similarity in sorted_results:
+    #            print(f"🖼 {img}: Similarité = {similarity:.4f}")
        
-           # 🔹 Afficher les images trouvées dans l'interface
-           self.display_images([img for img, _ in sorted_results])
+    #        # 🔹 Afficher les images trouvées dans l'interface
+    #        self.display_images([img for img, _ in sorted_results])
        
-       except FileNotFoundError:
-           print("❌ Erreur : Un fichier d'embeddings est introuvable.")
-       except Exception as e:
-           print(f"❌ Une erreur est survenue : {e}")
+    #    except FileNotFoundError:
+    #        print("❌ Erreur : Un fichier d'embeddings est introuvable.")
+    #    except Exception as e:
+    #        print(f"❌ Une erreur est survenue : {e}")
 
     
-    def display_images(self, image_paths):
-        """
-        Affiche les images trouvées dans l'interface utilisateur.
-        """
-        # Limiter l'affichage aux `self.sortie` images
-        image_paths = image_paths[:self.sortie]
+    # def display_images(self, image_paths):
+    #     """
+    #     Affiche les images trouvées dans l'interface utilisateur.
+    #     """
+    #     # Limiter l'affichage aux `self.sortie` images
+    #     image_paths = image_paths[:self.sortie]
     
-        # Remise à zéro de la grille
-        for i in reversed(range(self.gridLayout.count())):
-            self.gridLayout.itemAt(i).widget().setParent(None)
+    #     # Remise à zéro de la grille
+    #     for i in reversed(range(self.gridLayout.count())):
+    #         self.gridLayout.itemAt(i).widget().setParent(None)
     
-        col = 3  # Nombre de colonnes d'affichage
-        k = 0  # Compteur
+    #     col = 3  # Nombre de colonnes d'affichage
+    #     k = 0  # Compteur
     
-        # Définir la taille maximale de l'image
-        max_image_width = 150
-        max_image_height = 150
+    #     # Définir la taille maximale de l'image
+    #     max_image_width = 150
+    #     max_image_height = 150
     
-        # Chemin de base du dataset
-        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
+    #     # Chemin de base du dataset
+    #     base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
     
-        for i in range(math.ceil(len(image_paths) / col)):
-            for j in range(col):
-                if k >= len(image_paths):
-                    break
+    #     for i in range(math.ceil(len(image_paths) / col)):
+    #         for j in range(col):
+    #             if k >= len(image_paths):
+    #                 break
     
-                chemin_image = image_paths[k]
+    #             chemin_image = image_paths[k]
     
-                # Extraire catégorie et race
-                chemin_parts = chemin_image.split('_')
+    #             # Extraire catégorie et race
+    #             chemin_parts = chemin_image.split('_')
     
-                if len(chemin_parts) >= 4:
-                    categorie, race = chemin_parts[2], chemin_parts[3]
-                else:
-                    print(f"⚠ Erreur : Format de nom invalide pour {chemin_image}")
-                    k += 1
-                    continue
+    #             if len(chemin_parts) >= 4:
+    #                 categorie, race = chemin_parts[2], chemin_parts[3]
+    #             else:
+    #                 print(f"⚠ Erreur : Format de nom invalide pour {chemin_image}")
+    #                 k += 1
+    #                 continue
     
-                # Construire le chemin complet
-                chemin_complet = os.path.join(base_path, categorie, race, chemin_image)
+    #             # Construire le chemin complet
+    #             chemin_complet = os.path.join(base_path, categorie, race, chemin_image)
     
-                if not os.path.exists(chemin_complet):
-                    print(f"❌ Erreur : L'image {chemin_complet} n'existe pas.")
-                    k += 1
-                    continue
+    #             if not os.path.exists(chemin_complet):
+    #                 print(f"❌ Erreur : L'image {chemin_complet} n'existe pas.")
+    #                 k += 1
+    #                 continue
     
-                # Charger l'image
-                img = cv2.imread(chemin_complet, cv2.IMREAD_COLOR)
-                if img is None:
-                    print(f"❌ Erreur : Impossible de charger {chemin_complet}.")
-                    k += 1
-                    continue
+    #             # Charger l'image
+    #             img = cv2.imread(chemin_complet, cv2.IMREAD_COLOR)
+    #             if img is None:
+    #                 print(f"❌ Erreur : Impossible de charger {chemin_complet}.")
+    #                 k += 1
+    #                 continue
     
-                # Convertir en RGB
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #             # Convertir en RGB
+    #             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
-                # Convertir en QImage
-                height, width, channel = img.shape
-                bytesPerLine = 3 * width
-                qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-                pixmap = QtGui.QPixmap.fromImage(qImg)
+    #             # Convertir en QImage
+    #             height, width, channel = img.shape
+    #             bytesPerLine = 3 * width
+    #             qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+    #             pixmap = QtGui.QPixmap.fromImage(qImg)
     
-                # Créer un label pour l'image
-                label = QtWidgets.QLabel("")
-                label.setAlignment(QtCore.Qt.AlignCenter)
-                label.setPixmap(pixmap.scaled(min(int(0.3 * width), max_image_width),
-                                              min(int(0.3 * height), max_image_height),
-                                              QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+    #             # Créer un label pour l'image
+    #             label = QtWidgets.QLabel("")
+    #             label.setAlignment(QtCore.Qt.AlignCenter)
+    #             label.setPixmap(pixmap.scaled(min(int(0.3 * width), max_image_width),
+    #                                           min(int(0.3 * height), max_image_height),
+    #                                           QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
     
-                # Ajouter l'image à la grille
-                self.gridLayout.addWidget(label, i, j)
+    #             # Ajouter l'image à la grille
+    #             self.gridLayout.addWidget(label, i, j)
     
-                k += 1
+    #             k += 1
 
 
 
