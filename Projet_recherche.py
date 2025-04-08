@@ -19,7 +19,7 @@ from skimage.io import imread
 from skimage.feature import hog 
 from skimage import exposure 
 from matplotlib import pyplot as plt 
-from functions_recherche import extractReqFeatures, showDialog, generateSIFT, generateHistogramme_HSV, generateHistogramme_Color, generateORB 
+from functions_recherche import extractReqFeatures
 from distances import * 
 filenames= "MIR_DATASETS_B" 
 folder_model="MIR_DATASETS_B" 
@@ -343,7 +343,7 @@ class Ui_MainWindow(object):
         self.chercher.setFont(font)
         self.chercher.setObjectName("chercher")
         self.calcul_RP = QtWidgets.QPushButton(self.centralwidget)
-        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 300, 41))
+        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 150, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -351,6 +351,45 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.calcul_RP.setFont(font)
         self.calcul_RP.setObjectName("calcul_RP")
+
+        
+        
+        # #bouton glissière
+        # self.switch_mode = QtWidgets.QCheckBox("Texte", self.centralwidget)
+        # self.switch_mode.setGeometry(QtCore.QRect(1180, 50, 100, 41))
+        # self.switch_mode.setChecked(False)
+        # font = QtGui.QFont()
+        # font.setFamily("Calibri")
+        # font.setPointSize(11)
+        # font.setBold(True)
+        # font.setWeight(75)
+        # self.switch_mode.setFont(font)
+        
+        
+        # self.switch_mode.setStyleSheet("""
+        #     QCheckBox::indicator {
+        #         width: 40px;
+        #         height: 20px;
+        #     }
+        #     QCheckBox::indicator:unchecked {
+        #         image: url(off_icon.png);
+        #     }
+        #     QCheckBox::indicator:checked {
+        #         image: url(on_icon.png);
+        #     }
+        # """)
+
+
+        # self.switch_mode.stateChanged.connect(self.toggle_mode)  # <-- après création du widget
+        
+        
+        self.Cosine_Similarity = QtWidgets.QLabel(self.centralwidget)
+        self.Cosine_Similarity.setGeometry(QtCore.QRect(460, 400, 551, 31))
+        self.Cosine_Similarity.setFont(font)
+        self.Cosine_Similarity.setFrameShape(QtWidgets.QFrame.Panel)
+        self.Cosine_Similarity.setAlignment(QtCore.Qt.AlignCenter)
+        self.Cosine_Similarity.setObjectName("Cosine_Similarity")
+
 
 
         # Labels des résultats
@@ -452,7 +491,7 @@ class Ui_MainWindow(object):
         self.label_8.setText(_translate("MainWindow", "Résultats"))
         self.label_9.setText(_translate("MainWindow", "Courbe R et P"))
         self.chercher.setText(_translate("MainWindow", "Recherche"))
-        self.calcul_RP.setText(_translate("MainWindow", "Calculer les métriques"))
+        self.calcul_RP.setText(_translate("MainWindow", "Calculer"))
         self.resultAP.setText(_translate("MainWindow", "Calcul de AP :"))
         self.resultMaP.setText(_translate("MainWindow", "Calcul de MaP :"))
         self.resultRP.setText(_translate("MainWindow", "Calcul de RP :"))
@@ -461,6 +500,51 @@ class Ui_MainWindow(object):
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
 
 
+    def affiche_top(self, fileName):
+        # Nettoyer la comboBox et ajouter seulement les options valides
+        self.comboBoxTop.clear()
+        
+        if fileName == '':
+                self.comboBoxTop.addItem("Top20")
+                self.comboBoxTop.addItem("Top50")
+                self.comboBoxTop.addItem("Top100")
+        else : 
+            filename_req = os.path.basename(fileName)
+            try:
+                classe_image_requete = filename_req.split("_")[3]
+            except IndexError:
+                print(f"Erreur : Impossible d'extraire une classe depuis le nom {filename_req}")
+                return None
+        
+            # Chercher le nombre d'images pertinentes
+            dossier_racine = "MIR_DATASETS_B"
+            nb_images_pertinentes = 0
+        
+            for dossier_principal in os.listdir(dossier_racine):
+                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)
+                if os.path.isdir(chemin_dossier_principal):
+                    for dossier_race in os.listdir(chemin_dossier_principal):
+                        if dossier_race == classe_image_requete:
+                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_race)
+                            nb_images_pertinentes = len([
+                                f for f in os.listdir(chemin_dossier_race)
+                                if os.path.isfile(os.path.join(chemin_dossier_race, f))
+                            ])
+                            break
+
+
+
+            if nb_images_pertinentes >= 20:
+                self.comboBoxTop.addItem("Top20")
+            if nb_images_pertinentes >= 50:
+                self.comboBoxTop.addItem("Top50")
+            if nb_images_pertinentes >= 100:
+                self.comboBoxTop.addItem("Top100")
+        
+            # Toujours proposer le max possible
+            self.comboBoxTop.addItem(f"Top{nb_images_pertinentes}")
+        return int(self.comboBoxTop.currentText()[3:])
+    
 
     def Ouvrir(self, MainWindow): 
         global fileName 
@@ -470,15 +554,29 @@ class Ui_MainWindow(object):
         self.label_requete.height(), QtCore.Qt.KeepAspectRatio) 
         self.label_requete.setPixmap(pixmap) 
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
-        self.comboBoxTop.addItems(['Top20','Top50'])
-        
+
+        self.sortie = self.affiche_top(fileName)
+            
     def on_text_changed(self, text):
         # Vérifiez si le texte n'est pas vide
         if text:
-            self.comboBoxTop.clear()  # Effacez les éléments précédents
-            self.comboBoxTop.addItems(['Top20', 'Top50'])  # Ajoutez les options
+            # Assurez-vous que fileName est défini, sinon l'initialiser à une chaîne vide
+            if not hasattr(self, 'fileName'):
+                fileName = ""  # Initialisation de fileName à vide ou une autre valeur par défaut
+    
+            self.sortie = self.affiche_top(fileName)
+            print(self.sortie)
         else:
             self.comboBoxTop.clear()  # Si le champ est vide, effacez les éléments
+
+
+            
+    # def toggle_mode(self, state):
+    #     if state == QtCore.Qt.Checked:
+    #         self.switch_mode.setText("Texte")
+    #     else:
+    #         self.switch_mode.setText("Image")
+
        
         
     def loadFeatures(self, MainWindow):
@@ -533,7 +631,7 @@ class Ui_MainWindow(object):
                     self.comboBox.addItems(["Euclidienne", "Correlation", "Chi carre", "Intersection", "Bhattacharyya"])  # Default options for other algorithms
 
         if filenames:
-            self.comboBoxTop.addItems(["Top20", "Top50"])
+            self.sortie = affiche_top(self, fileName)
     
         if len(filenames) < 1:
             print("Merci de charger une image avec le bouton Ouvrir")
@@ -592,14 +690,13 @@ class Ui_MainWindow(object):
         self.path_image_plus_proches = []
         self.nom_image_plus_proches = []
         images_deja_ajoutees = set()
-    
-        if self.comboBoxTop.currentText() == "Top20":
-            self.sortie = 20
-        elif self.comboBoxTop.currentText() == "Top50":
-            self.sortie = 50
-        else:
-            print("Erreur : Veuillez choisir un Top valide.")
-            return
+        
+        # # Assurez-vous que fileName est défini, sinon l'initialiser à une chaîne vide
+        if not hasattr(self, 'fileName'):
+            fileName = ""  # Initialisation de fileName à vide ou une autre valeur par défaut
+
+        # # Utilisez fileName maintenant
+        #self.sortie = affiche_top(self.comboBoxTop, fileName)
     
         voisins_total = []
         text_results = []
@@ -854,6 +951,7 @@ class Ui_MainWindow(object):
             return
         print(f'nb_images_pertinentes : {nb_images_pertinentes}')
         
+        
         # Calcul du nombre d'images pertinentes récupérées
         for i in range(self.sortie):
             print(f'____________image {i+1}____________')
@@ -984,10 +1082,11 @@ class Ui_MainWindow(object):
         # Calculer les métriques
         ap = self.average_precision(rappels, precisions)  # Calculer l'Average Precision
         map_value = self.mean_average_precision([ap])  # Calculer la Mean Average Precision (mAP)
-        if self.comboBoxTop.currentText() == "Top20":
-            R = 20
-        if self.comboBoxTop.currentText() == "Top50":
-            R = 50 
+        
+        # #affiche_top(self.comboBoxTop, fileName)
+        # current_text = self.comboBoxTop.currentText()
+        # self.sortie = int(current_text[3:])
+        
         rp = self.r_precision(liste_nb_images_pertinentes_recuperees, R)  # Calculer la R-Precision
         
         # Afficher les résultats dans les labels
