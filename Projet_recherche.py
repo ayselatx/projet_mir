@@ -851,29 +851,42 @@ class Ui_MainWindow(object):
                         image_embeddings = pickle.load(f)
                 else:
                     model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+                    # Charger les embeddings textuels et d'images
                     with open("text_embeddings_LLM.pkl", "rb") as f:
                         text_embeddings = pickle.load(f)
-                    with open("image_embeddings_VIT.pkl", "rb") as f:
-                        image_embeddings = pickle.load(f)
-    
-                if not text_embeddings or not image_embeddings:
+
+                if not text_embeddings:
                     print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
                     return
-    
-                query_embedding = model.encode(query_text).reshape(1, -1)
-    
-                similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
-                self.sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
-    
-                for img, sim in self.sorted_results:
-                    nom = os.path.basename(img)
-                    if nom not in images_deja_ajoutees:
-                        text_results.append((img, sim))
-                        images_deja_ajoutees.add(nom)
-                    if len(text_results) >= self.sortie:
-                        break
-                #self.valeur_Cosine_Similarity.setText(f"{sorted_results[0][1]:.4f}")
 
+                # Initialiser la barre de progression à 0
+                self.progressBar.setValue(0)
+
+                # Encodage de la requête utilisateur
+                query_embedding = model.encode(query_text).reshape(1, -1)
+
+                # Calcul des similarités cosinus avec mise à jour de la barre
+                similarities = {}
+                total_images = len(text_embeddings)
+
+                for i, (img, emb) in enumerate(text_embeddings.items()):
+                    emb = np.array(emb).reshape(1, -1)
+                    similarity = cosine_similarity(query_embedding, emb)[0][0]
+                    similarities[img] = similarity
+
+                    # Mise à jour de la barre de progression
+                    self.progressBar.setValue(int(100 * (i + 1) / total_images))
+
+                # Trier par similarité décroissante
+                sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+                sorted_results = sorted_results[:self.sortie]
+
+                # Affichage
+                print(f"\nTop {self.sortie} résultats :")
+                for img, similarity in sorted_results:
+                    print(f"{img}: Similarité = {similarity:.4f}")
+
+                text_results = sorted_results
     
             else:
                 msg = QMessageBox()

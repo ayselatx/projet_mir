@@ -9,7 +9,9 @@ from sentence_transformers import SentenceTransformer
 import torchvision.models as models 
 from PIL import Image 
 from skimage.feature import greycomatrix, greycoprops, local_binary_pattern
-    
+import faiss
+import pickle
+from tqdm import tqdm
 
 # def affiche_top(comboBoxTop, fileName):
 #     # Nettoyer la comboBox et ajouter seulement les options valides
@@ -173,3 +175,62 @@ def extractReqFeatures(fileName,algo_choice):
         print("saved")
         #print("vect_features", vect_features)
         return vect_features
+    
+    
+def search_by_text(query_text, top_k=5, embeddings_path="embeddings_clip"):
+    model = SentenceTransformer('clip-ViT-B-32')
+    
+    # Chargement de l'index FAISS et des noms d'images
+    index_path = os.path.join(embeddings_path, "faiss_image.index")
+    names_path = os.path.join(embeddings_path, "image_embeddings_CLIP.pkl")
+
+    if not os.path.exists(index_path) or not os.path.exists(names_path):
+        print("⚠️ Index ou embeddings image non trouvés.")
+        return []
+
+    index_image = faiss.read_index(index_path)
+
+    with open(names_path, "rb") as f:
+        image_embeddings = pickle.load(f)
+
+    img_names = list(image_embeddings.keys())
+
+    # Encodage de la requête texte
+    query_emb = model.encode([query_text]).astype('float32')
+
+    # Recherche dans l'index FAISS
+    D, I = index_image.search(query_emb, top_k)
+    return [(img_names[i], float(D[0][idx])) for idx, i in enumerate(I[0])]
+
+
+def search_by_image(image, top_k=5, embeddings_path="embeddings_clip"):
+    model = SentenceTransformer('clip-ViT-B-32')
+    
+    # Chargement de l'index FAISS et des textes
+    index_path = os.path.join(embeddings_path, "faiss_text.index")
+    names_path = os.path.join(embeddings_path, "text_embeddings_CLIP.pkl")
+
+    if not os.path.exists(index_path) or not os.path.exists(names_path):
+        print("⚠️ Index ou embeddings texte non trouvés.")
+        return []
+
+    index_text = faiss.read_index(index_path)
+
+    with open(names_path, "rb") as f:
+        text_embeddings = pickle.load(f)
+
+    text_index_to_img = list(text_embeddings.keys())
+
+    # Encodage de l'image requête
+    if isinstance(image, str):  # chemin d'image
+        image = Image.open(image).convert("RGB")
+    elif isinstance(image, Image.Image):
+        pass  # déjà une image PIL
+    else:
+        raise ValueError("L'entrée image doit être un chemin ou une image PIL.")
+
+    query_emb = model.encode([image]).astype('float32')
+
+    # Recherche dans l'index FAISS
+    D, I = index_text.search(query_emb, top_k)
+    return [(text_index_to_img[i], float(D[0][idx])) for idx, i in enumerate(I[0])]
