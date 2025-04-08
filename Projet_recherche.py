@@ -199,27 +199,20 @@ class Ui_MainWindow(object):
         # Add the widget with the grid layout to the scroll area
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         
-        self.label_precision = QtWidgets.QLabel(self.centralwidget)
-        self.label_precision.setGeometry(QtCore.QRect(1020, 290, 300 , 200))
-        self.label_rappel = QtWidgets.QLabel(self.centralwidget)
-        self.label_rappel.setGeometry(QtCore.QRect(1020, 491, 300 , 200))
+        self.label_rappel_precision = QtWidgets.QLabel(self.centralwidget)
+        self.label_rappel_precision.setGeometry(QtCore.QRect(1020, 290, 300 , 251))
+
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
         font.setBold(True)
         font.setWeight(75)
-        self.label_precision.setFont(font)
-        self.label_precision.setFrameShape(QtWidgets.QFrame.Panel)
-        self.label_precision.setText("")
-        self.label_precision.setScaledContents(True)
-        self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_precision.setObjectName("label_precision")
-        self.label_rappel.setFont(font)
-        self.label_rappel.setFrameShape(QtWidgets.QFrame.Panel)
-        self.label_rappel.setText("")
-        self.label_rappel.setScaledContents(True)
-        self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_rappel.setObjectName("label_rappel")
+        self.label_rappel_precision.setFont(font)
+        self.label_rappel_precision.setFrameShape(QtWidgets.QFrame.Panel)
+        self.label_rappel_precision.setText("")
+        self.label_rappel_precision.setScaledContents(True)
+        self.label_rappel_precision.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_rappel_precision.setObjectName("label_precision")
 
         
         
@@ -300,6 +293,9 @@ class Ui_MainWindow(object):
         self.comboBoxTop = QtWidgets.QComboBox(self.centralwidget)
         self.comboBoxTop.setGeometry(QtCore.QRect(545, 200, 301, 41))
         self.comboBoxTop.setObjectName("comboBoxTop")
+        
+        self.comboBoxTop.currentIndexChanged.connect(self.on_top_changed)
+        
         self.top_show = QtWidgets.QLabel(self.centralwidget)
         self.top_show.setGeometry(QtCore.QRect(460, 200, 61, 41))
         font = QtGui.QFont()
@@ -322,6 +318,29 @@ class Ui_MainWindow(object):
         self.label_8.setFrameShape(QtWidgets.QFrame.Panel)
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
+        
+        self.result_text = QtWidgets.QLabel(self.centralwidget)
+        self.result_text.setGeometry(QtCore.QRect(460, 550, 551, 31))
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setWeight(75)
+        self.result_text.setFont(font)
+        self.result_text.setFrameShape(QtWidgets.QFrame.Panel)
+        self.result_text.setAlignment(QtCore.Qt.AlignCenter)
+        self.result_text.setObjectName("result_text")
+        
+        self.affiche_texte = QtWidgets.QLabel("", self.centralwidget)
+        self.affiche_texte.setGeometry(QtCore.QRect(460, 590, 551, 50))
+        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
+        self.affiche_texte.setFont(font)
+        self.affiche_texte.setFrameShape(QtWidgets.QFrame.Panel)
+        self.affiche_texte.setAlignment(QtCore.Qt.AlignCenter)
+
+
+        
+        
         self.label_9 = QtWidgets.QLabel(self.centralwidget)
         self.label_9.setGeometry(QtCore.QRect(1020, 250, 300, 31))
         font = QtGui.QFont()
@@ -343,7 +362,7 @@ class Ui_MainWindow(object):
         self.chercher.setFont(font)
         self.chercher.setObjectName("chercher")
         self.calcul_RP = QtWidgets.QPushButton(self.centralwidget)
-        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 150, 41))
+        self.calcul_RP.setGeometry(QtCore.QRect(1020, 50, 200, 41))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -355,40 +374,53 @@ class Ui_MainWindow(object):
         
         
         # #bouton glissière
-        # self.switch_mode = QtWidgets.QCheckBox("Texte", self.centralwidget)
-        # self.switch_mode.setGeometry(QtCore.QRect(1180, 50, 100, 41))
-        # self.switch_mode.setChecked(False)
-        # font = QtGui.QFont()
-        # font.setFamily("Calibri")
-        # font.setPointSize(11)
-        # font.setBold(True)
-        # font.setWeight(75)
-        # self.switch_mode.setFont(font)
+        self.switch_mode = QtWidgets.QCheckBox("Rappel", self.centralwidget)
+        self.switch_mode.setGeometry(QtCore.QRect(1190, 50, 200, 41))
+        self.switch_mode.setChecked(False)
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(11)
+        font.setBold(True)
+        font.setWeight(75)
+        self.switch_mode.setFont(font)
         
         
-        # self.switch_mode.setStyleSheet("""
-        #     QCheckBox::indicator {
-        #         width: 40px;
-        #         height: 20px;
-        #     }
-        #     QCheckBox::indicator:unchecked {
-        #         image: url(off_icon.png);
-        #     }
-        #     QCheckBox::indicator:checked {
-        #         image: url(on_icon.png);
-        #     }
-        # """)
+        self.switch_mode.setStyleSheet("""
+            QCheckBox::indicator {
+                width: 40px;
+                height: 20px;
+            }
+            QCheckBox::indicator:unchecked {
+                image: url(off_icon.png);
+            }
+            QCheckBox::indicator:checked {
+                image: url(on_icon.png);
+            }
+        """)
 
 
-        # self.switch_mode.stateChanged.connect(self.toggle_mode)  # <-- après création du widget
+        self.switch_mode.stateChanged.connect(self.toggle_mode)  # <-- après création du widget
         
         
         self.Cosine_Similarity = QtWidgets.QLabel(self.centralwidget)
-        self.Cosine_Similarity.setGeometry(QtCore.QRect(460, 400, 551, 31))
+        self.Cosine_Similarity.setGeometry(QtCore.QRect(1020, 550, 300, 31))
         self.Cosine_Similarity.setFont(font)
         self.Cosine_Similarity.setFrameShape(QtWidgets.QFrame.Panel)
         self.Cosine_Similarity.setAlignment(QtCore.Qt.AlignCenter)
         self.Cosine_Similarity.setObjectName("Cosine_Similarity")
+        
+        self.valeur_Cosine_Similarity = QtWidgets.QLabel("", self.centralwidget)
+        self.valeur_Cosine_Similarity.setGeometry(QtCore.QRect(1230,590, 90, 41))
+        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
+        self.valeur_Cosine_Similarity.setFont(font)
+        self.valeur_Cosine_Similarity.setFrameShape(QtWidgets.QFrame.Panel)
+        self.valeur_Cosine_Similarity.setAlignment(QtCore.Qt.AlignCenter)
+        
+        self.charger_Cosine_Similarity= QtWidgets.QPushButton(self.centralwidget)
+        self.charger_Cosine_Similarity.setGeometry(QtCore.QRect(1020, 590, 200, 41))
+        font = QtGui.QFont("Calibri", 11, QtGui.QFont.Bold)
+        self.charger_Cosine_Similarity.setFont(font)
+        self.charger_Cosine_Similarity.clicked.connect(self.afficher_cosine)
 
 
 
@@ -488,7 +520,7 @@ class Ui_MainWindow(object):
         self.checkBox_Text.setText(_translate("MainWindow", "Text"))
         self.checkBox_CLIP.setText(_translate("MainWindow", "CLIP"))
         self.top_show.setText(_translate("MainWindow", "Top :"))
-        self.label_8.setText(_translate("MainWindow", "Résultats"))
+        self.label_8.setText(_translate("MainWindow", "Résultats images"))
         self.label_9.setText(_translate("MainWindow", "Courbe R et P"))
         self.chercher.setText(_translate("MainWindow", "Recherche"))
         self.calcul_RP.setText(_translate("MainWindow", "Calculer"))
@@ -498,6 +530,14 @@ class Ui_MainWindow(object):
         self.charger.setText(_translate("MainWindow", "Charger Image"))
         self.label_3.setText(_translate("MainWindow", "Requête"))
         self.charger_desc.setText(_translate("MainWindow", "Charger descripteurs"))
+        self.Cosine_Similarity.setText(_translate("MainWindow", "Cosine Similarity"))
+        self.charger_Cosine_Similarity.setText(_translate("MainWindow", "Calculer"))
+        self.result_text.setText(_translate("MainWindow", "Résultats textes"))
+
+    def on_top_changed(self):
+        # Récupérer le texte de la sélection
+        selected_text = self.comboBoxTop.currentText()
+        self.sortie = int(selected_text.split(' ')[1])
 
 
     def affiche_top(self, fileName):
@@ -505,9 +545,9 @@ class Ui_MainWindow(object):
         self.comboBoxTop.clear()
         
         if fileName == '':
-                self.comboBoxTop.addItem("Top20")
-                self.comboBoxTop.addItem("Top50")
-                self.comboBoxTop.addItem("Top100")
+                self.comboBoxTop.addItem("Top 20")
+                self.comboBoxTop.addItem("Top 50")
+                self.comboBoxTop.addItem("Top 100")
         else : 
             filename_req = os.path.basename(fileName)
             try:
@@ -535,15 +575,14 @@ class Ui_MainWindow(object):
 
 
             if nb_images_pertinentes >= 20:
-                self.comboBoxTop.addItem("Top20")
+                self.comboBoxTop.addItem("Top 20")
             if nb_images_pertinentes >= 50:
-                self.comboBoxTop.addItem("Top50")
+                self.comboBoxTop.addItem("Top 50")
             if nb_images_pertinentes >= 100:
-                self.comboBoxTop.addItem("Top100")
+                self.comboBoxTop.addItem("Top 100")
         
             # Toujours proposer le max possible
-            self.comboBoxTop.addItem(f"Top{nb_images_pertinentes}")
-        return int(self.comboBoxTop.currentText()[3:])
+            self.comboBoxTop.addItem(f"Top {nb_images_pertinentes}")
     
 
     def Ouvrir(self, MainWindow): 
@@ -555,7 +594,7 @@ class Ui_MainWindow(object):
         self.label_requete.setPixmap(pixmap) 
         self.label_requete.setAlignment(QtCore.Qt.AlignCenter)
 
-        self.sortie = self.affiche_top(fileName)
+        self.affiche_top(fileName)
             
     def on_text_changed(self, text):
         # Vérifiez si le texte n'est pas vide
@@ -564,18 +603,57 @@ class Ui_MainWindow(object):
             if not hasattr(self, 'fileName'):
                 fileName = ""  # Initialisation de fileName à vide ou une autre valeur par défaut
     
-            self.sortie = self.affiche_top(fileName)
-            print(self.sortie)
+            self.affiche_top(fileName)
         else:
             self.comboBoxTop.clear()  # Si le champ est vide, effacez les éléments
 
+    def afficher_cosine(self):
+        if self.sorted_results:
+            valeur = self.sorted_results[0][1]  # Récupère la similarité de la première image
+            self.valeur_Cosine_Similarity.setText(f"{valeur:.4f}")  # Affiche dans le champ texte
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Erreur")
+            msg.setText("Veuillez faire une recherche sur le texte")
+            msg.exec_()
+            return
+
 
             
-    # def toggle_mode(self, state):
-    #     if state == QtCore.Qt.Checked:
-    #         self.switch_mode.setText("Texte")
-    #     else:
-    #         self.switch_mode.setText("Image")
+    def toggle_mode(self, state):
+        if state == QtCore.Qt.Checked:
+            self.switch_mode.setText("Rappel")
+            # Rappel
+            img_rapp = cv2.imread(self.save_rappel, 1)
+            b, g, r = cv2.split(img_rapp)
+            img_rapp = cv2.merge([r, g, b])
+        
+            label_rapp_width = self.label_rappel_precision.width()
+            label_rapp_height = self.label_rappel_precision.height()
+            resized_rapp = cv2.resize(img_rapp, (label_rapp_width, label_rapp_height), interpolation=cv2.INTER_AREA)
+        
+            qImg_rapp = QtGui.QImage(resized_rapp.data, label_rapp_width, label_rapp_height, 3 * label_rapp_width, QtGui.QImage.Format_RGB888)
+            pixmap_rapp = QtGui.QPixmap.fromImage(qImg_rapp)
+            self.label_rappel_precision.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_rappel_precision.setPixmap(pixmap_rapp)
+        else:
+            self.switch_mode.setText("Precision")
+            # Précision
+            img_prec = cv2.imread(self.save_precision, 1)
+            b, g, r = cv2.split(img_prec)
+            img_prec = cv2.merge([r, g, b])
+        
+            label_prec_width = self.label_rappel_precision.width()
+            label_prec_height = self.label_rappel_precision.height()
+            resized_prec = cv2.resize(img_prec, (label_prec_width, label_prec_height), interpolation=cv2.INTER_AREA)
+        
+            qImg_prec = QtGui.QImage(resized_prec.data, label_prec_width, label_prec_height, 3 * label_prec_width, QtGui.QImage.Format_RGB888)
+            pixmap_prec = QtGui.QPixmap.fromImage(qImg_prec)
+            self.label_rappel_precision.setAlignment(QtCore.Qt.AlignCenter)
+            self.label_rappel_precision.setPixmap(pixmap_prec)
+
+
 
        
         
@@ -630,8 +708,6 @@ class Ui_MainWindow(object):
                 if any(algo in self.algo_choices for algo in [1, 2, 5, 6, 7, 8]):  # Si d'autres algos sont sélectionnés (par exemple, Histogram, GLCM, LBP...)
                     self.comboBox.addItems(["Euclidienne", "Correlation", "Chi carre", "Intersection", "Bhattacharyya"])  # Default options for other algorithms
 
-        if filenames:
-            self.sortie = affiche_top(self, fileName)
     
         if len(filenames) < 1:
             print("Merci de charger une image avec le bouton Ouvrir")
@@ -691,12 +767,7 @@ class Ui_MainWindow(object):
         self.nom_image_plus_proches = []
         images_deja_ajoutees = set()
         
-        # # Assurez-vous que fileName est défini, sinon l'initialiser à une chaîne vide
-        if not hasattr(self, 'fileName'):
-            fileName = ""  # Initialisation de fileName à vide ou une autre valeur par défaut
 
-        # # Utilisez fileName maintenant
-        #self.sortie = affiche_top(self.comboBoxTop, fileName)
     
         voisins_total = []
         text_results = []
@@ -743,6 +814,7 @@ class Ui_MainWindow(object):
                         if algo in [1, 2, 5, 6, 7, 8]:
                             distanceName = self.comboBox.currentText()
     
+                    
                     voisins = getkVoisins(features_par_algo, req, self.sortie * 2, distanceName)
     
                     distances = [v[2] for v in voisins]
@@ -769,7 +841,7 @@ class Ui_MainWindow(object):
         if self.checkBox_Text.isChecked():
             query_text = self.searchBar.text().strip()
             if query_text:
-                print(f"Recherche pour : {query_text}")
+                print(f"Recherche en cours pour : {query_text}")
     
                 if self.checkBox_CLIP.isChecked():
                     model = SentenceTransformer('clip-ViT-B-32')
@@ -791,15 +863,17 @@ class Ui_MainWindow(object):
                 query_embedding = model.encode(query_text).reshape(1, -1)
     
                 similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
-                sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+                self.sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
     
-                for img, sim in sorted_results:
+                for img, sim in self.sorted_results:
                     nom = os.path.basename(img)
                     if nom not in images_deja_ajoutees:
                         text_results.append((img, sim))
                         images_deja_ajoutees.add(nom)
                     if len(text_results) >= self.sortie:
                         break
+                #self.valeur_Cosine_Similarity.setText(f"{sorted_results[0][1]:.4f}")
+
     
             else:
                 msg = QMessageBox()
@@ -949,12 +1023,10 @@ class Ui_MainWindow(object):
         if nb_images_pertinentes == 0:
             print(f"Aucune image trouvée pour la classe {classe_image_requete}")
             return
-        print(f'nb_images_pertinentes : {nb_images_pertinentes}')
         
         
         # Calcul du nombre d'images pertinentes récupérées
         for i in range(self.sortie):
-            print(f'____________image {i+1}____________')
             nom_proche = self.nom_image_plus_proches[i]
             try:
                 classe_image_proche = nom_proche.split("_")[3]
@@ -966,15 +1038,11 @@ class Ui_MainWindow(object):
             if classe_image_requete == classe_image_proche:
                 liste_nb_images_pertinentes_recuperees.append(1)
                 nb_images_pertinentes_recuperees += 1
-                print('Bonne classe!')
             else:
                 liste_nb_images_pertinentes_recuperees.append(0)
-                print(f'nb_images_pertinentes_recuperees : {nb_images_pertinentes_recuperees}')
             
             precision = nb_images_pertinentes_recuperees / (i + 1)
             rappel = nb_images_pertinentes_recuperees / nb_images_pertinentes
-            print(f'Rappel : {rappel}')
-            print(f'Precision : {precision}')
             rappels.append(rappel)
             precisions.append(precision)
         
@@ -983,8 +1051,8 @@ class Ui_MainWindow(object):
         if not os.path.exists(save_folder): 
             os.makedirs(save_folder) 
         
-        save_precision = os.path.join(save_folder, f'{match}_precision.png')
-        save_rappel = os.path.join(save_folder, f'{match}_rappel.png')
+        self.save_precision = os.path.join(save_folder, f'{match}_precision.png')
+        self.save_rappel = os.path.join(save_folder, f'{match}_rappel.png')
     
         # Courbe Précision
         plt.figure(figsize=(8, 5))
@@ -993,7 +1061,7 @@ class Ui_MainWindow(object):
         plt.ylabel("Précision")
         plt.title(f"Courbe de Précision - Image {match}")
         plt.grid(True)
-        plt.savefig(save_precision, format='png', dpi=600)
+        plt.savefig(self.save_precision, format='png', dpi=600)
         plt.close()
     
         # Courbe Rappel
@@ -1003,39 +1071,14 @@ class Ui_MainWindow(object):
         plt.ylabel("Rappel")
         plt.title(f"Courbe de Rappel - Image {match}")
         plt.grid(True)
-        plt.savefig(save_rappel, format='png', dpi=600)
+        plt.savefig(self.save_rappel, format='png', dpi=600)
         plt.close()
-    
-        # Affichage dans Qt
-        # Précision
-        img_prec = cv2.imread(save_precision, 1)
-        b, g, r = cv2.split(img_prec)
-        img_prec = cv2.merge([r, g, b])
-    
-        label_prec_width = self.label_precision.width()
-        label_prec_height = self.label_precision.height()
-        resized_prec = cv2.resize(img_prec, (label_prec_width, label_prec_height), interpolation=cv2.INTER_AREA)
-    
-        qImg_prec = QtGui.QImage(resized_prec.data, label_prec_width, label_prec_height, 3 * label_prec_width, QtGui.QImage.Format_RGB888)
-        pixmap_prec = QtGui.QPixmap.fromImage(qImg_prec)
-        self.label_precision.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_precision.setPixmap(pixmap_prec)
-    
-        # Rappel
-        img_rapp = cv2.imread(save_rappel, 1)
-        b, g, r = cv2.split(img_rapp)
-        img_rapp = cv2.merge([r, g, b])
-    
-        label_rapp_width = self.label_rappel.width()
-        label_rapp_height = self.label_rappel.height()
-        resized_rapp = cv2.resize(img_rapp, (label_rapp_width, label_rapp_height), interpolation=cv2.INTER_AREA)
-    
-        qImg_rapp = QtGui.QImage(resized_rapp.data, label_rapp_width, label_rapp_height, 3 * label_rapp_width, QtGui.QImage.Format_RGB888)
-        pixmap_rapp = QtGui.QPixmap.fromImage(qImg_rapp)
-        self.label_rappel.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_rappel.setPixmap(pixmap_rapp)
+        
+        print(f'Calcul des métriques terminé !')
+
     
         return rappels, precisions, liste_nb_images_pertinentes_recuperees
+    
 
 
     
@@ -1075,6 +1118,7 @@ class Ui_MainWindow(object):
 
 
     def calculer_metriques(self):
+        print(f'Calcul des métriques en cours ...')
         """Calcul des métriques à partir des vraies données et affichage des résultats."""
     
         # Appeler la fonction rappel_precision() pour obtenir les valeurs de rappel et précision
@@ -1083,16 +1127,14 @@ class Ui_MainWindow(object):
         ap = self.average_precision(rappels, precisions)  # Calculer l'Average Precision
         map_value = self.mean_average_precision([ap])  # Calculer la Mean Average Precision (mAP)
         
-        # #affiche_top(self.comboBoxTop, fileName)
-        # current_text = self.comboBoxTop.currentText()
-        # self.sortie = int(current_text[3:])
         
-        rp = self.r_precision(liste_nb_images_pertinentes_recuperees, R)  # Calculer la R-Precision
+        rp = self.r_precision(liste_nb_images_pertinentes_recuperees, self.sortie)  # Calculer la R-Precision
         
         # Afficher les résultats dans les labels
         self.valeur_AP.setText(f"{ap:.4f}")
         self.valeurMaP.setText(f"{map_value:.4f}")
         self.valeurRP.setText(f"{rp:.4f}")
+        
         
     def calculer_metriques_et_rappel(self):
         """Appelle les fonctions rappel_precision et calculer_metriques."""
