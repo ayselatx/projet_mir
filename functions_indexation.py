@@ -644,3 +644,84 @@ def embedding_imageCLIP(folder_path, progressBar, output_image_file="image_embed
 
 
 
+def search_by_text_CLIP():
+    # Charger les embeddings des images et des textes depuis les fichiers pkl
+    with open('/content/image_embeddings_CLIP.pkl', 'rb') as f:
+        image_embeddings = pickle.load(f)
+
+    # Convertir les embeddings en numpy arrays
+    image_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in image_embeddings.values()])
+
+    with open('/content/text_embeddings_CLIP.pkl', 'rb') as f:
+    text_embeddings = pickle.load(f)
+    # Convertir les embeddings en numpy arrays
+    text_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in text_embeddings.values()])
+    print(text_embeddings.shape)  # Devrait être (31783, 1, 512)
+
+    def normalize_embeddings(embeddings):
+        norm = np.linalg.norm(embeddings, axis=1, keepdims=True)
+        return embeddings / norm
+
+    # Normaliser les embeddings
+    image_embedding = normalize_embeddings(image_embeddings)
+    text_embeddings = normalize_embeddings(text_embeddings)
+
+        # Vérifier la forme des embeddings
+    print(image_embeddings.shape)  # Devrait être (31783, 1, 512)
+
+    # Créer les indices FAISS
+    dimension = image_embeddings.shape[2]  # La dimension de chaque embedding (512)
+    index_image = faiss.IndexFlatL2(dimension)  # Index pour les images
+
+    # Dictionnaires pour faire le mapping des indices
+    faiss_image_mapping = {}  # Mapping index -> vrai nom de fichier image
+
+    # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
+    image_folder = '/content/Images'  # Chemin vers le dossier d'images
+
+    # Ajouter les embeddings des images à l'index FAISS
+    image_files = os.listdir(image_folder)  # Lister les fichiers dans le dossier images
+    for i in range(image_embeddings.shape[0]):
+        image_name = image_files[i]  # Utiliser le vrai nom de fichier de l'image
+        faiss_image_mapping[i] = image_name  # Mapping entre l'index FAISS et le vrai nom de fichier de l'image
+        
+        # Supprimer la dimension supplémentaire
+        image_embedding = np.squeeze(image_embeddings[i])  # Transforme (1, 512) en (512,)
+        
+        # Ajouter l'embedding de l'image à l'index FAISS
+        print(f"Ajout de l'embedding pour l'image {image_name} avec forme : {image_embedding.shape}")
+        index_image.add(np.expand_dims(image_embedding, axis=0).astype('float32'))  # Convertir en 2D (1, 512) pour FAISS
+
+    # Dimensions des embeddings
+    dimension = image_embeddings.shape[2]  # Dimensions des embeddings (doivent être les mêmes pour images et textes)
+
+    # Créer les indices FAISS
+    index_text = faiss.IndexFlatL2(dimension)  # Index pour les textes
+
+    # Dictionnaires pour faire le mapping des indices
+    faiss_text_mapping = defaultdict(list)  # Mapping index -> [image_name_0, image_name_1, ...]
+
+    # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
+    image_folder = '/content/Images'  # Chemin vers le dossier d'images
+
+    count = 0
+    # Ajouter les embeddings des textes à l'index FAISS
+    for i in range(text_embeddings.shape[0]):
+        # Récupérer le nom de l'image associé au texte
+        image_name = f"{image_files[i//5]}_{count}"
+
+        # Créer l'identifiant du texte sous la forme 'image_name_(i)'
+        faiss_text_mapping[i].append(image_name)  # Mapping entre index texte et image
+
+        # S'assurer que l'embedding a la bonne forme
+        text_embedding = np.squeeze(text_embeddings[i])  # Transforme (1, 512) en (512,)
+        text_embedding = np.expand_dims(text_embedding, axis=0)  # Ajouter la dimension pour obtenir (1, 512)
+
+        # Ajouter l'embedding du texte à l'index FAISS
+        index_text.add(text_embedding.astype('float32'))  # Ajouter l'embedding du texte
+        print(f"Ajout de l'embedding pour le texte {image_name} avec forme : {text_embedding.shape}")
+        count += 1
+        if count == 5:
+            count = 0
+
+    print("Index d'images et de textes créés avec succès.")
