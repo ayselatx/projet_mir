@@ -1,0 +1,92 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Recherche</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <div class="section">
+            <h2>Requête</h2>
+            <label for="imageSelect">Sélectionnez une image :</label>
+            <select id="imageSelect" name="image_name" class="dropdown">
+                {% if images %}
+                    {% for image in images %}
+                        <!-- Utilise MEDIA_URL pour générer le lien complet de l'image -->
+                        <option value="{{ MEDIA_URL }}datasets/MIR_DATASETS_B/{{ image }}">{{ image }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">Aucune image disponible</option>
+                {% endif %}
+            </select>
+            <label for="textQuery">Texte Requête :</label>
+            <input type="text" id="textQuery" class="input-field" placeholder="Entrez la requête textuelle...">
+        </div>
+
+        <!-- Descripteurs -->
+        <div class="section">
+            <h2>Descripteurs</h2>
+            <label><input type="checkbox" name="descripteur" value="bgr"> BGR</label><br>
+            <label><input type="checkbox" name="descripteur" value="hsv"> HSV</label><br>
+            <label><input type="checkbox" name="descripteur" value="sift"> SIFT</label><br>
+            <label><input type="checkbox" name="descripteur" value="orb"> ORB</label><br>
+            <label><input type="checkbox" name="descripteur" value="glcm"> GLCM</label><br>
+            <label><input type="checkbox" name="descripteur" value="vit"> ViT</label><br>
+            <label><input type="checkbox" name="descripteur" value="lbp"> LBP</label><br>
+            <label><input type="checkbox" name="descripteur" value="hog"> HOG</label><br>
+            <button class="btn" onclick="chargerDescripteurs()">Charger les descripteurs</button>
+        </div>
+
+        <!-- Recherche -->
+        <div class="section">
+            <h2>Recherche</h2>
+            <label for="distance">Distance :</label>
+            <select id="distance" class="dropdown">
+                <option value="euclidean">Euclidienne</option>
+                <option value="manhattan">Manhattan</option>
+            </select>
+
+            <label for="searchType">Type de recherche :</label>
+            <select id="searchType" class="dropdown">
+                <option value="image">Image</option>
+                <option value="texte">Texte</option>
+                <option value="clip">CLIP</option>
+            </select>
+
+            <label for="topResults">Top :</label>
+            <select id="topResults" class="dropdown">
+                <!-- Les options seront ajoutées dynamiquement -->
+            </select>
+            <button class="btn" onclick="rechercher()">Rechercher</button>
+            <div id="results">
+                <p>Aucun résultat</p>
+            </div>
+        </div>
+
+        <!-- Métriques -->
+        <div class="section">
+            <h2>Métriques</h2>
+            <p>AP : <span id="apValue">0.0</span></p>
+            <p>mAP : <span id="mapValue">0.0</span></p>
+            <p>RP : <span id="rpValue">0.0</span></p>
+            <button class="btn" onclick="afficherCourbe('rappel')">Courbe Rappel</button>
+            <button class="btn" onclick="afficherCourbe('precision')">Courbe Précision</button>
+            <canvas id="courbeRP" width="300" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        <button class="btn" onclick="quitter()">Quitter</button>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>
