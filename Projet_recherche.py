@@ -537,7 +537,8 @@ class Ui_MainWindow(object):
     def on_top_changed(self):
         # Récupérer le texte de la sélection
         selected_text = self.comboBoxTop.currentText()
-        self.sortie = int(selected_text.split(' ')[1])
+        if len(selected_text) :
+            self.sortie = int(selected_text.split(' ')[1])
 
 
     def affiche_top(self, fileName):
@@ -608,16 +609,26 @@ class Ui_MainWindow(object):
             self.comboBoxTop.clear()  # Si le champ est vide, effacez les éléments
 
     def afficher_cosine(self):
-        if self.sorted_results:
-            valeur = self.sorted_results[0][1]  # Récupère la similarité de la première image
-            self.valeur_Cosine_Similarity.setText(f"{valeur:.4f}")  # Affiche dans le champ texte
-        else:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Critical)
-            msg.setWindowTitle("Erreur")
-            msg.setText("Veuillez faire une recherche sur le texte")
-            msg.exec_()
-            return
+        if self.checkBox_Text.isChecked() :
+        
+            if self.images_trouvees:
+                valeur = self.images_trouvees[0][1]  # Récupère la similarité de la première image
+                self.valeur_Cosine_Similarity.setText(f"{valeur:.4f}")  # Affiche dans le champ texte
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Erreur")
+                msg.setText("Veuillez faire une recherche sur le texte")
+                msg.exec_()
+                return
+        else :
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Erreur")
+                msg.setText("Veuillez faire une recherche sur le texte uniquement")
+                msg.exec_()
+                return
+            
 
 
             
@@ -837,6 +848,8 @@ class Ui_MainWindow(object):
                 ordre = True if distanceName in ["Correlation", "Intersection"] else False
                 voisins_total.sort(key=lambda x: x[2], reverse=ordre)
                 voisins_total = voisins_total[:self.sortie]
+            self.images_trouvees = voisins_total
+                
     
         if self.checkBox_Text.isChecked():
             query_text = self.searchBar.text().strip()
@@ -887,6 +900,7 @@ class Ui_MainWindow(object):
                     print(f"{img}: Similarité = {similarity:.4f}")
 
                 text_results = sorted_results
+                self.images_trouvees = sorted_results
     
             else:
                 msg = QMessageBox()
@@ -938,8 +952,9 @@ class Ui_MainWindow(object):
     
                 self.path_image_plus_proches.append(chemin_complet)
                 self.nom_image_plus_proches.append(img)
+            self.images_trouvees = self.nom_image_plus_proches
     
-        elif self.checkBox_Image.isChecked():
+        if self.checkBox_Image.isChecked():
             base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
             for k in range(len(voisins_total)):
                 chemin_relatif = voisins_total[k][0]
@@ -958,8 +973,10 @@ class Ui_MainWindow(object):
     
                 self.path_image_plus_proches.append(chemin_complet)
                 self.nom_image_plus_proches.append(image_name)
+            self.images_trouvees = self.nom_image_plus_proches
     
-        elif self.checkBox_Text.isChecked():
+        if self.checkBox_Text.isChecked():
+            
             base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
             for img, _ in text_results:
                 image_name = os.path.basename(img)
@@ -970,22 +987,28 @@ class Ui_MainWindow(object):
                     img = os.path.join(base_path, categorie, race, image_name)
                 self.path_image_plus_proches.append(img)
                 self.nom_image_plus_proches.append(img)
+            self.images_trouvees = self.nom_image_plus_proches
     
         # Affichage
         col = 3
         k = 0
         for i in range(math.ceil(len(self.path_image_plus_proches) / col)):
             for j in range(col):
+                print(len(self.path_image_plus_proches))
                 if k >= len(self.path_image_plus_proches):
+                    print('print1')
                     break
     
                 chemin_image = self.path_image_plus_proches[k]
                 if not os.path.exists(chemin_image):
+                    print('print2')
+                    print(chemin_image)
                     k += 1
                     continue
     
                 img = cv2.imread(chemin_image, cv2.IMREAD_COLOR)
                 if img is None:
+                    print('print3')
                     k += 1
                     continue
     
@@ -1040,7 +1063,7 @@ class Ui_MainWindow(object):
         
         # Calcul du nombre d'images pertinentes récupérées
         for i in range(self.sortie):
-            nom_proche = self.nom_image_plus_proches[i]
+            nom_proche = self.images_trouvees[i]
             try:
                 classe_image_proche = nom_proche.split("_")[3]
             except IndexError:
@@ -1086,8 +1109,6 @@ class Ui_MainWindow(object):
         plt.grid(True)
         plt.savefig(self.save_rappel, format='png', dpi=600)
         plt.close()
-        
-        print(f'Calcul des métriques terminé !')
 
     
         return rappels, precisions, liste_nb_images_pertinentes_recuperees
@@ -1130,12 +1151,12 @@ class Ui_MainWindow(object):
         return r_precision_value
 
 
-    def calculer_metriques(self):
+    def calculer_metriques(self,rappels, precisions, liste_nb_images_pertinentes_recuperees):
         print(f'Calcul des métriques en cours ...')
         """Calcul des métriques à partir des vraies données et affichage des résultats."""
     
         # Appeler la fonction rappel_precision() pour obtenir les valeurs de rappel et précision
-        rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # récupérer les résultats de rappel et précision
+        #rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # récupérer les résultats de rappel et précision
         # Calculer les métriques
         ap = self.average_precision(rappels, precisions)  # Calculer l'Average Precision
         map_value = self.mean_average_precision([ap])  # Calculer la Mean Average Precision (mAP)
@@ -1147,164 +1168,30 @@ class Ui_MainWindow(object):
         self.valeur_AP.setText(f"{ap:.4f}")
         self.valeurMaP.setText(f"{map_value:.4f}")
         self.valeurRP.setText(f"{rp:.4f}")
+        print('Calcul des métriques terminé !')
         
         
     def calculer_metriques_et_rappel(self):
-        """Appelle les fonctions rappel_precision et calculer_metriques."""
-        # Appeler la fonction rappel_precision pour calculer les valeurs
-        rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # Cette ligne doit renvoyer les bonnes données
         
-        # Vérifier si les rappels et précisions ne sont pas vides avant de continuer
-        if not rappels or not precisions or not liste_nb_images_pertinentes_recuperees:
-            print("Erreur dans le calcul des rappels ou précisions.")
-            return
-        
-        # Appeler la fonction calculer_metriques pour afficher les résultats dans les labels
-        self.calculer_metriques()  # Cela calcule et affiche les métriques (AP, mAP, R-Precision)
-
-
-    # def loadFeaturesText(self):
-    #     query_text = self.searchBar.text().strip()  # Récupérer et nettoyer la requête
-    #     self.comboBoxTop.addItems(['Top20','Top50'])
-    #     if query_text:
-    #         print(f"🔍 Recherche pour : {query_text}")
+        if self.checkBox_Image.isChecked() or (self.checkBox_Text.isChecked() and self.checkBox_Image.isChecked()):
+            """Appelle les fonctions rappel_precision et calculer_metriques."""
+            # Appeler la fonction rappel_precision pour calculer les valeurs
+            rappels, precisions, liste_nb_images_pertinentes_recuperees = self.rappel_precision()  # Cette ligne doit renvoyer les bonnes données
             
-    #         # Vérifier le choix Top 20 ou Top 50
-    #         if self.comboBoxTop.currentText() == "Top20":
-    #             self.sortie = 20
-    #         elif self.comboBoxTop.currentText() == "Top50":
-    #             self.sortie = 50
-    #         else:
-    #             self.sortie = 5  # Valeur par défaut
-    
-    #         self.perform_search(query_text)  # Lancer la recherche
-    #     else:
-    #         print("⚠ Aucun texte saisi dans la barre de recherche.")
-    
-    # def perform_search(self, query):
-    #    try:
-    #        # 🔹 Récupérer le nombre d’images à afficher (Top 20 ou Top 50)
-    #        if self.comboBoxTop.currentText() == "Top20":
-    #            self.sortie = 20
-    #        elif self.comboBoxTop.currentText() == "Top50":
-    #            self.sortie = 50
-    #        else:
-    #            self.sortie = 5  # Valeur par défaut si rien n'est sélectionné
-       
-    #        # Charger le modèle pour l'encodage du texte
-    #        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-       
-    #        # Charger les embeddings textuels et d'images
-    #        with open("text_embeddings.pkl", "rb") as f:
-    #            text_embeddings = pickle.load(f)
-       
-    #        with open("image_embeddings.pkl", "rb") as f:
-    #            image_embeddings = pickle.load(f)
-       
-    #        if not text_embeddings or not image_embeddings:
-    #            print("⚠ Erreur : Les fichiers d'embeddings sont vides.")
-    #            return
-       
-    #        # 🔹 Encodage de la requête utilisateur
-    #        query_embedding = model.encode(query).reshape(1, -1)
-       
-    #        # 🔹 Calcul des similarités entre la requête et chaque image
-    #        similarities = {img: cosine_similarity(query_embedding, emb.reshape(1, -1))[0][0] for img, emb in image_embeddings.items()}
-       
-    #        # 🔹 Trier les images par score de similarité décroissant
-    #        sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
-       
-    #        # 🔹 Sélectionner seulement le Top choisi (20 ou 50)
-    #        sorted_results = sorted_results[:self.sortie]
-       
-    #        # 🔹 Afficher les résultats dans la console
-    #        print(f"\n✅ Top {self.sortie} résultats :")
-    #        for img, similarity in sorted_results:
-    #            print(f"🖼 {img}: Similarité = {similarity:.4f}")
-       
-    #        # 🔹 Afficher les images trouvées dans l'interface
-    #        self.display_images([img for img, _ in sorted_results])
-       
-    #    except FileNotFoundError:
-    #        print("❌ Erreur : Un fichier d'embeddings est introuvable.")
-    #    except Exception as e:
-    #        print(f"❌ Une erreur est survenue : {e}")
-
-    
-    # def display_images(self, image_paths):
-    #     """
-    #     Affiche les images trouvées dans l'interface utilisateur.
-    #     """
-    #     # Limiter l'affichage aux `self.sortie` images
-    #     image_paths = image_paths[:self.sortie]
-    
-    #     # Remise à zéro de la grille
-    #     for i in reversed(range(self.gridLayout.count())):
-    #         self.gridLayout.itemAt(i).widget().setParent(None)
-    
-    #     col = 3  # Nombre de colonnes d'affichage
-    #     k = 0  # Compteur
-    
-    #     # Définir la taille maximale de l'image
-    #     max_image_width = 150
-    #     max_image_height = 150
-    
-    #     # Chemin de base du dataset
-    #     base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MIR_DATASETS_B")
-    
-    #     for i in range(math.ceil(len(image_paths) / col)):
-    #         for j in range(col):
-    #             if k >= len(image_paths):
-    #                 break
-    
-    #             chemin_image = image_paths[k]
-    
-    #             # Extraire catégorie et race
-    #             chemin_parts = chemin_image.split('_')
-    
-    #             if len(chemin_parts) >= 4:
-    #                 categorie, race = chemin_parts[2], chemin_parts[3]
-    #             else:
-    #                 print(f"⚠ Erreur : Format de nom invalide pour {chemin_image}")
-    #                 k += 1
-    #                 continue
-    
-    #             # Construire le chemin complet
-    #             chemin_complet = os.path.join(base_path, categorie, race, chemin_image)
-    
-    #             if not os.path.exists(chemin_complet):
-    #                 print(f"❌ Erreur : L'image {chemin_complet} n'existe pas.")
-    #                 k += 1
-    #                 continue
-    
-    #             # Charger l'image
-    #             img = cv2.imread(chemin_complet, cv2.IMREAD_COLOR)
-    #             if img is None:
-    #                 print(f"❌ Erreur : Impossible de charger {chemin_complet}.")
-    #                 k += 1
-    #                 continue
-    
-    #             # Convertir en RGB
-    #             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    #             # Convertir en QImage
-    #             height, width, channel = img.shape
-    #             bytesPerLine = 3 * width
-    #             qImg = QtGui.QImage(img.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-    #             pixmap = QtGui.QPixmap.fromImage(qImg)
-    
-    #             # Créer un label pour l'image
-    #             label = QtWidgets.QLabel("")
-    #             label.setAlignment(QtCore.Qt.AlignCenter)
-    #             label.setPixmap(pixmap.scaled(min(int(0.3 * width), max_image_width),
-    #                                           min(int(0.3 * height), max_image_height),
-    #                                           QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
-    
-    #             # Ajouter l'image à la grille
-    #             self.gridLayout.addWidget(label, i, j)
-    
-    #             k += 1
-
+            # Vérifier si les rappels et précisions ne sont pas vides avant de continuer
+            if not rappels or not precisions or not liste_nb_images_pertinentes_recuperees:
+                print("Erreur dans le calcul des rappels ou précisions.")
+                return
+            
+            # Appeler la fonction calculer_metriques pour afficher les résultats dans les labels
+            self.calculer_metriques(rappels, precisions, liste_nb_images_pertinentes_recuperees)  # Cela calcule et affiche les métriques (AP, mAP, R-Precision)
+        else : 
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Erreur")
+            msg.setText("Veuillez cocher au moins une des options : Image ou Image et Text")
+            msg.exec_()
+            return
 
 
 
