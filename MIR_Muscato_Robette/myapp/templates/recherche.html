@@ -16,13 +16,23 @@
             <select id="imageSelect" name="image_name" class="dropdown">
                 {% if images %}
                     {% for image in images %}
-                        <!-- Utilise MEDIA_URL pour générer le lien complet de l'image -->
-                        <option value="{{ MEDIA_URL }}datasets/MIR_DATASETS_B/{{ image }}">{{ image }}</option>
+                        <option value="{{ MEDIA_URL }}{{ image }}">{{ image }}</option>
                     {% endfor %}
                 {% else %}
                     <option value="">Aucune image disponible</option>
                 {% endif %}
             </select>
+            <h2>Images disponibles</h2>
+            <div class="scroll-box">
+                {% for image in images %}
+                    <label class="image-option">
+                        <input type="radio" name="image_name" value="{{ MEDIA_URL }}{{ image }}">
+                        <img src="{{ MEDIA_URL }}{{ image }}" alt="{{ image }}" class="thumbnail">
+                    </label>
+                {% endfor %}
+            </div>
+
+
             <label for="textQuery">Texte Requête :</label>
             <input type="text" id="textQuery" class="input-field" placeholder="Entrez la requête textuelle...">
         </div>

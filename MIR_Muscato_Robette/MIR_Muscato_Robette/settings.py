@@ -129,7 +129,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'MIR_Muscato_Robette\media')
+MEDIA_ROOT = os.path.join(BASE_DIR,'myapp', 'media')
 
 
 

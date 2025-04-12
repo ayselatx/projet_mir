@@ -38,7 +38,23 @@ def indexation(request):
     return render(request, "indexation.html",{})
 
 def recherche(request):
-    return render(request, "recherche.html",{})
+
+    images = []
+
+    for root, dirs, files in os.walk(settings.MEDIA_ROOT):
+        for file in files:
+            if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                # Récupère le chemin relatif à MEDIA_ROOT
+                relative_path = os.path.relpath(os.path.join(root, file), settings.MEDIA_ROOT)
+                # Normalise le chemin pour usage web (remplace les \ par /)
+                images.append(relative_path.replace('\\', '/'))
+
+    context = {
+        'images': images,
+        'MEDIA_URL': settings.MEDIA_URL,
+    }
+
+    return render(request, "recherche.html",context)
 
 
 def on_top_changed(request):
