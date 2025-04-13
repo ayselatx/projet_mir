@@ -270,7 +270,7 @@ def recherche_images(request):
 
         # Tu peux caster top_results en int si besoin
         try:
-            top_results = int(top_results)
+            top_results = int(top_results.split(' ')[1])  # Extraire le nombre après "Top"
         except ValueError:
             top_results = 10  # valeur par défaut
 
@@ -283,7 +283,6 @@ def recherche_images(request):
             distance=distance_type,
             top_results=top_results
         )
-        print(resultats)
         formatted_paths = []
         for result in resultats:
             filename = result[1]  # le deuxième élément du tuple
