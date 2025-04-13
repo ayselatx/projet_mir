@@ -40,24 +40,22 @@
         <!-- Descripteurs -->
         <div class="section">
             <h2>Descripteurs</h2>
-            <label><input type="checkbox" name="descripteur" value="bgr"> BGR</label><br>
-            <label><input type="checkbox" name="descripteur" value="hsv"> HSV</label><br>
-            <label><input type="checkbox" name="descripteur" value="sift"> SIFT</label><br>
-            <label><input type="checkbox" name="descripteur" value="orb"> ORB</label><br>
-            <label><input type="checkbox" name="descripteur" value="glcm"> GLCM</label><br>
-            <label><input type="checkbox" name="descripteur" value="vit"> ViT</label><br>
-            <label><input type="checkbox" name="descripteur" value="lbp"> LBP</label><br>
-            <label><input type="checkbox" name="descripteur" value="hog"> HOG</label><br>
+            <label><input type="checkbox" name="descripteur" value="BGR"> BGR</label><br>
+            <label><input type="checkbox" name="descripteur" value="HSV"> HSV</label><br>
+            <label><input type="checkbox" name="descripteur" value="SIFT"> SIFT</label><br>
+            <label><input type="checkbox" name="descripteur" value="ORB"> ORB</label><br>
+            <label><input type="checkbox" name="descripteur" value="GLCM"> GLCM</label><br>
+            <label><input type="checkbox" name="descripteur" value="ViT"> ViT</label><br>
+            <label><input type="checkbox" name="descripteur" value="LBP"> LBP</label><br>
+            <label><input type="checkbox" name="descripteur" value="HOG"> HOG</label><br>
             <button class="btn" onclick="chargerDescripteurs()">Charger les descripteurs</button>
-        </div>
-
+        </div>        
         <!-- Recherche -->
         <div class="section">
             <h2>Recherche</h2>
             <label for="distance">Distance :</label>
             <select id="distance" class="dropdown">
-                <option value="euclidean">Euclidienne</option>
-                <option value="manhattan">Manhattan</option>
+                <!-- Les options seront ajoutées dynamiquement -->
             </select>
 
             <label for="searchType">Type de recherche :</label>
@@ -71,7 +69,7 @@
             <select id="topResults" class="dropdown">
                 <!-- Les options seront ajoutées dynamiquement -->
             </select>
-            <button class="btn" onclick="rechercher()">Rechercher</button>
+            <button class="btn" type="button" onclick="rechercher()">Rechercher</button>
             <div id="results">
                 <p>Aucun résultat</p>
             </div>
@@ -88,15 +86,19 @@
             <canvas id="courbeRP" width="300" height="200"></canvas>
         </div>
     </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
-        </div>
-        <button class="btn" onclick="quitter()">Quitter</button>
+    <!-- ProgressBar -->
+    <div class="progress-container" style="margin-top: 15px;">
+        <label for="progress">Chargement :</label>
+        <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        <span id="progressPercent">0%</span>
     </div>
 
+    <footer>
+        <div id="footer-container"></div>
+    </footer>
+
     <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/footer.js' %}"></script>
 </body>
 </html>

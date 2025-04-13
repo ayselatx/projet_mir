@@ -106,3 +106,13 @@ body {
 .image-option input[type="radio"]:checked + .thumbnail {
     border-color: #007bff;
 }
+.progress-container {
+    width: 100%;
+    max-width: 500px;
+}
+progress {
+    height: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: #eee;
+}
