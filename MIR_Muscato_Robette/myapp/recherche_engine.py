@@ -24,13 +24,10 @@ class Rechercheur:
         return results[:self.sortie]
 
     def recherche_image(self, image_name):
-        print(f'ImageName : {image_name}')
         current_directory = os.getcwd()
-        print("Le dossier actuel est :", current_directory)
 
         # Supprimer le "/media" du début du nom de l'image
         path = os.path.join(self.base_path, image_name.lstrip("/"))
-        print(f'Chemin de l\'image : {path}')
 
         try:
             image = Image.open(path).convert("RGB")
@@ -52,8 +49,13 @@ class Rechercheur:
         }
 
         sorted_images = sorted(sim_scores.items(), key=lambda x: x[1], reverse=True)
-        return [os.path.join(current_directory,"media","MIR_DATASETS_B", img) for img, _ in sorted_images[:self.sortie]]
-
+        liste=[]
+        for img,_ in sorted_images[:self.sortie]:
+            animal = img.split("_")[2]
+            race = img.split("_")[3]
+            #liste.append(os.path.join(current_directory,"myapp","media","MIR_DATASETS_B", animal,race,img))
+            liste.append(os.path.join("media","MIR_DATASETS_B", animal,race,img))
+        return liste
     def recherche_texte(self, texte):
         model = SentenceTransformer('clip-ViT-B-32')
         query_embedding = model.encode(texte).reshape(1, -1)

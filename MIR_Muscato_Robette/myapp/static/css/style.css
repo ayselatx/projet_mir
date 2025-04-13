@@ -28,6 +28,7 @@ body {
     cursor: pointer;
 }
 
+
 .btn:hover {
     background-color: #0056b3;
 }
@@ -80,6 +81,7 @@ body {
     gap: 10px;
     background-color: #f9f9f9;
 }
+
 
 .image-option {
     display: flex;

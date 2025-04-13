@@ -236,7 +236,7 @@ def charger_descripteurs(request):
 
                         processed_files += 1
                         # Envoie la progression périodiquement (par exemple, toutes les 10 étapes)
-                        if processed_files % 10 == 0:
+                        if processed_files % 100 == 0:
                             progress = (processed_files / total_files) * 100
                             print(f"Progression: {progress:.2f}%")
             
@@ -270,7 +270,8 @@ def recherche_images(request):
         rechercheur = Rechercheur()  # Assure-toi que Rechercheur est bien défini
         resultats = rechercheur.lancer_recherche(image_name, text_query)
         # Retourne les résultats sous forme de JSON
-        return JsonResponse({"images": resultats})
+        formatted_paths = ["/" + path.replace("\\", "/") for path in resultats]
+        return JsonResponse({"images": formatted_paths})
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
 

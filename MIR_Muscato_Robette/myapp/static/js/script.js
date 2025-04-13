@@ -306,12 +306,12 @@ async function rechercher() {
         alert("Veuillez sélectionner une image ou insérer un texte.");
         return;
     }
-
+    console.log('je suis ici')
     const csrfToken = getCookie('csrftoken');  // Utilisation du token CSRF
 
     const formData = new FormData();
     if (selectedImage) {
-        print('oui')
+        console.log('oui')
         formData.append("image_name", selectedImage.value);
     }
     if (textQuery !== "") {
@@ -326,15 +326,12 @@ async function rechercher() {
             },
             body: formData
         });
-        print('________________________')
-        print(response)
+        console.log(response)
         const data = await response.json();
-        print('________________________')
-        print(data)
+        console.log(data)
         // Afficher les résultats dans l'élément #results
         if (data.images && data.images.length > 0) {
-            print('____________________________')
-            print(data.images)
+            console.log(data.images)
             afficherResultats(data.images);
         } else {
             document.getElementById('results').innerHTML = '<p>Aucun résultat trouvé.</p>';
@@ -347,6 +344,8 @@ async function rechercher() {
 
 // Fonction pour afficher les résultats dans la section #results
 function afficherResultats(images) {
+    console.log('afficher les resultats')
+    console.log(images)
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';  // Réinitialiser les résultats existants
     images.forEach(image => {
