@@ -299,24 +299,28 @@ function getCookie(name) {
 async function rechercher() {
     console.log('Recherche en cours...');
 
+    // Récupérer les valeurs des champs
     const selectedImage = document.querySelector('input[name="image_name"]:checked');
-    const textQuery = document.getElementById("textQuery").value.trim();
+    const textQuery = document.getElementById('textQuery').value;
+    const searchType = document.getElementById('searchType').value; // Ajout de searchType
+    const distanceType = document.getElementById('distance').value; // Ajout de distanceType
+    const topResults = document.getElementById('topResults').value; // Ajout de topResults
 
+    // Vérification si image ou texte est sélectionné
     if (!selectedImage && textQuery === "") {
         alert("Veuillez sélectionner une image ou insérer un texte.");
         return;
     }
-    console.log('je suis ici')
-    const csrfToken = getCookie('csrftoken');  // Utilisation du token CSRF
 
+    const csrfToken = getCookie('csrftoken');  // Récupérer le token CSRF
+
+    // Création de FormData pour envoyer les données via POST
     const formData = new FormData();
-    if (selectedImage) {
-        console.log('oui')
-        formData.append("image_name", selectedImage.value);
-    }
-    if (textQuery !== "") {
-        formData.append("text_query", textQuery);
-    }
+    if (selectedImage) formData.append("image_name", selectedImage.value); // Image
+    if (textQuery !== "") formData.append("text_query", textQuery); // Texte
+    formData.append("searchType", searchType);  // Type de recherche
+    formData.append("distance", distanceType);  // Type de distance
+    formData.append("topResults", topResults);  // Nombre de résultats à retourner
 
     try {
         const response = await fetch("/recherche_images/", {
@@ -326,12 +330,12 @@ async function rechercher() {
             },
             body: formData
         });
-        console.log(response)
+
         const data = await response.json();
-        console.log(data)
-        // Afficher les résultats dans l'élément #results
+        console.log(data);
+        
+        // Affichage des résultats
         if (data.images && data.images.length > 0) {
-            console.log(data.images)
             afficherResultats(data.images);
         } else {
             document.getElementById('results').innerHTML = '<p>Aucun résultat trouvé.</p>';
@@ -341,6 +345,8 @@ async function rechercher() {
         alert("Une erreur est survenue.");
     }
 }
+
+
 
 // Fonction pour afficher les résultats dans la section #results
 function afficherResultats(images) {

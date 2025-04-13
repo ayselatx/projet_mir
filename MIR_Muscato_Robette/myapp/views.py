@@ -255,25 +255,50 @@ def charger_descripteurs(request):
 def recherche_images(request):
     print('Recherche demandée...')
     if request.method == "POST":
-        # Récupérer l'image et le texte depuis la requête
+        # Récupérer les données du POST
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
+        search_type = request.POST.get("searchType", "").strip()
+        distance_type = request.POST.get("distance", "").strip()
+        top_results = request.POST.get("topResults", "").strip()
 
-        # Vérifier que image_name est bien présent
-        if not image_name:
-            return JsonResponse({"error": "L'argument 'image_name' est requis."}, status=400)
+        print(f"Image: {image_name}, Texte: {text_query}")
+        print(f"Type de recherche: {search_type}, Distance: {distance_type}, Top: {top_results}")
 
         if not image_name and not text_query:
             return JsonResponse({"error": "Aucune image ou texte fourni"}, status=400)
 
-        # Instanciation de ton objet Rechercheur et recherche des résultats
-        rechercheur = Rechercheur()  # Assure-toi que Rechercheur est bien défini
-        resultats = rechercheur.lancer_recherche(image_name, text_query)
-        # Retourne les résultats sous forme de JSON
-        formatted_paths = ["/" + path.replace("\\", "/") for path in resultats]
+        # Tu peux caster top_results en int si besoin
+        try:
+            top_results = int(top_results)
+        except ValueError:
+            top_results = 10  # valeur par défaut
+
+        # Appelle ton moteur de recherche avec tous les paramètres
+        rechercheur = Rechercheur()  # ton objet de recherche
+        resultats = rechercheur.lancer_recherche(
+            image_name=image_name,
+            text_query=text_query,
+            search_type=search_type,
+            distance=distance_type,
+            top_results=top_results
+        )
+        print(resultats)
+        formatted_paths = []
+        for result in resultats:
+            filename = result[1]  # le deuxième élément du tuple
+            parts = filename.split("_")
+            if len(parts) >= 4:
+                animal = parts[2]
+                race = parts[3]
+                path = "/media/MIR_DATASETS_B/" + str(animal) + '/' + str(race) + '/' + filename.replace("\\", "/")
+                formatted_paths.append(path)
+
         return JsonResponse({"images": formatted_paths})
 
+
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
 
 
 
