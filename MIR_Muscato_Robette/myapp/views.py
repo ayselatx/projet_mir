@@ -283,23 +283,40 @@ def recherche_images(request):
         )
 
         noms_resultats = []
-        for result in resultats:
+        for (_, nom, _) in resultats:
             try:
-                noms_resultats.append(str(result[1]))
+                noms_resultats.append(str(nom))
             except Exception as e:
                 print(f"Erreur lors de l'extraction du nom : {e}")
 
-
+        print('calcul des metriques...')
         # Vérité terrain = même animal et race que l'image requête
         try:
             basename = os.path.basename(image_name)
-            _, _, animal, race, *_ = basename.split("_")
-            verite_terrain = f"{animal}_{race}"
+            race= basename.split("_")[3]
+            verite_terrain = race
+            print(f"Vérité terrain : {verite_terrain}")
         except Exception:
             return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
-
-        pertinents_recup = [1 if verite_terrain in nom else 0 for nom in noms_resultats]
+        for nom in noms_resultats:
+            print(nom.split("_")[3])
+        pertinents_recup = [1 if verite_terrain in nom.split("_")[3] else 0 for nom in noms_resultats]
         nb_pertinents = sum(pertinents_recup)
+        dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
+        nb_images_pertinentes = 0
+        if not os.path.exists(dossier_racine):
+            return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
+
+        for dossier_principal in os.listdir(dossier_racine):
+            chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
+            if os.path.isdir(chemin_dossier_principal):
+                for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
+                    # Vérifiez si le dossier animal correspond à la classe
+                    if dossier_animal == verite_terrain:
+                        chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
+                        nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
+                                                     if os.path.isfile(os.path.join(chemin_dossier_race, f))])
+                        break
 
         rappels = []
         precisions = []
@@ -308,14 +325,20 @@ def recherche_images(request):
         for i, est_pertinent in enumerate(pertinents_recup):
             if est_pertinent:
                 pertinents_cumules += 1
-            rappel = pertinents_cumules / nb_pertinents if nb_pertinents else 0
+            rappel = pertinents_cumules / nb_images_pertinentes
             precision = pertinents_cumules / (i + 1)
+            print(f"Rappel: {rappel}, Précision: {precision}")
             rappels.append(rappel)
             precisions.append(precision)
-        metriques = calculer_metriques(rappels, precisions, pertinents_recup, nb_pertinents)
+        images_pertientes_recuperees = sum(pertinents_recup)
+        images_recuperees = top_results
+        print(f"Nombre d'images pertinentes récupérées : {images_pertientes_recuperees}")
+        print(f"Nombre d'images récupérées : {images_recuperees}")
+        print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
+        metriques = calculer_metriques(rappels, precisions, pertinents_recup, images_recuperees)
         # Format chemins
         formatted_paths = [
-                "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for (_, nom, _) in resultats
+                "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
             ]
 
 
