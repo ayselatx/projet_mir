@@ -7,52 +7,53 @@ import torchvision.transforms as transforms
 from sentence_transformers import SentenceTransformer
 import torchvision.models as models 
 from PIL import Image 
-from skimage.feature import greycomatrix, greycoprops, local_binary_pattern
+from skimage.feature import local_binary_pattern
+
+#from skimage.feature import greycoprops, local_binary_pattern
 import pickle
 from tqdm import tqdm
 def extractReqFeatures(fileName,algo_choice):  
-    print(algo_choice)
     if fileName : 
         img = cv2.imread(fileName)
             
-        if algo_choice==1: #Couleurs
+        if algo_choice=='BGR': #Couleurs
             histB = cv2.calcHist([img],[0],None,[256],[0,256])
             histG = cv2.calcHist([img],[1],None,[256],[0,256])
             histR = cv2.calcHist([img],[2],None,[256],[0,256])
             vect_features = np.concatenate((histB, np.concatenate((histG,histR),axis=None)),axis=None)
         
-        elif algo_choice==2: # Histo HSV
+        elif algo_choice=='HSV': # Histo HSV
             hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
             histH = cv2.calcHist([hsv],[0],None,[180],[0,180])
             histS = cv2.calcHist([hsv],[1],None,[256],[0,256])
             histV = cv2.calcHist([hsv],[2],None,[256],[0,256])
             vect_features = np.concatenate((histH, np.concatenate((histS,histV),axis=None)),axis=None)
 
-        elif algo_choice==3: #SIFT
+        elif algo_choice=='SIFT': #SIFT
             sift = cv2.SIFT_create() #cv2.xfeatures2d.SIFT_create() pour py < 3.4 
             # Find the key point
             kps , vect_features = sift.detectAndCompute(img,None)
     
-        elif algo_choice==4: #ORB
+        elif algo_choice=='ORB': #ORB
             orb = cv2.ORB_create()
             # finding key points and descriptors of both images using detectAndCompute() function
             key_point1,vect_features = orb.detectAndCompute(img,None)
             
-        elif algo_choice==5: #GLCM
+        elif algo_choice=='GLCM': #GLCM
             distances=[1,-1] 
             angles=[0, np.pi/4, np.pi/2, 3*np.pi/4] 
             # finding key points and descriptors of both images using detectAndCompute() function
             gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY) 
             gray = img_as_ubyte(gray) 
-            glcmMatrix = greycomatrix(gray, distances=distances, angles=angles, normed=True) 
-            glcmProperties1 = greycoprops(glcmMatrix,'contrast').ravel() 
-            glcmProperties2 = greycoprops(glcmMatrix,'dissimilarity').ravel() 
-            glcmProperties3 = greycoprops(glcmMatrix,'homogeneity').ravel() 
-            glcmProperties4 = greycoprops(glcmMatrix,'energy').ravel() 
-            glcmProperties5 = greycoprops(glcmMatrix,'correlation').ravel() 
-            glcmProperties6 = greycoprops(glcmMatrix,'ASM').ravel() 
-            vect_features = np.array([glcmProperties1,glcmProperties2,glcmProperties3,glcmProperties4,glcmProperties5, glcmProperties6]).ravel()
-        elif algo_choice==6: #HOG
+            #glcmMatrix = greycomatrix(gray, distances=distances, angles=angles, normed=True) 
+            #glcmProperties1 = greycoprops(glcmMatrix,'contrast').ravel() 
+            #glcmProperties2 = greycoprops(glcmMatrix,'dissimilarity').ravel() 
+            #glcmProperties3 = greycoprops(glcmMatrix,'homogeneity').ravel() 
+            #glcmProperties4 = greycoprops(glcmMatrix,'energy').ravel() 
+            #glcmProperties5 = greycoprops(glcmMatrix,'correlation').ravel() 
+            #glcmProperties6 = greycoprops(glcmMatrix,'ASM').ravel() 
+            #vect_features = np.array([glcmProperties1,glcmProperties2,glcmProperties3,glcmProperties4,glcmProperties5, glcmProperties6]).ravel()
+        elif algo_choice=='HOG': #HOG
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             img = cv2.resize(img, (64,128))
             
@@ -74,7 +75,7 @@ def extractReqFeatures(fileName,algo_choice):
                 return None
             
             vect_features = vect_features.ravel()
-        elif algo_choice==7: #LBP
+        elif algo_choice=='LBP': #LBP
             points=8 
             radius=1 
             method='default' 
@@ -91,7 +92,7 @@ def extractReqFeatures(fileName,algo_choice):
             # finding key points and descriptors of both images using detectAndCompute() function
             print(len(vect_features))
 			
-        elif algo_choice == 8:  # vit
+        elif algo_choice == 'ViT':  # vit
             model = models.vit_b_16(pretrained=False)
             model.eval()
             transform = transforms.Compose([
@@ -105,7 +106,7 @@ def extractReqFeatures(fileName,algo_choice):
                 features = model.features(image)
             vect_features = features.cpu().numpy().flatten()
             
-        elif algo_choice == 9:  # clip
+        elif algo_choice == 'CLIP':  # clip
             model = SentenceTransformer('clip-ViT-B-32')
             model.eval()
             transform = transforms.Compose([
@@ -118,9 +119,10 @@ def extractReqFeatures(fileName,algo_choice):
             with torch.no_grad():
                 features = model.features(image)
             vect_features = features.cpu().numpy().flatten()
+        else :
+            print("Algo non reconnu")
+            return None
 
-        
-        np.savetxt("Methode_"+str(algo_choice)+"_requete.txt" ,vect_features)
-        print("saved")
-        #print("vect_features", vect_features)
+        print("vect_features", vect_features)
+        print("vect_features shape", vect_features.shape)
         return vect_features

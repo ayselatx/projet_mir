@@ -296,31 +296,41 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Exemple de fonction qui récupère les vraies valeurs depuis l'API ou les résultats
 async function rechercher() {
     console.log('Recherche en cours...');
 
     // Récupérer les valeurs des champs
     const selectedImage = document.querySelector('input[name="image_name"]:checked');
     const textQuery = document.getElementById('textQuery').value;
-    const searchType = document.getElementById('searchType').value; // Ajout de searchType
-    const distanceType = document.getElementById('distance').value; // Ajout de distanceType
-    const topResults = document.getElementById('topResults').value; // Ajout de topResults
+    const searchType = document.getElementById('searchType').value;
+    const distanceType = document.getElementById('distance').value;
+    const topResults = document.getElementById('topResults').value;
 
-    // Vérification si image ou texte est sélectionné
+    // Récupérer les descripteurs sélectionnés (toutes les cases à cocher qui sont sélectionnées)
+    const descripteurs = [];
+    document.querySelectorAll("input[name='descripteur']:checked").forEach(function(checkbox) {
+        descripteurs.push(checkbox.value);
+    });
+
     if (!selectedImage && textQuery === "") {
         alert("Veuillez sélectionner une image ou insérer un texte.");
         return;
     }
 
-    const csrfToken = getCookie('csrftoken');  // Récupérer le token CSRF
+    const csrfToken = getCookie('csrftoken');
 
-    // Création de FormData pour envoyer les données via POST
     const formData = new FormData();
-    if (selectedImage) formData.append("image_name", selectedImage.value); // Image
-    if (textQuery !== "") formData.append("text_query", textQuery); // Texte
-    formData.append("searchType", searchType);  // Type de recherche
-    formData.append("distance", distanceType);  // Type de distance
-    formData.append("topResults", topResults);  // Nombre de résultats à retourner
+    if (selectedImage) formData.append("image_name", selectedImage.value);
+    if (textQuery !== "") formData.append("text_query", textQuery);
+    formData.append("searchType", searchType);
+    formData.append("distance", distanceType);
+    formData.append("topResults", topResults);
+
+    // Ajouter les descripteurs au FormData si descripteurs sont sélectionnés
+    if (descripteurs.length > 0) {
+        formData.append("descripteurs", descripteurs.join(","));  // On envoie les descripteurs sous forme de liste séparée par des virgules
+    }
 
     try {
         const response = await fetch("/recherche_images/", {
@@ -333,10 +343,18 @@ async function rechercher() {
 
         const data = await response.json();
         console.log(data);
-        
-        // Affichage des résultats
+
         if (data.images && data.images.length > 0) {
             afficherResultats(data.images);
+
+            // Récupération des valeurs de rappel et de précision
+            window.rappels = data.rappels;
+            window.precisions = data.precisions;
+
+            // Mise à jour des métriques à afficher
+            document.getElementById("apValue").textContent = data.ap.toFixed(4);
+            document.getElementById("mapValue").textContent = data.map.toFixed(4);
+            document.getElementById("rpValue").textContent = data.rp.toFixed(4);
         } else {
             document.getElementById('results').innerHTML = '<p>Aucun résultat trouvé.</p>';
         }
@@ -363,13 +381,68 @@ function afficherResultats(images) {
     });
 }
 
+let chartInstance = null; // Pour réutiliser le même graphique
 
-
-
+// Fonction pour afficher la courbe de rappel ou de précision
 function afficherCourbe(type) {
-    console.log('Affichage de la courbe :', type);
-    // TODO: affichage de la courbe dans le canvas
+    // Vérification que les valeurs sont disponibles
+    if (!window.rappels || !window.precisions) {
+        console.error("Les valeurs de rappel et précision ne sont pas disponibles.");
+        return;
+    }
+
+    // Utilisation des indices comme étiquettes de l'axe des X (nombre d'images)
+    const labels = Array.from({ length: window.rappels.length }, (_, index) => index + 1);  // Indices des images (1, 2, 3, ..., n)
+    
+    // Sélectionner les bonnes données en fonction du type (rappel ou précision)
+    const data = (type === 'rappel') ? window.rappels : window.precisions;
+    const labelText = (type === 'rappel') ? "Rappel" : "Précision";
+    const color = (type === 'rappel') ? "rgb(54, 162, 235)" : "rgb(255, 99, 132)";
+
+    const ctx = document.getElementById("courbeRP").getContext("2d");
+
+    // Si un graphique existe déjà, on le détruit
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+
+    // Création du graphique avec Chart.js
+    chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,  // Les indices des images comme labels de l'axe X
+            datasets: [{
+                label: labelText,
+                data: data,  // Les valeurs de rappel ou de précision sur l'axe Y
+                borderColor: color,
+                backgroundColor: color,
+                fill: false,
+                tension: 0.2,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: "Indice de l'image",  // Le titre de l'axe X
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    title: {
+                        display: true,
+                        text: type === 'rappel' ? "Rappel" : "Précision",  // Le titre de l'axe Y
+                    }
+                }
+            }
+        }
+    });
 }
+
+
 
 function quitter() {
     window.close(); // ou redirection si besoin

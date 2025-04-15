@@ -8,6 +8,8 @@ import math
 import cv2
 from sklearn.metrics.pairwise import cosine_similarity
 import operator
+from .extract_features import extractReqFeatures  # si les deux fichiers sont dans le même module
+
 
 
 
@@ -52,6 +54,7 @@ class Rechercheur:
     def recherche_image(self, image_name, distance, algo_choices=None, images_deja_ajoutees=None):
         voisins_total = []
         path = os.path.join(self.base_path, image_name.lstrip("/"))
+        algo_choices = algo_choices.split(',')
 
         try:
             image = Image.open(path).convert("RGB")
@@ -80,13 +83,13 @@ class Rechercheur:
                 if len(voisins_total) >= self.sortie:
                     break
         else:
-            from extract_features import extractReqFeatures  # Suppose que tu l’as
             with open(os.path.join(self.base_path, "features.pkl"), "rb") as f:
                 features1 = pickle.load(f)
-
             for algo in algo_choices:
+                algo=str(algo)
                 req = extractReqFeatures(path, algo)
-                features_par_algo = [f for f in features1 if f[2] == algo]
+                features_par_algo = [(f['image'], f['feature']) for f in features1 if f['algo'] == algo]
+
 
                 if not features_par_algo:
                     print(f"Aucun descripteur trouvé pour {algo}.")
@@ -104,7 +107,7 @@ class Rechercheur:
                 for v in voisins:
                     nom = os.path.basename(v[0])
                     if nom not in images_deja_ajoutees:
-                        voisins_total.append(v)
+                        voisins_total.append((image_name,nom,v[2]))
                         images_deja_ajoutees.add(nom)
                     if len(voisins_total) >= self.sortie:
                         break
@@ -118,7 +121,7 @@ class Rechercheur:
         if not query_text.strip():
             return []
 
-        model = SentenceTransformer('clip-ViT-B-32')
+        model = SentenceTransformer('clip-ViT-B-32', use_fast=True)
         query_embedding = model.encode(query_text).reshape(1, -1)
 
         path_text_emb = os.path.join(self.base_path, "text_embeddings_CLIP.pkl")
@@ -150,10 +153,10 @@ class Rechercheur:
 
 
     #____________________Distances_______________
-    def euclidean(l1, l2):
+    def euclidean(self, l1, l2):
         return math.dist(l1, l2)
 
-    def chiSquareDistance(l1, l2):
+    def chiSquareDistance(self, l1, l2):
         s = 0.0
         for i,j in zip(l1,l2):
             if i == j == 0.0:
@@ -161,7 +164,7 @@ class Rechercheur:
             s += (i - j)**2 / (i + j)
         return s
 
-    def bhatta(l1, l2):
+    def bhatta(self, l1, l2):
         l1 = np.array(l1)
         l2 = np.array(l2)
         num = np.sum(np.sqrt(np.multiply(l1,l2,dtype=np.float64)),dtype=np.float64)
@@ -169,7 +172,7 @@ class Rechercheur:
         return math.sqrt( 1 - num / den )
 
 
-    def flann(a, b):
+    def flann(self, a, b):
         # Vérifier si `a` et `b` sont bien des tableaux numpy
         a = np.array(a, dtype=np.float32)
         b = np.array(b, dtype=np.float32)
@@ -206,7 +209,7 @@ class Rechercheur:
 
 
 
-    def bruteForceMatching(a, b):
+    def bruteForceMatching(self, a, b):
         # Vérifier si `a` et `b` sont bien des tableaux numpy
         a = np.array(a, dtype=np.float32)
         b = np.array(b, dtype=np.float32)

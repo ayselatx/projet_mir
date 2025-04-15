@@ -12,6 +12,8 @@ import pickle
 from PIL import Image
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from myapp.metriques import calculer_metriques
+
 
 # Create your views here.
 def home(request):
@@ -95,16 +97,13 @@ def affiche_top(request):
 
         dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
         nb_images_pertinentes = 0
-        print(f'Dossier racine : {dossier_racine}')
         if not os.path.exists(dossier_racine):
             return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
 
         for dossier_principal in os.listdir(dossier_racine):
             chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
             if os.path.isdir(chemin_dossier_principal):
-                print(f'Dossier principal : {dossier_principal}')
                 for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
-                    print(f'Dossier animal : {dossier_animal}')
                     # Vérifiez si le dossier animal correspond à la classe
                     if dossier_animal == classe_image_requete:
                         chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
@@ -189,14 +188,14 @@ def charger_descripteurs(request):
 
             dossier_media = os.path.join(settings.MEDIA_ROOT)
             algo_map = {
-                "BGR": ("BGR", 1),
-                "HSV": ("HSV", 2),
-                "SIFT": ("SIFT", 3),
-                "ORB": ("ORB", 4),
-                "GLCM": ("GLCM", 5),
-                "HOG": ("HOG", 6),
-                "LBP": ("LBP", 7),
-                "ViT": ("ViT", 8),
+                "BGR": ("BGR", 'BGR'),
+                "HSV": ("HSV", 'HSV'),
+                "SIFT": ("SIFT", 'SIFT'),
+                "ORB": ("ORB", 'ORB'),
+                "GLCM": ("GLCM", 'GLCM'),
+                "HOG": ("HOG", 'HOG'),
+                "LBP": ("LBP", 'LBP'),
+                "ViT": ("ViT", 'ViT'),
             }
 
             folder_models = []
@@ -240,6 +239,11 @@ def charger_descripteurs(request):
                             progress = (processed_files / total_files) * 100
                             print(f"Progression: {progress:.2f}%")
             
+            
+            # Sauvegarde les descripteurs dans un fichier .pkl
+            features_pkl_path = os.path.join(settings.BASE_DIR, 'myapp', 'features.pkl')
+            with open(features_pkl_path, 'wb') as f:
+                pickle.dump(features, f)
             print(f"[✔] Chargement terminé : {len(features)} descripteurs chargés.")
             return JsonResponse({
                 'features_count': len(features),
@@ -253,50 +257,79 @@ def charger_descripteurs(request):
 
 
 def recherche_images(request):
-    print('Recherche demandée...')
     if request.method == "POST":
-        # Récupérer les données du POST
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
         search_type = request.POST.get("searchType", "").strip()
         distance_type = request.POST.get("distance", "").strip()
-        top_results = request.POST.get("topResults", "").strip()
-
-        print(f"Image: {image_name}, Texte: {text_query}")
-        print(f"Type de recherche: {search_type}, Distance: {distance_type}, Top: {top_results}")
-
+        top_results_str = request.POST.get("topResults", "20")
+        top_results = int(top_results_str.split()[-1])  # garde "50" dans "Top 50"
+        descripteurs = request.POST.get('descripteurs')
+        if descripteurs:
+            descripteurs_list = descripteurs.split(',')
+        else:
+            descripteurs_list = []
+        print(image_name, text_query, search_type, distance_type, top_results, descripteurs_list)
         if not image_name and not text_query:
             return JsonResponse({"error": "Aucune image ou texte fourni"}, status=400)
-
-        # Tu peux caster top_results en int si besoin
-        try:
-            top_results = int(top_results.split(' ')[1])  # Extraire le nombre après "Top"
-        except ValueError:
-            top_results = 10  # valeur par défaut
-
-        # Appelle ton moteur de recherche avec tous les paramètres
-        rechercheur = Rechercheur()  # ton objet de recherche
+        rechercheur = Rechercheur()
         resultats = rechercheur.lancer_recherche(
             image_name=image_name,
             text_query=text_query,
             search_type=search_type,
             distance=distance_type,
-            top_results=top_results
+            top_results=top_results,
+            algo_choices=descripteurs
         )
-        formatted_paths = []
+
+        noms_resultats = []
         for result in resultats:
-            filename = result[1]  # le deuxième élément du tuple
-            parts = filename.split("_")
-            if len(parts) >= 4:
-                animal = parts[2]
-                race = parts[3]
-                path = "/media/MIR_DATASETS_B/" + str(animal) + '/' + str(race) + '/' + filename.replace("\\", "/")
-                formatted_paths.append(path)
+            try:
+                noms_resultats.append(str(result[1]))
+            except Exception as e:
+                print(f"Erreur lors de l'extraction du nom : {e}")
 
-        return JsonResponse({"images": formatted_paths})
 
+        # Vérité terrain = même animal et race que l'image requête
+        try:
+            basename = os.path.basename(image_name)
+            _, _, animal, race, *_ = basename.split("_")
+            verite_terrain = f"{animal}_{race}"
+        except Exception:
+            return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
+
+        pertinents_recup = [1 if verite_terrain in nom else 0 for nom in noms_resultats]
+        nb_pertinents = sum(pertinents_recup)
+
+        rappels = []
+        precisions = []
+        pertinents_cumules = 0
+
+        for i, est_pertinent in enumerate(pertinents_recup):
+            if est_pertinent:
+                pertinents_cumules += 1
+            rappel = pertinents_cumules / nb_pertinents if nb_pertinents else 0
+            precision = pertinents_cumules / (i + 1)
+            rappels.append(rappel)
+            precisions.append(precision)
+        metriques = calculer_metriques(rappels, precisions, pertinents_recup, nb_pertinents)
+        # Format chemins
+        formatted_paths = [
+                "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for (_, nom, _) in resultats
+            ]
+
+
+        return JsonResponse({
+            "images": formatted_paths,
+            "ap": metriques["ap"],
+            "map": metriques["map"],
+            "rp": metriques["rp"],
+            "rappels": rappels,
+            "precisions": precisions,
+        })
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
 
 
 
