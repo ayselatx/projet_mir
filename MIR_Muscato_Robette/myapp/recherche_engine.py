@@ -32,6 +32,12 @@ class Rechercheur:
         if search_type in ["texte", "clip"] and text_query:
             voisins_total += self.recherche_texte(text_query, distance, images_deja_ajoutees)
 
+
+        if search_type in ["image et texte"] and image_name and text_query:
+            voisins_total += self.recherche_texte(text_query, distance, images_deja_ajoutees)
+            voisins_total += self.recherche_image(image_name, distance, algo_choices, images_deja_ajoutees)
+
+
         return voisins_total[:self.sortie]
 
     
@@ -121,10 +127,10 @@ class Rechercheur:
         if not query_text.strip():
             return []
 
-        model = SentenceTransformer('clip-ViT-B-32', use_fast=True)
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
         query_embedding = model.encode(query_text).reshape(1, -1)
 
-        path_text_emb = os.path.join(self.base_path, "text_embeddings_CLIP.pkl")
+        path_text_emb = os.path.join(self.base_path, "media", "text_embeddings_LLM.pkl")
         with open(path_text_emb, "rb") as f:
             text_embeddings = pickle.load(f)
 
@@ -140,13 +146,17 @@ class Rechercheur:
         sorted_results = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
         for img, score in sorted_results:
             nom = os.path.basename(img)
-            if nom not in images_deja_ajoutees:
+            if img not in images_deja_ajoutees:
                 voisins_total.append((img, nom, score))
                 images_deja_ajoutees.add(nom)
             if len(voisins_total) >= self.sortie:
                 break
 
         return voisins_total
+
+
+
+
 
 
 
