@@ -346,18 +346,33 @@ async function rechercher() {
 
         if (data.images && data.images.length > 0) {
             afficherResultats(data.images);
-
-            // Récupération des valeurs de rappel et de précision
-            window.rappels = data.rappels;
-            window.precisions = data.precisions;
-
-            // Mise à jour des métriques à afficher
-            document.getElementById("apValue").textContent = data.ap.toFixed(4);
-            document.getElementById("mapValue").textContent = data.map.toFixed(4);
-            document.getElementById("rpValue").textContent = data.rp.toFixed(4);
+        
+            if ("ap" in data && "map" in data && "rp" in data) {
+                // Cacher cosine similarity
+                document.getElementById("cosine").textContent = "0.0";
+        
+                // Afficher les métriques d'image
+                document.getElementById("apValue").textContent = data.ap.toFixed(4);
+                document.getElementById("mapValue").textContent = data.map.toFixed(4);
+                document.getElementById("rpValue").textContent = data.rp.toFixed(4);
+        
+                window.rappels = data.rappels;
+                window.precisions = data.precisions;
+            } else if ("cosine" in data) {
+                // Afficher seulement le score cosine
+                document.getElementById("cosine").textContent = data.cosine.toFixed(4);
+        
+                // Réinitialiser les métriques images
+                document.getElementById("apValue").textContent = "0.0";
+                document.getElementById("mapValue").textContent = "0.0";
+                document.getElementById("rpValue").textContent = "0.0";
+                window.rappels = [];
+                window.precisions = [];
+            }
         } else {
             document.getElementById('results').innerHTML = '<p>Aucun résultat trouvé.</p>';
         }
+        
     } catch (error) {
         console.error("Erreur lors de la recherche :", error);
         alert("Une erreur est survenue.");

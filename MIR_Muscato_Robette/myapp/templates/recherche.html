@@ -81,13 +81,15 @@
 
         <!-- Métriques -->
         <div class="section">
-            <h2>Métriques</h2>
+            <h2>Métriques images / images + texte</h2>
             <p>AP : <span id="apValue">0.0</span></p>
             <p>mAP : <span id="mapValue">0.0</span></p>
             <p>RP : <span id="rpValue">0.0</span></p>
             <button class="btn" onclick="afficherCourbe('rappel')">Courbe Rappel</button>
             <button class="btn" onclick="afficherCourbe('precision')">Courbe Précision</button>
             <canvas id="courbeRP" width="300" height="200"></canvas>
+            <h2>Métriques texte</h2>
+            <p>Cosine Similarity : <span id="cosine">0.0</span></p>
         </div>
     </div>
     <!-- ProgressBar -->
