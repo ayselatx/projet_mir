@@ -543,185 +543,185 @@ def embedding_image(filenames, progressBar, output_image_file="image_embeddings_
         if progressBar:
             progressBar.setValue(100)
 
-def embedding_imageCLIP(folder_path, progressBar, output_image_file="image_embeddings_CLIP.pkl", output_text_file="text_embeddings_CLIP.pkl", captions_file="captions.json"):
-    try:
-        print("Chargement du modèle CLIP...")
-        model = SentenceTransformer('clip-ViT-B-32')
-        model.eval()
+# def embedding_imageCLIP(folder_path, progressBar, output_image_file="image_embeddings_CLIP.pkl", output_text_file="text_embeddings_CLIP.pkl", captions_file="captions.json"):
+#     try:
+#         print("Chargement du modèle CLIP...")
+#         model = SentenceTransformer('clip-ViT-B-32')
+#         model.eval()
 
-        # --------- TRAITEMENT DES IMAGES ---------
-        print("Début du traitement des images...")
+#         # --------- TRAITEMENT DES IMAGES ---------
+#         print("Début du traitement des images...")
 
-        transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+#         transform = transforms.Compose([
+#             transforms.Resize((224, 224)),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+#         ])
 
-        image_embeddings = {}
+#         image_embeddings = {}
 
-        # Récupération des fichiers image dans le dossier
-        image_files = [
-            os.path.join(root, file)
-            for root, _, files in os.walk(folder_path)
-            for file in files if file.lower().endswith(('.jpg', '.jpeg', '.png'))
-        ]
-        total_images = len(image_files)
+#         # Récupération des fichiers image dans le dossier
+#         image_files = [
+#             os.path.join(root, file)
+#             for root, _, files in os.walk(folder_path)
+#             for file in files if file.lower().endswith(('.jpg', '.jpeg', '.png'))
+#         ]
+#         total_images = len(image_files)
 
-        if total_images == 0:
-            print("Aucune image trouvée dans le dossier.")
-            if progressBar:
-                progressBar.setValue(100)
-            return
+#         if total_images == 0:
+#             print("Aucune image trouvée dans le dossier.")
+#             if progressBar:
+#                 progressBar.setValue(100)
+#             return
 
-        for i, img_path in enumerate(image_files):
-            file_name = os.path.basename(img_path)
-            try:
-                image = Image.open(img_path).convert("RGB")
+#         for i, img_path in enumerate(image_files):
+#             file_name = os.path.basename(img_path)
+#             try:
+#                 image = Image.open(img_path).convert("RGB")
 
-                # Extraire les embeddings avec CLIP
-                with torch.no_grad():
-                    embedding = model.encode([image])[0]
+#                 # Extraire les embeddings avec CLIP
+#                 with torch.no_grad():
+#                     embedding = model.encode([image])[0]
 
-                image_embeddings[file_name] = embedding
+#                 image_embeddings[file_name] = embedding
 
-            except Exception as e:
-                print(f"Erreur lors du traitement de l'image {file_name} : {e}")
+#             except Exception as e:
+#                 print(f"Erreur lors du traitement de l'image {file_name} : {e}")
 
-            if progressBar:
-                progressBar.setValue(int((i + 1) / (total_images + 1) * 50))  # Barre à 50% max pour images
+#             if progressBar:
+#                 progressBar.setValue(int((i + 1) / (total_images + 1) * 50))  # Barre à 50% max pour images
 
-        # Sauvegarde des embeddings d’images
-        with open(output_image_file, "wb") as f:
-            pickle.dump(image_embeddings, f)
+#         # Sauvegarde des embeddings d’images
+#         with open(output_image_file, "wb") as f:
+#             pickle.dump(image_embeddings, f)
 
-        print(f"Embeddings d’images sauvegardés dans {output_image_file}")
+#         print(f"Embeddings d’images sauvegardés dans {output_image_file}")
 
-        # --------- TRAITEMENT DES DESCRIPTIONS TEXTUELLES ---------
-        print("Début du traitement des descriptions textuelles...")
+#         # --------- TRAITEMENT DES DESCRIPTIONS TEXTUELLES ---------
+#         print("Début du traitement des descriptions textuelles...")
 
-        with open(captions_file, "r", encoding="utf-8") as f:
-            descriptions = json.load(f)
+#         with open(captions_file, "r", encoding="utf-8") as f:
+#             descriptions = json.load(f)
 
-        if not descriptions:
-            print("Fichier captions.json vide.")
-            if progressBar:
-                progressBar.setValue(100)
-            return
+#         if not descriptions:
+#             print("Fichier captions.json vide.")
+#             if progressBar:
+#                 progressBar.setValue(100)
+#             return
 
-        text_embeddings = {}
-        total_texts = len(descriptions)
+#         text_embeddings = {}
+#         total_texts = len(descriptions)
 
-        for i, (img_name, desc) in enumerate(descriptions.items()):
-            try:
-                embedding = model.encode(desc)
-                text_embeddings[img_name] = embedding
-            except Exception as e:
-                print(f"Erreur lors de l'encodage du texte pour {img_name} : {e}")
+#         for i, (img_name, desc) in enumerate(descriptions.items()):
+#             try:
+#                 embedding = model.encode(desc)
+#                 text_embeddings[img_name] = embedding
+#             except Exception as e:
+#                 print(f"Erreur lors de l'encodage du texte pour {img_name} : {e}")
 
-            if progressBar:
-                progressBar.setValue(50 + int((i + 1) / total_texts * 50))  # Mise à jour barre de 50% à 100%
+#             if progressBar:
+#                 progressBar.setValue(50 + int((i + 1) / total_texts * 50))  # Mise à jour barre de 50% à 100%
 
-        with open(output_text_file, "wb") as f:
-            pickle.dump(text_embeddings, f)
+#         with open(output_text_file, "wb") as f:
+#             pickle.dump(text_embeddings, f)
 
-        print(f"Embeddings textuels sauvegardés dans {output_text_file}")
+#         print(f"Embeddings textuels sauvegardés dans {output_text_file}")
 
-    except FileNotFoundError as fnf_error:
-        print(f"Erreur : {fnf_error}")
-        if progressBar:
-            progressBar.setValue(100)
-    except json.JSONDecodeError:
-        print(f"Erreur : Le fichier {captions_file} n'est pas un JSON valide.")
-        if progressBar:
-            progressBar.setValue(100)
-    except Exception as e:
-        print(f"Une erreur inattendue est survenue : {e}")
-        if progressBar:
-            progressBar.setValue(100)
-
-
+#     except FileNotFoundError as fnf_error:
+#         print(f"Erreur : {fnf_error}")
+#         if progressBar:
+#             progressBar.setValue(100)
+#     except json.JSONDecodeError:
+#         print(f"Erreur : Le fichier {captions_file} n'est pas un JSON valide.")
+#         if progressBar:
+#             progressBar.setValue(100)
+#     except Exception as e:
+#         print(f"Une erreur inattendue est survenue : {e}")
+#         if progressBar:
+#             progressBar.setValue(100)
 
 
 
-def search_by_text_CLIP():
-    # Charger les embeddings des images et des textes depuis les fichiers pkl
-    with open('/content/image_embeddings_CLIP.pkl', 'rb') as f:
-        image_embeddings = pickle.load(f)
 
-    # Convertir les embeddings en numpy arrays
-    image_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in image_embeddings.values()])
 
-    with open('/content/text_embeddings_CLIP.pkl', 'rb') as f:
-    text_embeddings = pickle.load(f)
-    # Convertir les embeddings en numpy arrays
-    text_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in text_embeddings.values()])
-    print(text_embeddings.shape)  # Devrait être (31783, 1, 512)
+# def search_by_text_CLIP():
+#     # Charger les embeddings des images et des textes depuis les fichiers pkl
+#     with open('/content/image_embeddings_CLIP.pkl', 'rb') as f:
+#         image_embeddings = pickle.load(f)
 
-    def normalize_embeddings(embeddings):
-        norm = np.linalg.norm(embeddings, axis=1, keepdims=True)
-        return embeddings / norm
+#     # Convertir les embeddings en numpy arrays
+#     image_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in image_embeddings.values()])
 
-    # Normaliser les embeddings
-    image_embedding = normalize_embeddings(image_embeddings)
-    text_embeddings = normalize_embeddings(text_embeddings)
+#     with open('/content/text_embeddings_CLIP.pkl', 'rb') as f:
+#     text_embeddings = pickle.load(f)
+#     # Convertir les embeddings en numpy arrays
+#     text_embeddings = np.array([embedding.cpu().numpy() if embedding.is_cuda else embedding.numpy() for embedding in text_embeddings.values()])
+#     print(text_embeddings.shape)  # Devrait être (31783, 1, 512)
 
-        # Vérifier la forme des embeddings
-    print(image_embeddings.shape)  # Devrait être (31783, 1, 512)
+#     def normalize_embeddings(embeddings):
+#         norm = np.linalg.norm(embeddings, axis=1, keepdims=True)
+#         return embeddings / norm
 
-    # Créer les indices FAISS
-    dimension = image_embeddings.shape[2]  # La dimension de chaque embedding (512)
-    index_image = faiss.IndexFlatL2(dimension)  # Index pour les images
+#     # Normaliser les embeddings
+#     image_embedding = normalize_embeddings(image_embeddings)
+#     text_embeddings = normalize_embeddings(text_embeddings)
 
-    # Dictionnaires pour faire le mapping des indices
-    faiss_image_mapping = {}  # Mapping index -> vrai nom de fichier image
+#         # Vérifier la forme des embeddings
+#     print(image_embeddings.shape)  # Devrait être (31783, 1, 512)
 
-    # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
-    image_folder = '/content/Images'  # Chemin vers le dossier d'images
+#     # Créer les indices FAISS
+#     dimension = image_embeddings.shape[2]  # La dimension de chaque embedding (512)
+#     index_image = faiss.IndexFlatL2(dimension)  # Index pour les images
 
-    # Ajouter les embeddings des images à l'index FAISS
-    image_files = os.listdir(image_folder)  # Lister les fichiers dans le dossier images
-    for i in range(image_embeddings.shape[0]):
-        image_name = image_files[i]  # Utiliser le vrai nom de fichier de l'image
-        faiss_image_mapping[i] = image_name  # Mapping entre l'index FAISS et le vrai nom de fichier de l'image
+#     # Dictionnaires pour faire le mapping des indices
+#     faiss_image_mapping = {}  # Mapping index -> vrai nom de fichier image
+
+#     # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
+#     image_folder = '/content/Images'  # Chemin vers le dossier d'images
+
+#     # Ajouter les embeddings des images à l'index FAISS
+#     image_files = os.listdir(image_folder)  # Lister les fichiers dans le dossier images
+#     for i in range(image_embeddings.shape[0]):
+#         image_name = image_files[i]  # Utiliser le vrai nom de fichier de l'image
+#         faiss_image_mapping[i] = image_name  # Mapping entre l'index FAISS et le vrai nom de fichier de l'image
         
-        # Supprimer la dimension supplémentaire
-        image_embedding = np.squeeze(image_embeddings[i])  # Transforme (1, 512) en (512,)
+#         # Supprimer la dimension supplémentaire
+#         image_embedding = np.squeeze(image_embeddings[i])  # Transforme (1, 512) en (512,)
         
-        # Ajouter l'embedding de l'image à l'index FAISS
-        print(f"Ajout de l'embedding pour l'image {image_name} avec forme : {image_embedding.shape}")
-        index_image.add(np.expand_dims(image_embedding, axis=0).astype('float32'))  # Convertir en 2D (1, 512) pour FAISS
+#         # Ajouter l'embedding de l'image à l'index FAISS
+#         print(f"Ajout de l'embedding pour l'image {image_name} avec forme : {image_embedding.shape}")
+#         index_image.add(np.expand_dims(image_embedding, axis=0).astype('float32'))  # Convertir en 2D (1, 512) pour FAISS
 
-    # Dimensions des embeddings
-    dimension = image_embeddings.shape[2]  # Dimensions des embeddings (doivent être les mêmes pour images et textes)
+#     # Dimensions des embeddings
+#     dimension = image_embeddings.shape[2]  # Dimensions des embeddings (doivent être les mêmes pour images et textes)
 
-    # Créer les indices FAISS
-    index_text = faiss.IndexFlatL2(dimension)  # Index pour les textes
+#     # Créer les indices FAISS
+#     index_text = faiss.IndexFlatL2(dimension)  # Index pour les textes
 
-    # Dictionnaires pour faire le mapping des indices
-    faiss_text_mapping = defaultdict(list)  # Mapping index -> [image_name_0, image_name_1, ...]
+#     # Dictionnaires pour faire le mapping des indices
+#     faiss_text_mapping = defaultdict(list)  # Mapping index -> [image_name_0, image_name_1, ...]
 
-    # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
-    image_folder = '/content/Images'  # Chemin vers le dossier d'images
+#     # Dossier contenant les images (assurez-vous que les images sont bien dans ce dossier)
+#     image_folder = '/content/Images'  # Chemin vers le dossier d'images
 
-    count = 0
-    # Ajouter les embeddings des textes à l'index FAISS
-    for i in range(text_embeddings.shape[0]):
-        # Récupérer le nom de l'image associé au texte
-        image_name = f"{image_files[i//5]}_{count}"
+#     count = 0
+#     # Ajouter les embeddings des textes à l'index FAISS
+#     for i in range(text_embeddings.shape[0]):
+#         # Récupérer le nom de l'image associé au texte
+#         image_name = f"{image_files[i//5]}_{count}"
 
-        # Créer l'identifiant du texte sous la forme 'image_name_(i)'
-        faiss_text_mapping[i].append(image_name)  # Mapping entre index texte et image
+#         # Créer l'identifiant du texte sous la forme 'image_name_(i)'
+#         faiss_text_mapping[i].append(image_name)  # Mapping entre index texte et image
 
-        # S'assurer que l'embedding a la bonne forme
-        text_embedding = np.squeeze(text_embeddings[i])  # Transforme (1, 512) en (512,)
-        text_embedding = np.expand_dims(text_embedding, axis=0)  # Ajouter la dimension pour obtenir (1, 512)
+#         # S'assurer que l'embedding a la bonne forme
+#         text_embedding = np.squeeze(text_embeddings[i])  # Transforme (1, 512) en (512,)
+#         text_embedding = np.expand_dims(text_embedding, axis=0)  # Ajouter la dimension pour obtenir (1, 512)
 
-        # Ajouter l'embedding du texte à l'index FAISS
-        index_text.add(text_embedding.astype('float32'))  # Ajouter l'embedding du texte
-        print(f"Ajout de l'embedding pour le texte {image_name} avec forme : {text_embedding.shape}")
-        count += 1
-        if count == 5:
-            count = 0
+#         # Ajouter l'embedding du texte à l'index FAISS
+#         index_text.add(text_embedding.astype('float32'))  # Ajouter l'embedding du texte
+#         print(f"Ajout de l'embedding pour le texte {image_name} avec forme : {text_embedding.shape}")
+#         count += 1
+#         if count == 5:
+#             count = 0
 
-    print("Index d'images et de textes créés avec succès.")
+#     print("Index d'images et de textes créés avec succès.")
