@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+    {% csrf_token %}
     <div class="container">
         <div class="section">
             <h2>Requête</h2>
@@ -40,30 +41,30 @@
         <!-- Descripteurs -->
         <div class="section">
             <h2>Descripteurs</h2>
-            <label><input type="checkbox" name="descripteur" value="bgr"> BGR</label><br>
-            <label><input type="checkbox" name="descripteur" value="hsv"> HSV</label><br>
-            <label><input type="checkbox" name="descripteur" value="sift"> SIFT</label><br>
-            <label><input type="checkbox" name="descripteur" value="orb"> ORB</label><br>
-            <label><input type="checkbox" name="descripteur" value="glcm"> GLCM</label><br>
-            <label><input type="checkbox" name="descripteur" value="vit"> ViT</label><br>
-            <label><input type="checkbox" name="descripteur" value="lbp"> LBP</label><br>
-            <label><input type="checkbox" name="descripteur" value="hog"> HOG</label><br>
+            <label><input type="checkbox" name="descripteur" value='BGR'> BGR</label><br>
+            <label><input type="checkbox" name="descripteur" value='HSV'> HSV</label><br>
+            <label><input type="checkbox" name="descripteur" value='SIFT'> SIFT</label><br>
+            <label><input type="checkbox" name="descripteur" value='ORB'> ORB</label><br>
+            <label><input type="checkbox" name="descripteur" value='GLCM'> GLCM</label><br>
+            <label><input type="checkbox" name="descripteur" value='ViT'> ViT</label><br>
+            <label><input type="checkbox" name="descripteur" value='LBP'> LBP</label><br>
+            <label><input type="checkbox" name="descripteur" value='HOG'> HOG</label><br>
             <button class="btn" onclick="chargerDescripteurs()">Charger les descripteurs</button>
         </div>
-
+             
         <!-- Recherche -->
         <div class="section">
             <h2>Recherche</h2>
             <label for="distance">Distance :</label>
             <select id="distance" class="dropdown">
-                <option value="euclidean">Euclidienne</option>
-                <option value="manhattan">Manhattan</option>
+                <!-- Les options seront ajoutées dynamiquement -->
             </select>
 
             <label for="searchType">Type de recherche :</label>
             <select id="searchType" class="dropdown">
                 <option value="image">Image</option>
                 <option value="texte">Texte</option>
+                <option value="image et texte">Texte</option>
                 <option value="clip">CLIP</option>
             </select>
 
@@ -71,32 +72,40 @@
             <select id="topResults" class="dropdown">
                 <!-- Les options seront ajoutées dynamiquement -->
             </select>
-            <button class="btn" onclick="rechercher()">Rechercher</button>
-            <div id="results">
-                <p>Aucun résultat</p>
+            <button class="btn" type="button" onclick="rechercher()">Rechercher</button>
+            <div id="results" class="scroll-box">
+                <!-- Images ajoutées dynamiquement ici -->
             </div>
+            
         </div>
 
         <!-- Métriques -->
         <div class="section">
-            <h2>Métriques</h2>
+            <h2>Métriques images / images + texte</h2>
             <p>AP : <span id="apValue">0.0</span></p>
             <p>mAP : <span id="mapValue">0.0</span></p>
             <p>RP : <span id="rpValue">0.0</span></p>
             <button class="btn" onclick="afficherCourbe('rappel')">Courbe Rappel</button>
             <button class="btn" onclick="afficherCourbe('precision')">Courbe Précision</button>
             <canvas id="courbeRP" width="300" height="200"></canvas>
+            <h2>Métriques texte</h2>
+            <p>Cosine Similarity : <span id="cosine">0.0</span></p>
         </div>
+    </div>
+    <!-- ProgressBar -->
+    <div class="progress-container" style="margin-top: 15px;">
+        <label for="progress">Chargement :</label>
+        <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        <span id="progressPercent">0%</span>
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
-        </div>
-        <button class="btn" onclick="quitter()">Quitter</button>
-    </div>
+    <footer>
+        <div id="footer-container"></div>
+    </footer>
 
     <script src="{% static 'js/script.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/footer.js' %}"></script>
 </body>
 </html>

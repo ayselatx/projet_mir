@@ -2,6 +2,17 @@ from django.shortcuts import render
 from django.http import JsonResponse
 import os
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+import json
+import logging
+import numpy as np
+import time
+from .recherche_engine import Rechercheur
+import pickle
+from PIL import Image
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+from myapp.metriques import calculer_metriques
 
 
 # Create your views here.
@@ -69,40 +80,295 @@ def on_top_changed(request):
 
 def affiche_top(request):
     file_name = request.GET.get('fileName', '')
+    text_query = request.GET.get('textQuery', '')
 
-    # Nettoyer la comboBox et ajouter seulement les options valides
     options = []
-    
-    if not file_name:
+
+    if text_query and not file_name : 
         options = ["Top 20", "Top 50", "Top 100"]
-    else:
-        filename_req = os.path.basename(file_name)
+
+    elif file_name or (file_name and text_query):
+        filename_req = os.path.basename(file_name)  # Récupère juste le nom du fichier
+
         try:
             classe_image_requete = filename_req.split("_")[3]
         except IndexError:
             return JsonResponse({'error': f"Impossible d'extraire une classe depuis le nom {filename_req}"}, status=400)
 
-        # Chercher le nombre d'images pertinentes
-        dossier_racine = "MIR_DATASETS_B"
+        dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
         nb_images_pertinentes = 0
+        if not os.path.exists(dossier_racine):
+            return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
 
         for dossier_principal in os.listdir(dossier_racine):
-            chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)
+            chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
             if os.path.isdir(chemin_dossier_principal):
-                for dossier_race in os.listdir(chemin_dossier_principal):
-                    if dossier_race == classe_image_requete:
-                        chemin_dossier_race = os.path.join(dossier_racine, dossier_principal, dossier_race)
+                for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
+                    # Vérifiez si le dossier animal correspond à la classe
+                    if dossier_animal == classe_image_requete:
+                        chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
                         nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
                                                      if os.path.isfile(os.path.join(chemin_dossier_race, f))])
                         break
 
+        print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
+        
         if nb_images_pertinentes >= 20:
             options.append("Top 20")
         if nb_images_pertinentes >= 50:
             options.append("Top 50")
         if nb_images_pertinentes >= 100:
             options.append("Top 100")
-        
+
         options.append(f"Top {nb_images_pertinentes}")
 
     return JsonResponse({'options': options})
+
+
+def affiche_distance(request):
+    file_name = request.GET.get('fileName')
+    descr = request.GET.get('descripteurs')
+
+    print(file_name + ' et ' + descr)
+
+    # Liste des options à retourner
+    options = []  
+
+    # Vérification de l'existence des descripteurs et de l'image
+    if file_name and descr:
+        descr_list = descr.split(",")  # Convertir la chaîne descripteurs en liste
+        print(descr_list)
+
+        # Groupes de descripteurs compatibles
+        sift_orb_compatible = {'SIFT', 'ORB'}
+        bgr_hsv_glcm_hog_lbp_vit_compatible = {'BGR', 'HSV', 'GLCM', 'HOG', 'LBP', 'ViT'}
+
+        # Vérification de la compatibilité des descripteurs sélectionnés
+        sift_orb_selected = any(d in descr_list for d in sift_orb_compatible)
+        bgr_hsv_glcm_hog_lbp_vit_selected = any(d in descr_list for d in bgr_hsv_glcm_hog_lbp_vit_compatible)
+
+        # Condition de compatibilité entre les groupes
+        if sift_orb_selected and bgr_hsv_glcm_hog_lbp_vit_selected:
+            return JsonResponse({'error': 'Veuillez choisir des descripteurs compatibles. SIFT/ORB ne peuvent pas être combinés avec BGR/HSV/GLCM/HOG/LBP/ViT.'})
+
+        # Si le groupe SIFT/ORB est sélectionné, afficher les options associées
+        if sift_orb_selected:
+            options.append("Brute force")
+            options.append("Flann")
+
+        # Si le groupe BGR, HSV, GLCM, HOG, LBP, ViT est sélectionné, afficher les options associées
+        if bgr_hsv_glcm_hog_lbp_vit_selected:
+            options.append("Euclidienne")
+            options.append("Correlation")
+            options.append("Chi carré")
+            options.append("Intersection")
+            options.append("Bhattacharyya")
+
+        # Ajouter des options supplémentaires si des descripteurs autres sont sélectionnés
+        if any(descriptor in descr_list for descriptor in ['BGR', 'HSV', 'SIFT', 'ORB', 'GLCM', 'HOG', 'LBP', 'ViT']):
+            options.append("Autres algos")
+
+    else:
+        return JsonResponse({'error': 'Veuillez fournir un nom de fichier et des descripteurs.'})
+
+    # Retourner les options générées
+    return JsonResponse({'options': options})
+
+
+
+@csrf_exempt
+def charger_descripteurs(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            descripteurs = data.get('descripteurs', [])
+            
+            if not descripteurs:
+                return JsonResponse({"error": "Aucun descripteur sélectionné."}, status=400)
+
+            dossier_media = os.path.join(settings.MEDIA_ROOT)
+            algo_map = {
+                "BGR": ("BGR", 'BGR'),
+                "HSV": ("HSV", 'HSV'),
+                "SIFT": ("SIFT", 'SIFT'),
+                "ORB": ("ORB", 'ORB'),
+                "GLCM": ("GLCM", 'GLCM'),
+                "HOG": ("HOG", 'HOG'),
+                "LBP": ("LBP", 'LBP'),
+                "ViT": ("ViT", 'ViT'),
+            }
+
+            folder_models = []
+            algo_choices = []
+            for d in descripteurs:
+                if d in algo_map:
+                    folder_models.append(os.path.join(dossier_media, algo_map[d][0]))
+                    algo_choices.append(algo_map[d][1])
+
+            if not folder_models:
+                return JsonResponse({"error": "Aucun descripteur sélectionné."}, status=400)
+
+            features = []
+            total_files = sum([len(files) for folder in folder_models for _, _, files in os.walk(folder) if files])
+
+            processed_files = 0
+            for i, folder_model in enumerate(folder_models):
+                if not os.path.exists(folder_model):
+                    print('ici')
+                    continue
+                for root, _, files in os.walk(folder_model):
+                    for file in files:
+                        if not file.endswith('.txt'):
+                            continue
+                        feature_path = os.path.join(root, file)
+                        try:
+                            feature = np.loadtxt(feature_path).tolist()
+                        except Exception as e:
+                            continue
+                        image_name = os.path.splitext(file)[0] + '.jpg'
+                        image_path = os.path.join('media', image_name)
+                        features.append({
+                            'image': image_path,
+                            'feature': feature,
+                            'algo': algo_choices[i]
+                        })
+
+                        processed_files += 1
+                        # Envoie la progression périodiquement (par exemple, toutes les 10 étapes)
+                        if processed_files % 100 == 0:
+                            progress = (processed_files / total_files) * 100
+                            print(f"Progression: {progress:.2f}%")
+            
+            
+            # Sauvegarde les descripteurs dans un fichier .pkl
+            features_pkl_path = os.path.join(settings.BASE_DIR, 'myapp', 'features.pkl')
+            with open(features_pkl_path, 'wb') as f:
+                pickle.dump(features, f)
+            print(f"[✔] Chargement terminé : {len(features)} descripteurs chargés.")
+            return JsonResponse({
+                'features_count': len(features),
+                'features': features
+            })
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+
+def recherche_images(request):
+    if request.method == "POST":
+        image_name = request.POST.get("image_name")
+        text_query = request.POST.get("text_query", "").strip()
+        search_type = request.POST.get("searchType", "").strip()
+        distance_type = request.POST.get("distance", "").strip()
+        top_results_str = request.POST.get("topResults", "20")
+        top_results = int(top_results_str.split()[-1])  # garde "50" dans "Top 50"
+        descripteurs = request.POST.get('descripteurs')
+        if descripteurs:
+            descripteurs_list = descripteurs.split(',')
+        else:
+            descripteurs_list = []
+        print(image_name, text_query, search_type, distance_type, top_results, descripteurs_list)
+        if not image_name and not text_query:
+            return JsonResponse({"error": "Aucune image ou texte fourni"}, status=400)
+        rechercheur = Rechercheur()
+        resultats = rechercheur.lancer_recherche(
+            image_name=image_name,
+            text_query=text_query,
+            search_type=search_type,
+            distance=distance_type,
+            top_results=top_results,
+            algo_choices=descripteurs
+        )
+
+        noms_resultats = []
+        scores = []
+        for (_, nom, score) in resultats:
+            try:
+                noms_resultats.append(str(nom))
+                scores.append(float(score))
+            except Exception as e:
+                print(f"Erreur lors de l'extraction du nom : {e}")
+        print('Noms des résultats :', noms_resultats)
+        print('calcul des metriques...')
+        # Vérité terrain = même animal et race que l'image requête
+        if text_query and not image_name:
+            # On suppose que chaque résultat contient un score de similarité dans le tuple (score, nom, vecteur)
+            cosine_moyenne = sum(scores) / len(scores) if scores else 0.0
+            formatted_paths = [
+                    "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
+                ]
+            print(round(cosine_moyenne, 4))
+            return JsonResponse({
+                "images": formatted_paths,
+                "cosine": round(cosine_moyenne, 4),
+            })
+        
+        else : 
+            try:
+                basename = os.path.basename(image_name)
+                race= basename.split("_")[3]
+                verite_terrain = race
+                print(f"Vérité terrain : {verite_terrain}")
+            except Exception:
+                return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
+            for nom in noms_resultats:
+                print(nom.split("_")[3])
+            pertinents_recup = [1 if verite_terrain in nom.split("_")[3] else 0 for nom in noms_resultats]
+            nb_pertinents = sum(pertinents_recup)
+            dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
+            nb_images_pertinentes = 0
+            if not os.path.exists(dossier_racine):
+                return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
+
+            for dossier_principal in os.listdir(dossier_racine):
+                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
+                if os.path.isdir(chemin_dossier_principal):
+                    for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
+                        # Vérifiez si le dossier animal correspond à la classe
+                        if dossier_animal == verite_terrain:
+                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
+                            nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
+                                                        if os.path.isfile(os.path.join(chemin_dossier_race, f))])
+                            break
+
+            rappels = []
+            precisions = []
+            pertinents_cumules = 0
+
+            for i, est_pertinent in enumerate(pertinents_recup):
+                if est_pertinent:
+                    pertinents_cumules += 1
+                rappel = pertinents_cumules / nb_images_pertinentes
+                precision = pertinents_cumules / (i + 1)
+                print(f"Rappel: {rappel}, Précision: {precision}")
+                rappels.append(rappel)
+                precisions.append(precision)
+            images_pertientes_recuperees = sum(pertinents_recup)
+            images_recuperees = top_results
+            print(f"Nombre d'images pertinentes récupérées : {images_pertientes_recuperees}")
+            print(f"Nombre d'images récupérées : {images_recuperees}")
+            print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
+            metriques = calculer_metriques(rappels, precisions, pertinents_recup, images_recuperees)
+            # Format chemins
+            formatted_paths = [
+                    "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
+                ]
+
+
+            return JsonResponse({
+                "images": formatted_paths,
+                "ap": metriques["ap"],
+                "map": metriques["map"],
+                "rp": metriques["rp"],
+                "rappels": rappels,
+                "precisions": precisions,
+            })
+
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+
+
+
+
