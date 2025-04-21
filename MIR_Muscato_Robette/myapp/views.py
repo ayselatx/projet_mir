@@ -44,6 +44,48 @@ def home(request):
     # Passe la liste des images et MEDIA_URL au template
     return render(request, 'home.html', {'images': images, 'MEDIA_URL': settings.MEDIA_URL})
 
+def get_races(request):
+    animal = request.GET.get('animal')
+    print("Animal:", animal)
+
+    # Utilisation de MEDIA_ROOT pour définir le chemin correct
+    base_dir = os.path.join(settings.MEDIA_ROOT, "MIR_DATASETS_B", animal)
+    print("Base directory:", base_dir)
+
+    if not os.path.exists(base_dir) or not os.path.isdir(base_dir):
+        return JsonResponse({'races': []})
+
+    races = [
+        name for name in os.listdir(base_dir)
+        if os.path.isdir(os.path.join(base_dir, name))
+    ]
+    return JsonResponse({'races': races})
+
+def get_images(request):
+    animal = request.GET.get('animal')
+    race = request.GET.get('race')
+    print("Animal:", animal)
+    print("Race:",race)
+
+    # Générer le chemin vers le dossier contenant les images
+    base_dir = os.path.join(settings.MEDIA_ROOT, "MIR_DATASETS_B", animal, race)
+    print("Base directory for images:", base_dir)
+
+
+    if not os.path.exists(base_dir) or not os.path.isdir(base_dir):
+        return JsonResponse({'images': []})
+
+    # Liste des images dans le dossier
+    images = [
+        {
+            'url': os.path.join(settings.MEDIA_URL, "MIR_DATASETS_B", animal, race, img),
+            'name': img
+        }
+        for img in os.listdir(base_dir)
+        if img.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))  # Filtrer les images
+    ]
+    
+    return JsonResponse({'images': images})
 
 def indexation(request):
     return render(request, "indexation.html",{})
@@ -81,6 +123,7 @@ def on_top_changed(request):
 def affiche_top(request):
     file_name = request.GET.get('fileName', '')
     text_query = request.GET.get('textQuery', '')
+    print(file_name)
 
     options = []
 
@@ -258,9 +301,11 @@ def charger_descripteurs(request):
 
 def recherche_images(request):
     if request.method == "POST":
+        print("POST data:", request.POST)
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
         search_type = request.POST.get("searchType", "").strip()
+        combinaison_type = request.POST.get("combinaisonType", "").strip()
         distance_type = request.POST.get("distance", "").strip()
         top_results_str = request.POST.get("topResults", "20")
         top_results = int(top_results_str.split()[-1])  # garde "50" dans "Top 50"
@@ -269,7 +314,7 @@ def recherche_images(request):
             descripteurs_list = descripteurs.split(',')
         else:
             descripteurs_list = []
-        print(image_name, text_query, search_type, distance_type, top_results, descripteurs_list)
+        print(image_name, text_query, search_type, combinaison_type, distance_type, top_results, descripteurs_list)
         if not image_name and not text_query:
             return JsonResponse({"error": "Aucune image ou texte fourni"}, status=400)
         rechercheur = Rechercheur()
@@ -277,6 +322,7 @@ def recherche_images(request):
             image_name=image_name,
             text_query=text_query,
             search_type=search_type,
+            combination_type = combinaison_type,
             distance=distance_type,
             top_results=top_results,
             algo_choices=descripteurs

@@ -9,6 +9,11 @@ import cv2
 from sklearn.metrics.pairwise import cosine_similarity
 import operator
 from .extract_features import extractReqFeatures  # si les deux fichiers sont dans le même module
+import faiss
+import torch
+import clip
+from PIL import Image
+
 
 
 
@@ -19,26 +24,37 @@ class Rechercheur:
         self.base_path = os.path.join(
             os.getcwd(), "myapp"
         )
-        self.sortie = 10  # Default top results (this can be updated dynamically)
+        self.sortie = 20  # Default top results (this can be updated dynamically)
+        
+        self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text.index"))
+        self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image.index"))
 
-    def lancer_recherche(self, image_name=None, text_query=None, search_type="image", distance="cosine", top_results=10, algo_choices=None):
+        with open(os.path.join(self.base_path, "faiss_image_mapping.pkl"), "rb") as f:
+            self.faiss_image_mapping = pickle.load(f)
+
+        with open(os.path.join(self.base_path, "faiss_text_mapping.pkl"), "rb") as f:
+            self.faiss_text_mapping = pickle.load(f)
+
+    def lancer_recherche(self, image_name=None, text_query=None, search_type="image", distance="euclidienne", top_results=20, algo_choices=None, combination_type="addition"):
         self.sortie = top_results
-        voisins_total = []
         images_deja_ajoutees = set()
 
-        if search_type in ["image", "clip"] and image_name:
-            voisins_total += self.recherche_image(image_name, distance, algo_choices, images_deja_ajoutees)
+        if search_type == "image" and image_name:
+            return self.recherche_image(image_name, distance, algo_choices, images_deja_ajoutees)[:self.sortie]
 
-        if search_type in ["texte", "clip"] and text_query:
-            voisins_total += self.recherche_texte(text_query, distance, images_deja_ajoutees)
+        if search_type == "texte" and text_query:
+            return self.recherche_texte(text_query, distance, images_deja_ajoutees)[:self.sortie]
 
+        if search_type == "clip" and (image_name or text_query):
+            return self.recherche_clip(query_text=text_query, image_path=image_name, top_k=top_results)
 
-        if search_type in ["image et texte"] and image_name and text_query:
-            voisins_total += self.recherche_texte(text_query, distance, images_deja_ajoutees)
-            voisins_total += self.recherche_image(image_name, distance, algo_choices, images_deja_ajoutees)
+        if "image" in search_type and "texte" in search_type and image_name and text_query:
+            voisins_img = self.recherche_image(image_name, distance, algo_choices, set())
+            voisins_txt = self.recherche_texte(text_query, distance, set())
+            return self.fusionner_scores(voisins_img, voisins_txt, combination_type)[:self.sortie]
 
+        return []
 
-        return voisins_total[:self.sortie]
 
     
     def getkVoisins(self,lfeatures, req, k, distanceName):
@@ -56,6 +72,61 @@ class Rechercheur:
         # Retour des k plus proches voisins
         lvoisins = ldistances[:k]
         return lvoisins
+    
+    def fusionner_scores(self, voisins_img, voisins_txt, combination_type="addition"):
+        dict_img = {img: score for _, img, score in voisins_img}
+        dict_txt = {img: score for _, img, score in voisins_txt}
+
+        all_images = set(dict_img.keys()).union(dict_txt.keys())
+        fusion = []
+
+        for img in all_images:
+            score_img = dict_img.get(img, 0.0)
+            score_txt = dict_txt.get(img, 0.0)
+
+            print(f"Image: {img}, Score Image: {score_img}, Score Texte: {score_txt}")
+
+            if combination_type == "addition":
+                score_final = score_img + score_txt
+                print(f"Score final (addition): {score_final}")
+            elif combination_type == "multiplication":
+                score_final = score_img * score_txt
+                print(f"Score final (multiplication): {score_final}")
+            elif combination_type == "moyenne":
+                score_final = (score_img + score_txt) / 2
+                print(f"Score final (moyenne): {score_final}")
+            else:
+                score_final = score_img + score_txt  # Fallback to addition
+                print(f"Score final (fallback addition): {score_final}")
+
+            fusion.append((img, os.path.basename(img), score_final))
+
+        print(sorted(fusion, key=lambda x: x[2], reverse=True))
+        return sorted(fusion, key=lambda x: x[2], reverse=True)
+    
+    # Créer une fonction pour obtenir les caractéristiques d'une image
+    def get_image_features(image_path):
+        # 1. Détection du device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # 2. Chargement du modèle CLIP et de la fonction de prétraitement
+        model, preprocess = clip.load("ViT-B/32", device=device)
+        image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
+        with torch.no_grad():
+            image_features = model.encode_image(image)
+        return image_features
+    # Créer une fonction pour obtenir les caractéristiques d'un texte
+    def get_text_features(text):
+        # 1. Détection du device
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        # 2. Chargement du modèle CLIP et de la fonction de prétraitement
+        model, preprocess = clip.load("ViT-B/32", device=device)
+        text = clip.tokenize([text], truncate= True).to(device)
+        with torch.no_grad():
+            text_features = model.encode_text(text)
+        return text_features
+
 
     def recherche_image(self, image_name, distance, algo_choices=None, images_deja_ajoutees=None):
         voisins_total = []
@@ -153,6 +224,36 @@ class Rechercheur:
                 break
 
         return voisins_total
+    
+    def recherche_clip(self, query_text=None, image_path=None, top_k=20):
+        images_trouvees = set()
+
+        if query_text:
+            query_vec = self.get_text_features(query_text).cpu().numpy()
+            if query_vec.ndim == 1:
+                query_vec = np.expand_dims(query_vec, axis=0)
+            D, I = self.index_text_faiss.search(query_vec, top_k)
+
+        elif image_path:
+            image_full_path = os.path.join(self.base_path, image_path.lstrip("/"))
+            query_vec = self.get_image_features(image_full_path).cpu().numpy()
+            if query_vec.ndim == 1:
+                query_vec = np.expand_dims(query_vec, axis=0)
+            D, I = self.index_image_faiss.search(query_vec, top_k)
+        else:
+            return []
+
+        result = []
+        for idx in I[0]:
+            image_name = self.faiss_image_mapping[idx // 5]  # Ajuste selon ton mapping réel
+            if image_name not in images_trouvees:
+                result.append((image_name, os.path.basename(image_name), float(D[0][list(I[0]).index(idx)])))
+                images_trouvees.add(image_name)
+            if len(result) >= self.sortie:
+                break
+
+        return result
+
 
 
 

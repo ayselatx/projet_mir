@@ -5,6 +5,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.home, name="home"),  # Home page
+    path('get_races/', views.get_races, name='get_races'),
+    path('get_images/', views.get_images, name='get_images'),
     path('indexation/', views.indexation, name="indexation"),  # Indexation page
     path('recherche/', views.recherche, name="recherche"),  # Recherche page
     path('api/on_top_changed/', views.on_top_changed, name='on_top_changed'),

@@ -1,45 +1,101 @@
-// Affciher l'image téléchargée dans le champ d'aperçu
-document.addEventListener('DOMContentLoaded', () => {
-    const imageUpload = document.getElementById('imageUpload');
-    const imagePreview = document.getElementById('imagePreview');
 
-    imageUpload.addEventListener('change', function(event) {
-        const [file] = event.target.files;
-        if (file) {
-            // Création d'une URL pour l'image téléchargée
-            const imageUrl = URL.createObjectURL(file);
-            imagePreview.src = imageUrl;  // Mettre à jour la source de l'image
-            imagePreview.style.display = 'block';  // Afficher l'image
-        }
-    });
+document.getElementById('animalSelect').addEventListener('change', function () {
+    const animal = this.value;
+    const raceSelect = document.getElementById('raceSelect');
+    raceSelect.innerHTML = '<option value="">Chargement...</option>';
+    raceSelect.disabled = true;
+
+    fetch(`/get_races/?animal=${animal}`)
+        .then(res => res.json())
+        .then(data => {
+            raceSelect.innerHTML = '<option value="">-- Sélectionnez une race --</option>';
+            data.races.forEach(race => {
+                const opt = document.createElement('option');
+                opt.value = race;
+                opt.textContent = race;
+                raceSelect.appendChild(opt);
+            });
+            raceSelect.disabled = false;
+        });
 });
 
+document.getElementById('raceSelect').addEventListener('change', function () {
+    const animal = document.getElementById('animalSelect').value;
+    const race = this.value;
+    const imageSelect = document.getElementById('imageSelect');
+    const imagePreview = document.getElementById('imagePreview');
 
-// Fonction pour mettre à jour la comboBox avec les options dynamiques
-function updateTopOptions(options) {
-    const comboBoxTop = document.getElementById("topResults");
-    comboBoxTop.innerHTML = "";  // Vider les options existantes
+    // Désactive le sélecteur et vide la preview
+    imageSelect.innerHTML = '<option value="">Chargement...</option>';
+    imageSelect.disabled = true;
+    imagePreview.innerHTML = '';
 
-    options.forEach(option => {
-        const opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-        comboBoxTop.appendChild(opt);
-    });
+    fetch(`/get_images/?animal=${animal}&race=${race}`)
+        .then(res => res.json())
+        .then(data => {
+            // Réinitialisation du sélecteur
+            imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
+            
+            // Ajout des options d'image au sélecteur
+            data.images.forEach(img => {
+                const opt = document.createElement('option');
+                opt.value = img.url;
+                opt.textContent = img.name;
+                imageSelect.appendChild(opt);
+
+                // Création de la vignette d'image
+                const label = document.createElement('label');
+                label.className = 'image-option';
+                label.innerHTML = `
+                    <input type="radio" name="image_name" value="${img.url}">
+                    <img src="${img.url}" alt="${img.name}" class="thumbnail">
+                `;
+                imagePreview.appendChild(label);
+
+                // Ajout de l'événement sur le radio
+                const lastInput = label.querySelector('input[type="radio"]');
+                lastInput.addEventListener('change', getTopOptions);
+            });
+
+            // Réactive le sélecteur une fois les images chargées
+            imageSelect.disabled = false;
+        });
+});
+// Affciher l'image téléchargée dans le champ d'aperçu
+
+// Fonction pour mettre à jour la vignette en fonction de la sélection de l'image
+function updateImagePreview() {
+    const imageSelect = document.getElementById('imageSelect');
+    const imagePreview = document.getElementById('imagePreview');
+    const selectedImage = imageSelect.value;
+    // Si une image est sélectionnée, on affiche la vignette
+    if (selectedImage) {
+        // Crée une nouvelle image de prévisualisation
+        const imgElement = document.createElement('img');
+        imgElement.src = selectedImage; // Utilise l'URL de l'image sélectionnée
+        imgElement.alt = "Vignette de l'image sélectionnée";
+        imgElement.classList.add("thumbnail");  // Classe CSS pour les vignettes d'images
+
+        // Vider le conteneur de prévisualisation pour éviter d'afficher plusieurs images
+        imagePreview.innerHTML = '';
+        imagePreview.appendChild(imgElement);  // Ajouter la vignette à l'affichage
+    } else {
+        // Si aucune image n'est sélectionnée, vider la prévisualisation
+        imagePreview.innerHTML = '';
+    }
 }
 
+
 // Fonction pour appeler la vue 'affiche_top' via AJAX
-function getTopOptions() {
+function getTopOptions(selectedImage,textQuery) {
     // Récupère l'image sélectionnée
-    const selectedImage = document.querySelector('input[name="image_name"]:checked');  // Récupérer l'élément radio sélectionné
-    const textQuery = document.getElementById("textQuery").value;  // Si un texte est aussi saisi
     let fileName = "";
 
     // Si une image est sélectionnée, on récupère son URL (chemin relatif uniquement)
     if (selectedImage) {
         const fullPath = selectedImage.value;
         //fileName = fullPath.split('/').slice(-3).join('/');  // Extraire le chemin relatif
-        fileName = fullPath.split('/').pop();  // Récupère uniquement le nom du fichier
+        fileName = fullPath.split('\\').pop();  // Récupère uniquement le nom du fichier
         splitName = fileName.split('_');
         fileName = splitName[2]+'/'+splitName[3]+'/'+fileName
 
@@ -90,22 +146,12 @@ function updateTopOptions(options) {
     });
 }
 
-// Ajouter un gestionnaire d'événements pour détecter les changements de sélection
-document.querySelectorAll('input[name="image_name"]').forEach((radio) => {
-    radio.addEventListener('change', getTopOptions);  // Écouter le changement de sélection d'image
-});
-
-// Ajouter un gestionnaire pour détecter le changement de texte (si nécessaire)
-document.getElementById("textQuery").addEventListener("input", getTopOptions);
-
-// Appel initial pour charger les options dès qu'une image ou un texte est sélectionné
-getTopOptions();
-
 
 
 // Fonction pour vérifier les conditions et afficher la liste des distances
 function checkConditionsAndShowDistance() {
-    const imageUploaded = document.querySelector('input[name="image_name"]:checked');
+    const imageSelect = document.getElementById('imageSelect');
+    const imagePreview = document.getElementById('imagePreview');
     const descripteursSelected = document.querySelectorAll("input[name='descripteur']:checked").length > 0;
     const comboBoxDistance = document.getElementById("distance");
 
@@ -113,7 +159,7 @@ function checkConditionsAndShowDistance() {
     comboBoxDistance.style.display = "block";
     comboBoxDistance.innerHTML = "";  // Vider les options précédentes
 
-    if (imageUploaded && descripteursSelected) {
+    if ((imageSelect || imagePreview) && descripteursSelected) {
         getDistanceOptions();  // Appeler l’API pour charger les options
     } else {
         // Ajouter une seule option informative
@@ -124,36 +170,24 @@ function checkConditionsAndShowDistance() {
     }
 }
 
-
-// Ajoutez un gestionnaire pour l'événement de téléchargement d'image
-document.addEventListener('DOMContentLoaded', () => {
-    const imageUpload = document.getElementById('imageUpload');
-
-    imageUpload.addEventListener('change', function(event) {
-        const [file] = event.target.files;
-        if (file) {
-            // Créer une URL pour l'image téléchargée et l'afficher
-            const imageUrl = URL.createObjectURL(file);
-            document.getElementById('imagePreview').src = imageUrl;
-            document.getElementById('imagePreview').style.display = 'block';  // Afficher l'image
-        }
-        
-        // Vérifier les conditions et mettre à jour la visibilité de la liste des distances
-        checkConditionsAndShowDistance();
-    });
-});
-
 // Ajouter un gestionnaire d'événements pour les descripteurs sélectionnés
 document.querySelectorAll("input[name='descripteur']").forEach(function(checkbox) {
     checkbox.addEventListener('change', checkConditionsAndShowDistance);
 });
 // Fonction pour récupérer les options de distance via AJAX
 function getDistanceOptions() {
-    const selectedImage = document.querySelector('input[name="image_name"]:checked');
+    const imageSelect = document.getElementById('imageSelect');
+    const imagePreview = document.getElementById('imagePreview');
     let fileName = "";
 
-    if (selectedImage) {
-        const fullPath = selectedImage.value;
+    if (imageSelect) {
+        const fullPath = imageSelect.value;
+        fileName = fullPath.split('/').pop();  // Extraire le nom du fichier
+        splitName = fileName.split('_');
+        fileName = splitName[2] + '/' + splitName[3] + '/' + fileName;
+    }
+    if (imagePreview.value != undefined) {
+        const fullPath = imagePreview.value;
         fileName = fullPath.split('/').pop();  // Extraire le nom du fichier
         splitName = fileName.split('_');
         fileName = splitName[2] + '/' + splitName[3] + '/' + fileName;
@@ -215,18 +249,6 @@ function updateDistanceOptions(options) {
         comboBoxDistance.appendChild(opt);
     }
 }
-document.addEventListener('DOMContentLoaded', () => {
-    const imageSelect = document.getElementById('imageSelect');
-    const descripteursCheckboxes = document.querySelectorAll("input[name='descripteur']");
-    
-    imageSelect.addEventListener('change', checkConditionsAndShowDistance);
-    descripteursCheckboxes.forEach((checkbox) => {
-        checkbox.addEventListener('change', checkConditionsAndShowDistance);
-    });
-
-    // Vérifie si une image et des descripteurs ont été sélectionnés au chargement
-    checkConditionsAndShowDistance();
-});
 
 
 function chargerDescripteurs() {
@@ -303,10 +325,18 @@ async function rechercher() {
     // Récupérer les valeurs des champs
     const selectedImage = document.querySelector('input[name="image_name"]:checked');
     const textQuery = document.getElementById('textQuery').value;
-    const searchType = document.getElementById('searchType').value;
+    const searchType = Array.from(document.querySelectorAll("input[name='searchType']:checked")).map(checkbox => checkbox.value);
+    const combinaisonType = document.getElementById('combinationType').value;
     const distanceType = document.getElementById('distance').value;
     const topResults = document.getElementById('topResults').value;
 
+    console.log('combinaisonType:', combinaisonType);
+
+    console.log('searchType:', searchType);
+    if (searchType.length === 0){
+        alert("Veuillez sélectionner un type de recherche");
+        return;
+    }
     // Récupérer les descripteurs sélectionnés (toutes les cases à cocher qui sont sélectionnées)
     const descripteurs = [];
     document.querySelectorAll("input[name='descripteur']:checked").forEach(function(checkbox) {
@@ -324,6 +354,7 @@ async function rechercher() {
     if (selectedImage) formData.append("image_name", selectedImage.value);
     if (textQuery !== "") formData.append("text_query", textQuery);
     formData.append("searchType", searchType);
+    formData.append("combinaisonType", combinaisonType);
     formData.append("distance", distanceType);
     formData.append("topResults", topResults);
 
@@ -342,7 +373,6 @@ async function rechercher() {
         });
 
         const data = await response.json();
-        console.log(data);
 
         if (data.images && data.images.length > 0) {
             afficherResultats(data.images);
@@ -384,7 +414,6 @@ async function rechercher() {
 // Fonction pour afficher les résultats dans la section #results
 function afficherResultats(images) {
     console.log('afficher les resultats')
-    console.log(images)
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';  // Réinitialiser les résultats existants
     images.forEach(image => {
@@ -457,8 +486,100 @@ function afficherCourbe(type) {
     });
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const imageSelect = document.getElementById('imageSelect');
+    // 1. Quand on change la sélection dans le menu déroulant
+    imageSelect.addEventListener('change', (event) => {
+        updateImagePreview();   // Met à jour la preview
+        getTopOptions(imageSelect,undefined);        // Met à jour les options du top
+    });
+    // 2. Quand on tape dans le champ de sélection (si applicable)
+    imageSelect.addEventListener('input', getTopOptions);
+    // 3. Quand on change de sélection via les radios (image_name)
+    document.querySelectorAll('input[name="image_name"]').forEach((radio) => {
+        radio.addEventListener('change', getTopOptions);
+    });
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const imageSelect = document.getElementById('imagePreview');
+
+    // Écouteur sur le conteneur (délégation d'événement)
+    imageSelect.addEventListener('change', (event) => {
+        const target = event.target;
+        // Vérifie si c'est une radio avec le bon name
+        if (target && target.name === 'image_name' && target.type === 'radio') {
+            imageSelect.value = target.value;
+            getTopOptions(target,undefined);
+        }
+    });
+});
+
+document.getElementById("textQuery").addEventListener("input", (event) => {
+    const textQuery = event.target.value;
+
+    // Vérifie si les options sont déjà présentes dans le DOM
+    const optionsContainer = document.getElementById("topResults")  // Remplace par l'élément qui contient les options
+    if (optionsContainer && optionsContainer.children.length > 0) {
+        console.log("Options déjà présentes, pas de mise à jour.");
+        return;  // On arrête l'exécution si les options sont déjà présentes
+    }
+
+    // Sinon, on met à jour
+    getTopOptions(undefined, textQuery);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Sélectionne les deux éléments imageSelect et imagePreview
+    const imageSelect = document.getElementById('imageSelect');
+    
+    // Sélectionne toutes les cases à cocher des descripteurs
+    const descripteursCheckboxes = document.querySelectorAll("input[name='descripteur']");
+    
+    // Ajout des écouteurs d'événements pour imageSelect et imagePreview
+    imageSelect.addEventListener('change', checkConditionsAndShowDistance);
+    
+    // Ajout des écouteurs d'événements pour les checkboxes des descripteurs
+    descripteursCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', checkConditionsAndShowDistance);
+    });
+    checkConditionsAndShowDistance();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Sélectionne les deux éléments imageSelect et imagePreview
+    const imagePreview = document.getElementById('imagePreview');
+    
+    // Sélectionne toutes les cases à cocher des descripteurs
+    const descripteursCheckboxes = document.querySelectorAll("input[name='descripteur']");
+    
+    // Ajout des écouteurs d'événements pour imageSelect et imagePreview
+    imagePreview.addEventListener('change', checkConditionsAndShowDistance);
+    
+    // Ajout des écouteurs d'événements pour les checkboxes des descripteurs
+    descripteursCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', checkConditionsAndShowDistance);
+    });
+    checkConditionsAndShowDistance();
+});
+
+document.querySelectorAll("input[name='searchType']").forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        const selectedTypes = Array.from(document.querySelectorAll("input[name='searchType']:checked"))
+            .map(cb => cb.value);
+
+        const hasImage = selectedTypes.includes("image");
+        const hasTexte = selectedTypes.includes("texte");
+
+        const combinationContainer = document.getElementById('combinationTypeContainer');
+        combinationContainer.style.display = (hasImage && hasTexte) ? 'block' : 'none';
+    });
+});
+
+
 
 
 function quitter() {
     window.close(); // ou redirection si besoin
 }
+
+
