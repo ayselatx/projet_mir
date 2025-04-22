@@ -2,9 +2,13 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import login_view
+from .views import signup_view
 
 urlpatterns = [
     path('', views.home, name="home"),  # Home page
+    path('accounts/login/', login_view, name='login'),
+    path('signup/', signup_view, name='signup'),
     path('get_races/', views.get_races, name='get_races'),
     path('get_images/', views.get_images, name='get_images'),
     path('indexation/', views.indexation, name="indexation"),  # Indexation page

@@ -11,8 +11,41 @@ from PIL import Image
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from myapp.metriques import calculer_metriques
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+
+def login_view(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('home')  # rediriger vers la page d'accueil ou une autre page
+        else:
+            return render(request, 'login.html', {'form': form, 'error': 'Nom d\'utilisateur ou mot de passe incorrect'})
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+def signup_view(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Connexion automatique après inscription
+            return redirect('home')  # Redirige vers la page d'accueil
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
 
+@login_required
 # Create your views here.
 def home(request):
     # Chemin vers le dossier des images
