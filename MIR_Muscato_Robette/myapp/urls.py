@@ -14,4 +14,5 @@ urlpatterns = [
     path('charger_descripteurs/', views.charger_descripteurs, name='charger_descripteurs'),
     path('api/affiche_distance/', views.affiche_distance, name='affiche_distance'),
     path('recherche_images/', views.recherche_images, name='recherche_images'),
+    path('get_images_in_dataset/', views.get_images_in_dataset, name='get_images_in_dataset'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

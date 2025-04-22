@@ -13,6 +13,8 @@ import faiss
 import torch
 import clip
 from PIL import Image
+from collections import defaultdict
+import pandas as pd
 
 
 
@@ -21,11 +23,9 @@ from PIL import Image
 class Rechercheur:
     def __init__(self):
         # Chemin vers le dossier "media/MIR_DATASETS_B"
-        self.base_path = os.path.join(
-            os.getcwd(), "myapp"
-        )
+        self.base_path = os.path.join(os.getcwd(), "myapp")
         self.sortie = 20  # Default top results (this can be updated dynamically)
-        
+
         self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text.index"))
         self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image.index"))
 
@@ -34,6 +34,24 @@ class Rechercheur:
 
         with open(os.path.join(self.base_path, "faiss_text_mapping.pkl"), "rb") as f:
             self.faiss_text_mapping = pickle.load(f)
+
+        self.caption_dict = defaultdict(list)
+
+        media_path = os.path.join(self.base_path, "media")
+        csv_path = os.path.join(media_path, "results.csv")
+
+        try:
+            # Lecture du fichier CSV (généré ou déjà présent)
+            df = pd.read_csv(csv_path, sep='|')
+            df.columns = [col.strip() for col in df.columns]  # nettoyage des colonnes
+            for _, row in df.iterrows():
+                img = row['image_name']
+                description = row['comment']
+                self.caption_dict[img].append(description)
+
+        except Exception as e:
+            print(f"Erreur lors de la lecture de results.csv ou de la conversion : {e}")
+
 
     def lancer_recherche(self, image_name=None, text_query=None, search_type="image", distance="euclidienne", top_results=20, algo_choices=None, combination_type="addition"):
         self.sortie = top_results
@@ -105,7 +123,7 @@ class Rechercheur:
         return sorted(fusion, key=lambda x: x[2], reverse=True)
     
     # Créer une fonction pour obtenir les caractéristiques d'une image
-    def get_image_features(image_path):
+    def get_image_features(self,image_path):
         # 1. Détection du device
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -116,7 +134,7 @@ class Rechercheur:
             image_features = model.encode_image(image)
         return image_features
     # Créer une fonction pour obtenir les caractéristiques d'un texte
-    def get_text_features(text):
+    def get_text_features(seld,text):
         # 1. Détection du device
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -126,6 +144,15 @@ class Rechercheur:
         with torch.no_grad():
             text_features = model.encode_text(text)
         return text_features
+    def get_description_from_id(self, text_id, caption_dict):
+        try:
+            image_name, caption_index = text_id.split('_')
+            caption_index = int(caption_index)
+            return caption_dict[image_name][caption_index]
+        except (KeyError, IndexError, ValueError) as e:
+            print(f"Erreur avec text_id '{text_id}': {e}")
+            return None
+
 
 
     def recherche_image(self, image_name, distance, algo_choices=None, images_deja_ajoutees=None):
@@ -225,34 +252,54 @@ class Rechercheur:
 
         return voisins_total
     
-    def recherche_clip(self, query_text=None, image_path=None, top_k=20):
-        images_trouvees = set()
+    def recherche_clip(self, query_text=None, image_path=None, top_k=20, images_deja_ajoutees=None):
+        if images_deja_ajoutees is None:
+            images_deja_ajoutees = set()
+
+        voisins_total = []
 
         if query_text:
             query_vec = self.get_text_features(query_text).cpu().numpy()
             if query_vec.ndim == 1:
                 query_vec = np.expand_dims(query_vec, axis=0)
+
             D, I = self.index_text_faiss.search(query_vec, top_k)
+
+            for idx, score in zip(I[0], D[0]):
+                image_name = self.faiss_image_mapping[idx // 5]  # à ajuster selon ton mapping exact
+                if image_name not in images_deja_ajoutees:
+                    nom = os.path.basename(image_name)
+                    voisins_total.append((query_text, nom, float(score)))
+                    images_deja_ajoutees.add(image_name)
+                if len(voisins_total) >= self.sortie:
+                    break
+
+            return voisins_total
 
         elif image_path:
             image_full_path = os.path.join(self.base_path, image_path.lstrip("/"))
             query_vec = self.get_image_features(image_full_path).cpu().numpy()
             if query_vec.ndim == 1:
                 query_vec = np.expand_dims(query_vec, axis=0)
-            D, I = self.index_image_faiss.search(query_vec, top_k)
+
+            D, I = self.index_text_faiss.search(query_vec, top_k)
+
+            for idx, score in zip(I[0], D[0]):
+                text_id = self.faiss_text_mapping[idx][0]
+                description = self.get_description_from_id(text_id, self.caption_dict)
+                if description and description not in images_deja_ajoutees:
+                    voisins_total.append((description, description, float(score)))  # (chemin, nom, score)
+                    images_deja_ajoutees.add(description)
+                if len(voisins_total) >= self.sortie:
+                    break
+
+            return voisins_total
+
         else:
             return []
 
-        result = []
-        for idx in I[0]:
-            image_name = self.faiss_image_mapping[idx // 5]  # Ajuste selon ton mapping réel
-            if image_name not in images_trouvees:
-                result.append((image_name, os.path.basename(image_name), float(D[0][list(I[0]).index(idx)])))
-                images_trouvees.add(image_name)
-            if len(result) >= self.sortie:
-                break
 
-        return result
+
 
 
 

@@ -24,7 +24,11 @@ document.getElementById('raceSelect').addEventListener('change', function () {
     const race = this.value;
     const imageSelect = document.getElementById('imageSelect');
     const imagePreview = document.getElementById('imagePreview');
+    const chargementMessage = document.getElementById('chargementImagesMessage');  // Message de chargement
 
+    // Affiche le message de chargement
+    chargementMessage.innerText = "Chargement des images...";
+    
     // Désactive le sélecteur et vide la preview
     imageSelect.innerHTML = '<option value="">Chargement...</option>';
     imageSelect.disabled = true;
@@ -59,9 +63,17 @@ document.getElementById('raceSelect').addEventListener('change', function () {
 
             // Réactive le sélecteur une fois les images chargées
             imageSelect.disabled = false;
+
+            // Mise à jour du message de chargement une fois les images chargées
+            chargementMessage.innerText = "Images chargées.";
+        })
+        .catch(error => {
+            // Affiche un message d'erreur si la requête échoue
+            chargementMessage.innerText = "Erreur lors du chargement des images.";
+            console.error("Erreur lors du chargement des images :", error);
         });
 });
-// Affciher l'image téléchargée dans le champ d'aperçu
+
 
 // Fonction pour mettre à jour la vignette en fonction de la sélection de l'image
 function updateImagePreview() {
@@ -105,7 +117,7 @@ function getTopOptions(selectedImage,textQuery) {
 
     // On crée l'URL de la requête avec les paramètres
     let url = apiUrl + '?';
-
+    console.log("fileName:", fileName)
     if (fileName) {
         url += `fileName=${fileName}&`;  // Ajouter le paramètre de l'image
     }
@@ -263,6 +275,10 @@ function chargerDescripteurs() {
         return;
     }
 
+    // Affiche le message de chargement
+    var messageEl = document.getElementById('chargementMessage');
+    messageEl.innerText = "Chargement en cours...";
+
     // Affiche la barre de progression et initialise la valeur
     document.getElementById('progressBar').value = 0;
     document.getElementById('progressPercent').innerText = '0%';
@@ -271,25 +287,30 @@ function chargerDescripteurs() {
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/charger_descripteurs/', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));  // Si tu utilises CSRF
+    xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));  // CSRF token
 
     xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            // Quand la réponse est reçue, on met à jour la progression
-            var response = JSON.parse(xhr.responseText);
-            if (response.error) {
-                alert(response.error);
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.error) {
+                    alert(response.error);
+                    messageEl.innerText = "Erreur lors du chargement.";
+                } else {
+                    console.log('Descripteurs chargés', response.features_count);
+                    messageEl.innerText = "Chargement terminé.";
+                    // Mettre à jour l'interface ici si besoin
+                }
             } else {
-                console.log('Descripteurs chargés', response.features_count);
-                // Mettre à jour l'interface avec les descripteurs chargés, si nécessaire.
+                messageEl.innerText = "Erreur serveur.";
             }
         }
     };
 
-    // Envoi les descripteurs au serveur
+    // Envoie les descripteurs au serveur
     xhr.send(JSON.stringify({ 'descripteurs': descripteurs }));
 
-    // Fonction pour vérifier régulièrement la progression (par exemple, toutes les 1 seconde)
+    // Simulation de progression (à adapter si tu peux envoyer une vraie progression côté serveur)
     var interval = setInterval(function() {
         var progress = document.getElementById('progressBar').value;
         if (progress < 100) {
@@ -300,6 +321,7 @@ function chargerDescripteurs() {
         }
     }, 100);
 }
+
 
 
 // Fonction pour récupérer le token CSRF dans les cookies
@@ -322,8 +344,20 @@ function getCookie(name) {
 async function rechercher() {
     console.log('Recherche en cours...');
 
+    // Affiche le message de recherche en cours
+    const messageEl = document.getElementById('rechercheMessage');
+    messageEl.innerText = "Recherche en cours...";
+    const messageElText = document.getElementById('rechercheMessageText');
+    messageElText.innerText = "Recherche en cours...";
+
     // Récupérer les valeurs des champs
-    const selectedImage = document.querySelector('input[name="image_name"]:checked');
+    let selectedImage = document.querySelector('input[name="image_name"]:checked');
+    if (!selectedImage) {
+        const dropdown = document.getElementById("imageSelect");
+        if (dropdown && dropdown.value) {
+            selectedImage = { value: dropdown.value };
+        }
+    }
     const textQuery = document.getElementById('textQuery').value;
     const searchType = Array.from(document.querySelectorAll("input[name='searchType']:checked")).map(checkbox => checkbox.value);
     const combinaisonType = document.getElementById('combinationType').value;
@@ -331,13 +365,14 @@ async function rechercher() {
     const topResults = document.getElementById('topResults').value;
 
     console.log('combinaisonType:', combinaisonType);
-
     console.log('searchType:', searchType);
-    if (searchType.length === 0){
+
+    if (searchType.length === 0) {
         alert("Veuillez sélectionner un type de recherche");
+        messageEl.innerText = "";
         return;
     }
-    // Récupérer les descripteurs sélectionnés (toutes les cases à cocher qui sont sélectionnées)
+
     const descripteurs = [];
     document.querySelectorAll("input[name='descripteur']:checked").forEach(function(checkbox) {
         descripteurs.push(checkbox.value);
@@ -345,6 +380,7 @@ async function rechercher() {
 
     if (!selectedImage && textQuery === "") {
         alert("Veuillez sélectionner une image ou insérer un texte.");
+        messageEl.innerText = "";
         return;
     }
 
@@ -357,10 +393,8 @@ async function rechercher() {
     formData.append("combinaisonType", combinaisonType);
     formData.append("distance", distanceType);
     formData.append("topResults", topResults);
-
-    // Ajouter les descripteurs au FormData si descripteurs sont sélectionnés
     if (descripteurs.length > 0) {
-        formData.append("descripteurs", descripteurs.join(","));  // On envoie les descripteurs sous forme de liste séparée par des virgules
+        formData.append("descripteurs", descripteurs.join(","));
     }
 
     try {
@@ -374,40 +408,67 @@ async function rechercher() {
 
         const data = await response.json();
 
+        // Réinitialiser les conteneurs
+        document.getElementById("clipTextResult").innerHTML = "";
+        document.getElementById("results").innerHTML = "";
+
         if (data.images && data.images.length > 0) {
             afficherResultats(data.images);
-        
+
             if ("ap" in data && "map" in data && "rp" in data) {
-                // Cacher cosine similarity
                 document.getElementById("cosine").textContent = "0.0";
-        
-                // Afficher les métriques d'image
                 document.getElementById("apValue").textContent = data.ap.toFixed(4);
                 document.getElementById("mapValue").textContent = data.map.toFixed(4);
                 document.getElementById("rpValue").textContent = data.rp.toFixed(4);
-        
                 window.rappels = data.rappels;
                 window.precisions = data.precisions;
             } else if ("cosine" in data) {
-                // Afficher seulement le score cosine
                 document.getElementById("cosine").textContent = data.cosine.toFixed(4);
-        
-                // Réinitialiser les métriques images
                 document.getElementById("apValue").textContent = "0.0";
                 document.getElementById("mapValue").textContent = "0.0";
                 document.getElementById("rpValue").textContent = "0.0";
                 window.rappels = [];
                 window.precisions = [];
             }
+        } else if (data.descriptions && data.descriptions.length > 0) {
+            const clipTextContainer = document.getElementById("clipTextResult");
+            clipTextContainer.innerHTML = "<h4>Descriptions trouvées :</h4><ul></ul>";
+            const ul = clipTextContainer.querySelector("ul");
+
+            let totalScore = 0;
+
+            data.descriptions.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.description} (score: ${item.score.toFixed(4)})`;
+                ul.appendChild(li);
+                totalScore += item.score;
+            });
+
+            const moyenneScore = (totalScore / data.descriptions.length).toFixed(4);
+            document.getElementById("score").textContent = moyenneScore;
+
+            document.getElementById("cosine").textContent = data.cosine?.toFixed(4) || "0.0";
+            document.getElementById("apValue").textContent = "0.0";
+            document.getElementById("mapValue").textContent = "0.0";
+            document.getElementById("rpValue").textContent = "0.0";
+            window.rappels = [];
+            window.precisions = [];
+
+            document.getElementById("results").innerHTML = "";
         } else {
             document.getElementById('results').innerHTML = '<p>Aucun résultat trouvé.</p>';
+            document.getElementById("clipTextResult").innerHTML = "";
         }
-        
+
+        messageEl.innerText = "Recherche terminée.";
     } catch (error) {
         console.error("Erreur lors de la recherche :", error);
         alert("Une erreur est survenue.");
+        messageEl.innerText = "Erreur lors de la recherche.";
     }
 }
+
+
 
 
 
@@ -574,6 +635,98 @@ document.querySelectorAll("input[name='searchType']").forEach(checkbox => {
         combinationContainer.style.display = (hasImage && hasTexte) ? 'block' : 'none';
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const datasetSelect = document.getElementById('datasetSelect');
+    const imageSelect = document.getElementById('imageSelect'); // Le sélecteur d'image
+    const imagePreview = document.getElementById('imagePreview'); // Conteneur des vignettes
+    const sectionAnimalRace = document.getElementById('sectionAnimalRace');
+    const sectionImageTexte = document.getElementById('sectionImageTexte');
+    const chargementMessage = document.getElementById('chargementImagesMessage');  // Ajout du message de chargement
+
+    sectionAnimalRace.style.display = 'block';
+    sectionImageTexte.style.display = 'block';
+
+    datasetSelect.addEventListener('change', function() {
+        console.log("🧠 Changement détecté !");
+        const selectedValue = datasetSelect.value;
+        
+        if (selectedValue === 'MIR_DATASETS_CLIP') {
+            // Afficher un message de chargement pendant la récupération des images
+            chargementMessage.innerText = "Chargement des images...";
+
+            fetch('/get_images_in_dataset/')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Images récupérées:', data.images);
+                    
+                    // Vider les options existantes du sélecteur d'images et les vignettes
+                    imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
+                    imagePreview.innerHTML = ''; // Vider les vignettes
+
+                    let promises = []; // Créer un tableau pour les promesses
+
+                    // Ajouter les nouvelles options dans le sélecteur d'images et les vignettes
+                    data.images.forEach(img => {
+                        // Ajouter l'option dans le sélecteur déroulant
+                        const opt = document.createElement('option');
+                        opt.value = img.url;
+                        console.log("img.url:", img.url)
+                        opt.textContent = img.name;
+                        imageSelect.appendChild(opt);
+
+                        // Ajouter la vignette à la section des images disponibles
+                        const label = document.createElement('label');
+                        label.className = 'image-option';
+                        label.innerHTML = `
+                            <input type="radio" name="image_name" value="${img.url}">
+                            <img src="${img.url}" alt="${img.name}" class="thumbnail">
+                        `;
+                        imagePreview.appendChild(label);
+
+                        const lastInput = label.querySelector('input[type="radio"]');
+                        lastInput.addEventListener('change', getTopOptions);
+
+                        // Ajouter une promesse pour chaque image (requête de chargement de l'image)
+                        let imageLoadPromise = new Promise((resolve, reject) => {
+                            const imgElement = new Image();
+                            imgElement.src = img.url;
+                            imgElement.onload = () => resolve(img.url);  // Résoudre la promesse quand l'image est chargée
+                            imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);  // Rejeter la promesse si erreur
+                        });
+
+                        promises.push(imageLoadPromise); // Ajouter la promesse à notre tableau
+                    });
+
+                    // Attendre que toutes les images soient chargées avant de modifier le message
+                    Promise.all(promises)
+                        .then(() => {
+                            chargementMessage.innerText = "Images chargées.";  // Message à afficher quand toutes les images sont prêtes
+                            imageSelect.disabled = false;  // Activer le sélecteur d'images
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                            chargementMessage.innerText = "Erreur lors du chargement des images.";  // Message d'erreur si une image échoue
+                        });
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des images:', error);
+                    chargementMessage.innerText = "Erreur lors du chargement des images.";  // Message en cas d'erreur avec fetch
+                });
+
+            // Masquer ou afficher les sections en fonction de la sélection du dataset
+            sectionAnimalRace.style.display = 'none';
+            sectionImageTexte.style.display = 'block';
+        } else {
+            console.log("Autre dataset sélectionné :", selectedValue);
+            sectionAnimalRace.style.display = 'block';
+            sectionImageTexte.style.display = 'block';
+        }
+    });
+});
+
+
+
 
 
 

@@ -4,9 +4,7 @@ import os
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 import json
-import logging
 import numpy as np
-import time
 from .recherche_engine import Rechercheur
 import pickle
 from PIL import Image
@@ -87,6 +85,29 @@ def get_images(request):
     
     return JsonResponse({'images': images})
 
+
+def get_images_in_dataset(request):
+    # Chemin du dossier des images
+    dataset_path = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_CLIP')
+
+    # Vérifier si le dossier existe
+    if not os.path.exists(dataset_path):
+        return JsonResponse({'error': 'Le dossier n\'existe pas.'}, status=400)
+
+    # Liste des fichiers dans le dossier (images uniquement)
+    images = []
+    for f in os.listdir(dataset_path):
+        if f.lower().endswith(('.png', '.jpg', '.jpeg')):
+            # Créer l'URL complète pour chaque image
+            image_url = os.path.join(settings.MEDIA_URL, 'MIR_DATASETS_CLIP', f)
+            images.append({'url': image_url, 'name': f})
+    print(images)
+
+    # Renvoyer les images en réponse JSON
+    return JsonResponse({'images': images})
+
+
+
 def indexation(request):
     return render(request, "indexation.html",{})
 
@@ -123,7 +144,9 @@ def on_top_changed(request):
 def affiche_top(request):
     file_name = request.GET.get('fileName', '')
     text_query = request.GET.get('textQuery', '')
-    print(file_name)
+    if 'undefined/undefined/' in file_name:
+        options = ["Top 20", "Top 50", "Top 100"]
+        return JsonResponse({'options': options})
 
     options = []
 
@@ -338,79 +361,104 @@ def recherche_images(request):
                 print(f"Erreur lors de l'extraction du nom : {e}")
         print('Noms des résultats :', noms_resultats)
         print('calcul des metriques...')
-        # Vérité terrain = même animal et race que l'image requête
-        if text_query and not image_name:
-            # On suppose que chaque résultat contient un score de similarité dans le tuple (score, nom, vecteur)
-            cosine_moyenne = sum(scores) / len(scores) if scores else 0.0
-            formatted_paths = [
-                    "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
+        if search_type != "clip":
+            # Vérité terrain = même animal et race que l'image requête
+            if text_query and not image_name:
+                # On suppose que chaque résultat contient un score de similarité dans le tuple (score, nom, vecteur)
+                cosine_moyenne = sum(scores) / len(scores) if scores else 0.0
+                formatted_paths = [
+                        "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
+                    ]
+                print(round(cosine_moyenne, 4))
+                return JsonResponse({
+                    "images": formatted_paths,
+                    "cosine": round(cosine_moyenne, 4),
+                })
+            
+            else : 
+                try:
+                    basename = os.path.basename(image_name)
+                    race= basename.split("_")[3]
+                    verite_terrain = race
+                    print(f"Vérité terrain : {verite_terrain}")
+                except Exception:
+                    return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
+                for nom in noms_resultats:
+                    print(nom.split("_")[3])
+                pertinents_recup = [1 if verite_terrain in nom.split("_")[3] else 0 for nom in noms_resultats]
+                nb_pertinents = sum(pertinents_recup)
+                dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
+                nb_images_pertinentes = 0
+                if not os.path.exists(dossier_racine):
+                    return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
+
+                for dossier_principal in os.listdir(dossier_racine):
+                    chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
+                    if os.path.isdir(chemin_dossier_principal):
+                        for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
+                            # Vérifiez si le dossier animal correspond à la classe
+                            if dossier_animal == verite_terrain:
+                                chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
+                                nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
+                                                            if os.path.isfile(os.path.join(chemin_dossier_race, f))])
+                                break
+
+                rappels = []
+                precisions = []
+                pertinents_cumules = 0
+
+                for i, est_pertinent in enumerate(pertinents_recup):
+                    if est_pertinent:
+                        pertinents_cumules += 1
+                    rappel = pertinents_cumules / nb_images_pertinentes
+                    precision = pertinents_cumules / (i + 1)
+                    print(f"Rappel: {rappel}, Précision: {precision}")
+                    rappels.append(rappel)
+                    precisions.append(precision)
+                images_pertientes_recuperees = sum(pertinents_recup)
+                images_recuperees = top_results
+                print(f"Nombre d'images pertinentes récupérées : {images_pertientes_recuperees}")
+                print(f"Nombre d'images récupérées : {images_recuperees}")
+                print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
+                metriques = calculer_metriques(rappels, precisions, pertinents_recup, images_recuperees)
+                # Format chemins
+                formatted_paths = [
+                        "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
+                    ]
+
+
+                return JsonResponse({
+                    "images": formatted_paths,
+                    "ap": metriques["ap"],
+                    "map": metriques["map"],
+                    "rp": metriques["rp"],
+                    "rappels": rappels,
+                    "precisions": precisions,
+                })
+        else:
+            formatted_results = []
+            if image_name and not text_query:
+                # Requête image → descriptions
+                # Trie les résultats par score décroissant
+                resultats = sorted(resultats, key=lambda x: x[2], reverse=True)
+                formatted_results = [{"description": nom, "score": round(score, 4)} for (_, nom, score) in resultats]
+                return JsonResponse({
+                    "descriptions": formatted_results,
+                })
+
+            elif text_query and not image_name:
+                # Requête texte → images
+                # Trie les résultats par score décroissant
+                resultats = sorted(resultats, key=lambda x: x[2], reverse=True)
+                formatted_paths = [
+                    "/media/MIR_DATASETS_CLIP/" + nom for (_, nom, _) in resultats
                 ]
-            print(round(cosine_moyenne, 4))
-            return JsonResponse({
-                "images": formatted_paths,
-                "cosine": round(cosine_moyenne, 4),
-            })
-        
-        else : 
-            try:
-                basename = os.path.basename(image_name)
-                race= basename.split("_")[3]
-                verite_terrain = race
-                print(f"Vérité terrain : {verite_terrain}")
-            except Exception:
-                return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
-            for nom in noms_resultats:
-                print(nom.split("_")[3])
-            pertinents_recup = [1 if verite_terrain in nom.split("_")[3] else 0 for nom in noms_resultats]
-            nb_pertinents = sum(pertinents_recup)
-            dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
-            nb_images_pertinentes = 0
-            if not os.path.exists(dossier_racine):
-                return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
+                return JsonResponse({
+                    "images": formatted_paths
+                })
+            else:
+                return JsonResponse({"error": "Requête clip mal formée"}, status=400)
 
-            for dossier_principal in os.listdir(dossier_racine):
-                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
-                if os.path.isdir(chemin_dossier_principal):
-                    for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
-                        # Vérifiez si le dossier animal correspond à la classe
-                        if dossier_animal == verite_terrain:
-                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
-                            nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
-                                                        if os.path.isfile(os.path.join(chemin_dossier_race, f))])
-                            break
-
-            rappels = []
-            precisions = []
-            pertinents_cumules = 0
-
-            for i, est_pertinent in enumerate(pertinents_recup):
-                if est_pertinent:
-                    pertinents_cumules += 1
-                rappel = pertinents_cumules / nb_images_pertinentes
-                precision = pertinents_cumules / (i + 1)
-                print(f"Rappel: {rappel}, Précision: {precision}")
-                rappels.append(rappel)
-                precisions.append(precision)
-            images_pertientes_recuperees = sum(pertinents_recup)
-            images_recuperees = top_results
-            print(f"Nombre d'images pertinentes récupérées : {images_pertientes_recuperees}")
-            print(f"Nombre d'images récupérées : {images_recuperees}")
-            print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
-            metriques = calculer_metriques(rappels, precisions, pertinents_recup, images_recuperees)
-            # Format chemins
-            formatted_paths = [
-                    "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
-                ]
-
-
-            return JsonResponse({
-                "images": formatted_paths,
-                "ap": metriques["ap"],
-                "map": metriques["map"],
-                "rp": metriques["rp"],
-                "rappels": rappels,
-                "precisions": precisions,
-            })
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
 
