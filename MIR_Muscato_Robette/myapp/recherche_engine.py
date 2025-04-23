@@ -415,7 +415,7 @@ class Rechercheur:
         elif distance == "Euclidienne":
             return self.euclidean(embedding1, embedding2)
 
-        elif distance == "Chi carre":
+        elif distance == "Chi carré":
             return self.chiSquareDistance(embedding1, embedding2)
 
         elif distance == "Correlation":

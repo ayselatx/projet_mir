@@ -2,8 +2,11 @@ fetch("/static/components/navbar.html")
     .then(response => response.text())
     .then(data => {
         document.getElementById("navbar-container").innerHTML = data;
-
+        console.log("✅ Navbar Loaded Successfully");
+        console.log(document.getElementById("navbar-container"));
         setActiveNavLink();
+        // Réinitialiser les événements JavaScript après le chargement
+        initializeNavbar();
     });
 
 function setActiveNavLink() {
@@ -22,3 +25,18 @@ function setActiveNavLink() {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    const navbarHTML = `
+        <div class="navbar">
+            <h1>Mon Projet MIR</h1>
+            <div class="navbar-links">
+                <a href="/">Accueil</a>
+                <a href="/recherche/">Recherche</a>
+                <a href="/profil/">Profil</a>
+                <a href="/logout/">Déconnexion</a>
+            </div>
+        </div>
+    `;
+    document.getElementById("navbar-container").innerHTML = navbarHTML;
+});

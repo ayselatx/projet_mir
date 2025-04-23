@@ -16,19 +16,18 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import logout
 
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')  # rediriger vers la page d'accueil ou une autre page
-        else:
-            return render(request, 'login.html', {'form': form, 'error': 'Nom d\'utilisateur ou mot de passe incorrect'})
+            user = form.get_user()
+            login(request, user)
+
+            # 🔄 Redirection vers l'URL de redirection (paramètre ?next=/...), sinon vers 'home'
+            next_url = request.GET.get('next') or 'home'
+            return redirect(next_url)
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
@@ -44,6 +43,12 @@ def signup_view(request):
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
 
+def logout_view(request):
+    logout(request)  # Déconnecter l'utilisateur
+    return redirect('login')  # Rediriger vers la page de connexion
+
+def navbar_partial(request):
+    return render(request, 'components/navbar.html')
 
 @login_required
 # Create your views here.

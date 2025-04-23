@@ -4,11 +4,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from .views import login_view
 from .views import signup_view
+from django.shortcuts import redirect
 
 urlpatterns = [
-    path('', views.home, name="home"),  # Home page
+    path('', lambda request: redirect('login'), name="root_redirect"),
+    path('home/', views.home, name='home'),
     path('accounts/login/', login_view, name='login'),
     path('signup/', signup_view, name='signup'),
+    path('logout/', views.logout_view, name='logout'),
+    path('navbar/partial/', views.navbar_partial, name='navbar_partial'),
     path('get_races/', views.get_races, name='get_races'),
     path('get_images/', views.get_images, name='get_images'),
     path('indexation/', views.indexation, name="indexation"),  # Indexation page

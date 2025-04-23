@@ -1,120 +1,429 @@
-body {
-    font-family: Arial, sans-serif;
+/* Réinitialisation */
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-.container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    padding: 20px;
+/* Corps de la page */
+html, body {
+    height: 100% !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f6f7fb;
 }
 
-.section {
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    padding: 15px;
-    background-color: #f9f9f9;
+/* Structure générale */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: flex-start;
 }
 
-.btn {
-    margin-top: 10px;
-    padding: 10px;
-    border: none;
-    background-color: #007bff;
+/* Conteneur principal */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    max-width: 5000px;
+    margin: auto;
+    margin-top: 0 !important; /* Ajustez cette valeur selon le besoin */
+}
+
+/* Navbar */
+.navbar {
+    background-color: #4a90e2;
+    padding: 5px 0;
     color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-
-.btn:hover {
-    background-color: #0056b3;
-}
-
-.input-field, .dropdown {
-    width: 100%;
-    margin-top: 5px;
-    padding: 8px;
-    margin-bottom: 10px;
-}
-
-.image-preview {
-    width: 60%; /* L'image occupe toute la largeur du conteneur */
-    height: 100px; /* Hauteur fixe pour l'image */
-    object-fit: contain; /* L'image s'adapte à l'intérieur du conteneur sans être coupée */
-    margin-top: 10px;
-    display: block;
-}
-
-
-
-.footer {
-    grid-column: span 4;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding-bottom: 0 !important;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 10px;
-    background-color: #eee;
-    border-radius: 5px;
-    overflow: hidden;
+.navbar h1 {
+    font-size: 1.5rem;
+    margin-left: 20px;
+    font-weight: 600;
 }
 
-.progress {
-    width: 0%;
-    height: 100%;
-    background-color: #007bff;
-}
-.scroll-box {
-    max-height: 300px;      /* hauteur ajustable */
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    background-color: #f9f9f9;
+.navbar-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 1.2rem;
+    transition: color 0.3s;
+    font-weight: 500;
 }
 
+.navbar-links a:hover {
+    color: #e1f1ff;
+}
 
-.image-option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+@media (max-width: 5000px) {
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-links {
+        display: block;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .navbar-links a {
+        margin-left: 0;
+        margin-bottom: 5px;
+    }
+}
+
+/* Structure des colonnes avec Grille */
+.container_main {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(1000px, 1fr));
+    gap: 5px;
+    padding: 5px;
+}
+.container_main p{
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
+    max-width: 800px;
+    margin: 0 auto; 
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Sections */
+.section {
+    background-color: #ffffff;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px; /* Espace entre les sections */
+    width: 350px;
+}
+
+.section h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.section p {
+    font-size: 1.1rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* Boutons */
+.btn {
+    padding: 12px 18px;
+    background-color: #4a90e2 !important;
+    color: white!important;
+    border: none;
+    border-radius: 6px !important;
     cursor: pointer;
-    width: 100px; /* largeur fixe pour l’alignement */
+    font-weight: 600;
+    transition: background-color 0.3s;
+    display: block !important;
+    margin: 0 auto !important;
+}
+/* Boutons */
+.btn_rp {
+    padding: 8px 12px;
+    background-color: #4a90e2 !important;
+    color: white;
+    border: none;
+    border-radius: 6px !important;
 }
 
-.image-option input[type="radio"] {
-    margin-bottom: 5px;
+.btn:hover {
+    background-color: #a7a1b9 !important;
+}
+.btn_rp:hover {
+    background-color: #a7a1b9!important;
 }
 
-.thumbnail {
+/* Inputs et select */
+.input-field,
+.dropdown {
     width: 100%;
-    height: auto;
-    max-height: 80px;
-    object-fit: cover;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
     border-radius: 6px;
-    border: 2px solid transparent;
-    transition: border 0.2s;
+    background-color: #f6f7fb;
+    font-size: 1rem;
 }
 
-.image-option input[type="radio"]:checked + .thumbnail {
-    border-color: #007bff;
+.input-field:focus,
+.dropdown:focus {
+    border-color: #4a90e2;
+    outline: none;
 }
+
+/* Conteneurs défilants (scroll-box) */
+.scroll-box {
+    display: flex;
+    flex-wrap: wrap;         /* Permet le retour à la ligne si l’espace est insuffisant */
+    gap: 10px;
+    max-height: 600px;
+    max-width: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 15px;
+    border: 1px solid #ccc;
+    background-color: #ffffff;
+    border-radius: 8px;
+}
+
+/* Preview d'image */
+.image-preview {
+    width: 10px !important;
+    height: 10px !important;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+    max-width: 10px !important;
+    max-height: 10px !important;
+}
+
+
+/* Progress bar */
 .progress-container {
     width: 100%;
     max-width: 500px;
+    padding: 15px;
+    background-color: #eaeaea;
+    border-radius: 8px;
 }
+
 progress {
-    height: 20px;
+    width: 100%;
+    height: 18px;
+    background-color: #f6f7fb;
     border-radius: 5px;
-    overflow: hidden;
-    background-color: #eee;
+}
+
+progress::-webkit-progress-value {
+    background-color: #4a90e2;
+}
+
+progress::-webkit-progress-bar {
+    background-color: #f6f7fb;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1px;  /* Augmenter le padding pour un peu plus d'espace interne */
+    background-color: #4a90e2;
+    color: white;
+    margin-top: 5px;
+    border-radius: 8px;
+    width: 100% !important;  /* S'assurer que le footer prend toute la largeur disponible */
+    margin-left: 0;  /* Supprimer la marge gauche */
+    margin-right: 0;  /* Supprimer la marge droite */
+}
+
+footer p {
+    font-size: 1rem;
+}
+
+/* Login */
+.login-container {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+}
+
+h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: #333;
+    font-size: 1.6rem;
+}
+
+/* Erreurs */
+.error-message {
+    color: #ff4d4d;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* Footer (Optimisé pour mobile) */
+footer {
+    text-align: center;
+    padding: 1px;  /* Augmenter le padding pour un peu plus d'espace interne */
+    background-color: #4a90e2;
+    color: white;
+    margin-top: 5px;
+    border-radius: 8px;
+    width: 100%;  /* S'assurer que le footer prend toute la largeur disponible */
+    margin-left: 0;  /* Supprimer la marge gauche */
+    margin-right: 0;  /* Supprimer la marge droite */
+}
+
+/* Jumbotron */
+.jumbotron {
+    background-color: #e9f2fb;
+    border-radius: 12px;
+    padding: 50px 40px;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.display-3 {
+    color: #4a90e2;
+    font-weight: 600;
+    font-size: 2.5rem;
+}
+
+/* Responsive Grid pour les petites résolutions */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr; /* Une seule colonne sur petits écrans */
+    }
+
+    .navbar-links {
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .navbar-links a {
+        margin-left: 0;
+        margin-bottom: 5px;
+    }
+
+    .login-container {
+        max-width: 90%;
+        padding: 5px;
+    }
+}
+/* Style pour le conteneur principal */
+.container {
+    display: flex;
+    justify-content: space-between;  /* Espacement entre les sections */
+    gap: 20px; /* Espace entre les sections */
+    width: 100% !important;
+}
+
+
+
+/* Style pour les éléments à l'intérieur du conteneur */
+.item {
+    flex: 1 1 22%; /* Chaque élément prendra 22% de la largeur du conteneur */
+    box-sizing: border-box; /* Pour inclure les bordures et marges dans la largeur totale */
+    padding: 10px; /* Ajout d'un peu de padding pour espacer le contenu des bords */
+}
+
+
+
+/* Style pour la page de login et signup */
+.login-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+    text-align: center; /* Centrer le contenu du formulaire */
+}
+
+h2 {
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+/* Formulaire */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;  /* Espacement entre les champs de formulaire */
+}
+
+form p {
+    text-align: left;
+    font-size: 1rem;
+    color: #555;
+}
+
+form p input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #f6f7fb;
+}
+
+form p input:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+/* Bouton de soumission */
+button[type="submit"] {
+    padding: 12px 18px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+}
+
+button[type="submit"]:hover {
+    background-color: #357ab7;
+}
+
+/* Message d'erreur */
+.error-message {
+    color: #ff4d4d;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+/* Lien vers la page de création de compte / connexion */
+p {
+    font-size: 1rem;
+}
+
+p a {
+    color: #4a90e2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+p a:hover {
+    color: #357ab7;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 25px;
+        max-width: 90%;
+    }
+
+    h2 {
+        font-size: 1.4rem;
+    }
 }
