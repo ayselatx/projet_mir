@@ -133,9 +133,16 @@
                 <p>AP : <span id="apValue">0.0</span></p>
                 <p>mAP : <span id="mapValue">0.0</span></p>
                 <p>RP : <span id="rpValue">0.0</span></p>
-                <button class="btn_rp" onclick="afficherCourbe('rappel')">Courbe Rappel</button>
-                <button class="btn_rp" onclick="afficherCourbe('precision')">Courbe Précision</button>
-                <canvas id="courbeRP" width="300" height="200"></canvas>
+                <!--<button class="btn_rp" onclick="afficherCourbe('rappel')">Courbe Rappel</button>-->
+                <!--<button class="btn_rp" onclick="afficherCourbe('precision')">Courbe Précision</button>-->
+                <div class="graph-container">
+                    <div class="graph-box">
+                        <canvas id="courbeRappel"></canvas>
+                    </div>
+                    <div class="graph-box">
+                        <canvas id="courbePrecision"></canvas>
+                    </div>
+                </div>
                 <h4>Métriques texte</h4>
                 <p>Cosine Similarity : <span id="cosine">0.0</span></p>
                 <h4>Métriques CLIP</h4>
@@ -150,16 +157,15 @@
             <span id="progressPercent">0%</span>
         </div>        
     </div>
-
     <!-- Footer -->
     <footer>
         <div id="footer-container">© 2025 - Interface de Recherche</div>
     </footer>
-
     <script src="{% static 'js/script.js' %}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/footer.js' %}"></script>
     <script src="{% static 'js/navbar.js' %}"></script>
 </body>
+
 </html>
 {% endblock %}
