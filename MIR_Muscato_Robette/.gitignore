@@ -2,3 +2,7 @@ media/
 __pycache__/
 *.pyc
 myapp/features.pkl
+myapp/faiss_text_mapping.pkl
+myapp/faiss_image_mapping.pkl
+myapp/index_text.index
+myapp/index_image.index

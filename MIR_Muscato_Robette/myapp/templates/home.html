@@ -1,54 +1,55 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
 {% block title %} Home {% endblock %}
 
 {% block content %}
-
 <header>
     <section class="py-5">
         <div id="navbar-container"></div>
     </section>
 </header>
 
-<main role="main">
-
-    <!-- Main jumbotron for a primary marketing message or call to action -->
+<main role="main" class="page-container">
     <div class="jumbotron">
-        <div class="container">
+        <div class="container_main">
             <h1 class="display-3">Projet de MIR</h1>
-            <p>Voici notre site django pour notre interface graphique.</p>
+            <p>Dans le cadre du cours, ce projet vise à appliquer les techniques d’indexation et de recherche d’images par le contenu. L’objectif est
+                d’implémenter et d’évaluer différentes méthodes d’extraction de caractéristiques visuelles
+                ainsi que des mesures de similarité pour retrouver efficacement des images similaires à
+                une requête donnée.</p>
             <p><a class="btn btn-primary btn-lg" href="#" role="button">Rapport &raquo;</a></p>
         </div>
     </div>
 
     <div class="container">
-        <!-- Example row of columns -->
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-6 section">
                 <h2>Indexation</h2>
-                <p>L’indexation est une étape essentielle dans la construction d’un moteur de recherche d’images. Elle consiste à représenter chaque image par un ensemble de caractéristiques numériques appelées descripteurs afin de faciliter la recherche et la comparaison entre images.  </p>
-                <p><a class="btn btn-secondary" href="{% url 'indexation' %}" role="button">Recherche &raquo;</a></p>
+                <p>L’indexation est une étape essentielle dans la construction d’un moteur de recherche
+                    d’images. Elle consiste à représenter chaque image par un ensemble de caractéristiques
+                    numériques appelées descripteurs afin de faciliter la recherche et la comparaison entre
+                    images. Cette étape a été réalisée au préalable en local.</p>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6 section">
                 <h2>Recherche</h2>
-                <p>Une fois l'indexation des images et des textes réalisée, l'étape suivante consiste en la recherche d'images similaires. Cette étape repose sur le calcul de la similarité entre les requêtes et les images indexées. La recherche est divisée en trois parties distinctes : recherche par descripteurs, recherche par texte, et recherche par combinaison de descripteurs et de textes. </p>
+                <p>Cette étape repose sur le calcul de la similarité entre les re-
+                    quêtes et les images indexées. La recherche est divisée en trois parties distinctes : recherche
+                    par descripteurs, recherche par texte, et recherche par combinaison de descripteurs et de
+                    textes.</p>
                 <p><a class="btn btn-secondary" href="{% url 'recherche' %}" role="button">Recherche &raquo;</a></p>
             </div>
         </div>
-
         <hr>
-
-    </div> <!-- /container -->
-
+    </div>
 </main>
 
-<footer>
-    <div id="footer-container"></div>
+<footer style="text-align: center; padding: 20px; background-color: #4a90e2; color: white;">
+    <div id="footer-container" style="max-width: 1200px; margin: 0 auto;">
+        <p>&copy; 2025 - Projet MIR</p>
+    </div>
 </footer>
 
 <script src="{% static 'js/navbar.js' %}"></script>
 <script src="{% static 'js/footer.js' %}"></script>
-
 {% endblock %}
