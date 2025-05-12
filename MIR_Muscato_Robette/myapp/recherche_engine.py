@@ -282,7 +282,7 @@ class Rechercheur:
             if query_vec.ndim == 1:
                 query_vec = np.expand_dims(query_vec, axis=0)
 
-            D, I = self.index_text_faiss.search(query_vec, top_k)
+            D, I = self.index_image_faiss.search(query_vec, top_k)
 
             for idx, score in zip(I[0], D[0]):
                 text_id = self.faiss_text_mapping[idx][0]
