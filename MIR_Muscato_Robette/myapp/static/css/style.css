@@ -48,6 +48,16 @@ body {
     margin-left: 20px;
     font-weight: 600;
 }
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-logo {
+    height: 40px;
+    width: auto;
+}
 
 .navbar-links a {
     color: white;

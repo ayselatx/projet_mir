@@ -508,9 +508,8 @@ function afficherResultats(images) {
     });
 }
 
-let chartInstance = null; // Pour réutiliser le même graphique
+let chartInstances = {};
 
-// Fonction pour afficher la courbe de rappel ou de précision
 function afficherCourbe(type, canvasId) {
     if (!window.rappels || !window.precisions) {
         console.error("Les valeurs de rappel et précision ne sont pas disponibles.");
@@ -524,8 +523,13 @@ function afficherCourbe(type, canvasId) {
 
     const ctx = document.getElementById(canvasId).getContext("2d");
 
-    // Création du graphique (pas besoin de réutiliser chartInstance ici)
-    new Chart(ctx, {
+    // Détruire l'ancienne instance si elle existe
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    // Créer et stocker une nouvelle instance
+    chartInstances[canvasId] = new Chart(ctx, {
         type: "line",
         data: {
             labels: labels,
@@ -560,6 +564,20 @@ function afficherCourbe(type, canvasId) {
         }
     });
 }
+
+
+function telechargerGraphique(canvasId, nomFichier) {
+    const canvas = document.getElementById(canvasId);
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = nomFichier;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 
 
 document.addEventListener('DOMContentLoaded', () => {
