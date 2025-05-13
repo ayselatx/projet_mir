@@ -426,7 +426,13 @@ async function rechercher() {
         document.getElementById("results").innerHTML = "";
 
         if (data.images && data.images.length > 0) {
-            afficherResultats(data.images);
+            try{
+                afficherResultatsCLIP(data.images);
+
+            }catch{
+            
+                afficherResultats(data.images);
+            }
 
             if ("ap" in data && "map" in data && "rp" in data) {
                 document.getElementById("cosine").textContent = "0.0";
@@ -509,6 +515,59 @@ function afficherResultats(images) {
         resultsContainer.appendChild(wrapper);
     });
 }
+
+async function afficherResultats(images) {
+    console.log('afficher les resultats');
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = '';
+
+    // Charger et parser le fichier CSV avec séparateur |
+    const response = await fetch('results.csv');
+    const csvText = await response.text();
+    const descriptions = parseCSV(csvText);
+
+    images.forEach(imageUrl => {
+        const imageName = imageUrl.split('/').pop(); // Extrait le nom du fichier (ex. "1000092795.jpg")
+        const matchingEntry = descriptions.find(entry =>
+            entry.image_name === imageName && entry.comment_number === '0'
+        );
+
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('image-wrapper');
+
+        const imgElement = document.createElement('img');
+        imgElement.src = imageUrl;
+        imgElement.alt = "Résultat de recherche";
+        imgElement.classList.add("image-preview");
+
+        wrapper.appendChild(imgElement);
+
+        if (matchingEntry) {
+            const descElement = document.createElement('p');
+            descElement.classList.add('image-description');
+            descElement.textContent = matchingEntry.comment;
+            wrapper.appendChild(descElement);
+        }
+
+        resultsContainer.appendChild(wrapper);
+    });
+}
+
+// Fonction de parsing CSV avec séparateur "|"
+function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split('|').map(h => h.trim());
+
+    return lines.slice(1).map(line => {
+        const values = line.split('|').map(v => v.trim());
+        const entry = {};
+        headers.forEach((header, index) => {
+            entry[header] = values[index];
+        });
+        return entry;
+    });
+}
+
 
 let chartInstances = {};
 
@@ -673,44 +732,48 @@ document.querySelectorAll("input[name='searchType']").forEach(checkbox => {
 
 document.addEventListener('DOMContentLoaded', function () {
     const datasetSelect = document.getElementById('datasetSelect');
-    const imageSelect = document.getElementById('imageSelect'); // Le sélecteur d'image
-    const imagePreview = document.getElementById('imagePreview'); // Conteneur des vignettes
+    const imageSelect = document.getElementById('imageSelect');
+    const imagePreview = document.getElementById('imagePreview');
     const sectionAnimalRace = document.getElementById('sectionAnimalRace');
     const sectionImageTexte = document.getElementById('sectionImageTexte');
-    const chargementMessage = document.getElementById('chargementImagesMessage');  // Ajout du message de chargement
+    const chargementMessage = document.getElementById('chargementImagesMessage');
+
+    let imagesCache = null; // ✅ Déclaré en dehors de l'écouteur pour le cache
 
     sectionAnimalRace.style.display = 'block';
     sectionImageTexte.style.display = 'block';
 
-    datasetSelect.addEventListener('change', function() {
+    datasetSelect.addEventListener('change', function () {
         console.log("🧠 Changement détecté !");
         const selectedValue = datasetSelect.value;
-        
+
         if (selectedValue === 'MIR_DATASETS_CLIP') {
-            // Afficher un message de chargement pendant la récupération des images
+            if (imagesCache) {
+                console.log('Utilisation des images en cache:', imagesCache);
+                afficherImages(imagesCache); // Fonction à créer pour réutiliser ce bloc d'affichage
+                return;
+            }
+
             chargementMessage.innerText = "Chargement des images...";
 
             fetch('/get_images_in_dataset/')
                 .then(response => response.json())
                 .then(data => {
                     console.log('Images récupérées:', data.images);
-                    
-                    // Vider les options existantes du sélecteur d'images et les vignettes
+                    imagesCache = data.images;
+
+                    // Réinitialiser le sélecteur et les vignettes
                     imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
-                    imagePreview.innerHTML = ''; // Vider les vignettes
+                    imagePreview.innerHTML = '';
 
-                    let promises = []; // Créer un tableau pour les promesses
+                    let promises = [];
 
-                    // Ajouter les nouvelles options dans le sélecteur d'images et les vignettes
                     data.images.forEach(img => {
-                        // Ajouter l'option dans le sélecteur déroulant
                         const opt = document.createElement('option');
                         opt.value = img.url;
-                        console.log("img.url:", img.url)
                         opt.textContent = img.name;
                         imageSelect.appendChild(opt);
 
-                        // Ajouter la vignette à la section des images disponibles
                         const label = document.createElement('label');
                         label.className = 'image-option';
                         label.innerHTML = `
@@ -719,37 +782,34 @@ document.addEventListener('DOMContentLoaded', function () {
                         `;
                         imagePreview.appendChild(label);
 
-                        const lastInput = label.querySelector('input[type="radio"]');
-                        lastInput.addEventListener('change', getTopOptions);
+                        label.querySelector('input[type="radio"]').addEventListener('change', getTopOptions);
 
-                        // Ajouter une promesse pour chaque image (requête de chargement de l'image)
+                        // Promesse de chargement d’image
                         let imageLoadPromise = new Promise((resolve, reject) => {
                             const imgElement = new Image();
                             imgElement.src = img.url;
-                            imgElement.onload = () => resolve(img.url);  // Résoudre la promesse quand l'image est chargée
-                            imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);  // Rejeter la promesse si erreur
+                            imgElement.onload = () => resolve(img.url);
+                            imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);
                         });
 
-                        promises.push(imageLoadPromise); // Ajouter la promesse à notre tableau
+                        promises.push(imageLoadPromise);
                     });
 
-                    // Attendre que toutes les images soient chargées avant de modifier le message
                     Promise.all(promises)
                         .then(() => {
-                            chargementMessage.innerText = "Images chargées.";  // Message à afficher quand toutes les images sont prêtes
-                            imageSelect.disabled = false;  // Activer le sélecteur d'images
+                            chargementMessage.innerText = "Images chargées.";
+                            imageSelect.disabled = false;
                         })
-                        .catch((error) => {
+                        .catch(error => {
                             console.error(error);
-                            chargementMessage.innerText = "Erreur lors du chargement des images.";  // Message d'erreur si une image échoue
+                            chargementMessage.innerText = "Erreur lors du chargement des images.";
                         });
                 })
                 .catch(error => {
                     console.error('Erreur lors de la récupération des images:', error);
-                    chargementMessage.innerText = "Erreur lors du chargement des images.";  // Message en cas d'erreur avec fetch
+                    chargementMessage.innerText = "Erreur lors du chargement des images.";
                 });
 
-            // Masquer ou afficher les sections en fonction de la sélection du dataset
             sectionAnimalRace.style.display = 'none';
             sectionImageTexte.style.display = 'block';
         } else {
