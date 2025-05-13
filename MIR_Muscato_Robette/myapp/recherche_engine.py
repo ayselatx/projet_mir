@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import operator
 from .extract_features import extractReqFeatures  # si les deux fichiers sont dans le même module
 import faiss
+import clip
 import torch
 from PIL import Image
 from collections import defaultdict

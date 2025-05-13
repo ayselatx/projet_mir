@@ -428,10 +428,12 @@ async function rechercher() {
         if (data.images && data.images.length > 0) {
             try{
                 afficherResultatsCLIP(data.images);
+                console.log("hello");
 
             }catch{
             
                 afficherResultats(data.images);
+                console.log("bye");
             }
 
             if ("ap" in data && "map" in data && "rp" in data) {
@@ -516,13 +518,13 @@ function afficherResultats(images) {
     });
 }
 
-async function afficherResultats(images) {
+async function afficherResultatsCLIP(images) {
     console.log('afficher les resultats');
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';
 
     // Charger et parser le fichier CSV avec séparateur |
-    const response = await fetch('results.csv');
+    const response = await fetch('/media/results.csv');
     const csvText = await response.text();
     const descriptions = parseCSV(csvText);
 
