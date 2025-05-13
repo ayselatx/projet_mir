@@ -11,7 +11,6 @@ import operator
 from .extract_features import extractReqFeatures  # si les deux fichiers sont dans le même module
 import faiss
 import torch
-import clip
 from PIL import Image
 from collections import defaultdict
 import pandas as pd
