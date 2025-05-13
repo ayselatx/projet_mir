@@ -426,11 +426,13 @@ async function rechercher() {
         document.getElementById("results").innerHTML = "";
 
         if (data.images && data.images.length > 0) {
-            try{
-                afficherResultatsCLIP(data.images);
-                console.log("hello");
+            const searchType = Array.from(document.querySelectorAll("input[name='searchType']:checked")).map(checkbox => checkbox.value)[0];
+            console.log("Type de recherche sélectionné :", searchType);
 
-            }catch{
+            if (searchType === 'clip'){
+                afficherResultatsCLIP(data.images);
+                console.log("hello");}
+            else {
             
                 afficherResultats(data.images);
                 console.log("bye");
@@ -494,29 +496,59 @@ async function rechercher() {
     }
 }
 
-
-
-
-
-// Fonction pour afficher les résultats dans la section #results
-function afficherResultats(images) {
-    console.log('afficher les resultats');
-    const resultsContainer = document.getElementById('results');
-    resultsContainer.innerHTML = '';  // Réinitialiser les résultats existants
-
-    images.forEach(image => {
-        const wrapper = document.createElement('div');
-        wrapper.classList.add('image-wrapper');
-
-        const imgElement = document.createElement('img');
-        imgElement.src = image;
-        imgElement.alt = "Résultat de recherche";
-        imgElement.classList.add("image-preview");
-
-        wrapper.appendChild(imgElement);
-        resultsContainer.appendChild(wrapper);
-    });
+function nettoyerClésCaptions(captions) {
+    const cleanedCaptions = {};
+    for (const key in captions) {
+        const cleanedKey = key.replace(/\s+/g, '');
+        cleanedCaptions[cleanedKey] = captions[key];
+    }
+    return cleanedCaptions;
 }
+
+
+async function afficherResultats(images) {
+    console.log("Début de l'affichage des résultats");
+
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = '';
+
+        const response = await fetch('/media/captions.json');
+        const rawCaptions = await response.json();
+        const captions = nettoyerClésCaptions(rawCaptions);
+        console.log('Captions nettoyées :', captions);
+
+
+        images.forEach(imageUrl => {
+            console.log('Traitement de l\'image :', imageUrl);
+
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('image-wrapper');
+
+            const imgElement = document.createElement('img');
+            imgElement.src = imageUrl;
+            imgElement.alt = "Résultat de recherche";
+            imgElement.classList.add("image-preview");
+
+            // Récupération du chemin relatif à partir de "media/"
+            const relativePath = imageUrl.replace(/^.*?media\//, '').replace(/^MIR_DATASETS_B\//, '');
+            console.log('Chemin relatif utilisé :', relativePath);
+
+            const captionText = captions[relativePath];
+            const descElement = document.createElement('p');
+            descElement.classList.add('image-description');
+            descElement.textContent = captionText || 'Aucune description disponible';
+
+            wrapper.appendChild(imgElement);
+            wrapper.appendChild(descElement);
+
+            resultsContainer.appendChild(wrapper);
+        });
+    console.log("Affichage terminé");
+}
+
+
+
+
 
 async function afficherResultatsCLIP(images) {
     console.log('afficher les resultats');
