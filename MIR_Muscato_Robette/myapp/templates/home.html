@@ -4,11 +4,6 @@
 {% block title %} Home {% endblock %}
 
 {% block content %}
-<header>
-    <section class="py-5">
-        <div id="navbar-container"></div>
-    </section>
-</header>
 
 <main role="main" class="page-container">
     <div class="jumbotron">
@@ -44,12 +39,4 @@
     </div>
 </main>
 
-<footer style="text-align: center; padding: 20px; background-color: #4a90e2; color: white;">
-    <div id="footer-container" style="max-width: 1200px; margin: 0 auto;">
-        <p>&copy; 2025 - Projet MIR</p>
-    </div>
-</footer>
-
-<script src="{% static 'js/navbar.js' %}"></script>
-<script src="{% static 'js/footer.js' %}"></script>
 {% endblock %}

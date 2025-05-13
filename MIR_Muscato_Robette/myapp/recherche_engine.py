@@ -15,6 +15,7 @@ import clip
 from PIL import Image
 from collections import defaultdict
 import pandas as pd
+import torchvision.models as models 
 
 
 
@@ -166,7 +167,7 @@ class Rechercheur:
             print(f"Erreur : Image {path} introuvable.")
             return []
 
-        if algo_choices is None or 'clip' in algo_choices:
+        if 'clip' in algo_choices:
             model = SentenceTransformer('clip-ViT-B-32')
             query_embedding = model.encode([image])[0].reshape(1, -1)
 
@@ -186,6 +187,27 @@ class Rechercheur:
                     images_deja_ajoutees.add(nom)
                 if len(voisins_total) >= self.sortie:
                     break
+        elif 'ViT' in algo_choices:
+            with open(os.path.join(self.base_path, "media", "image_embeddings_VIT_bis.pkl"), "rb") as f:
+                vit_embeddings = pickle.load(f)
+
+            req = extractReqFeatures(path, "ViT")
+            for img, emb in vit_embeddings.items():
+                print("emb.shape:", emb.shape)
+            sim_image = {
+                img: cosine_similarity(req.reshape(1, -1), emb.reshape(1, -1))[0][0]
+                for img, emb in vit_embeddings.items()
+            }
+
+            sorted_img_sim = sorted(sim_image.items(), key=lambda x: x[1], reverse=True)
+            for img, score in sorted_img_sim:
+                nom = os.path.basename(img)
+                if nom not in images_deja_ajoutees:
+                    voisins_total.append((img, nom, score))
+                    images_deja_ajoutees.add(nom)
+                if len(voisins_total) >= self.sortie:
+                    break
+
         else:
             with open(os.path.join(self.base_path, "features.pkl"), "rb") as f:
                 features1 = pickle.load(f)
@@ -427,10 +449,10 @@ class Rechercheur:
         elif distance == "Bhattacharyya":
             return self.bhatta(embedding1, embedding2)
 
-        elif distance == "FLANN":
+        elif distance == "Flann":
             return self.flann(embedding1, embedding2)
 
-        elif distance == "Brute Force":
+        elif distance == "Brute force":
             return self.bruteForceMatching(embedding1, embedding2)
 
         else:

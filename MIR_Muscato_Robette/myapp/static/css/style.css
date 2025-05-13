@@ -12,7 +12,6 @@ html, body {
     background-color: #f6f7fb;
 }
 
-/* Structure générale */
 body {
     display: flex;
     flex-direction: column;
@@ -28,7 +27,7 @@ body {
     padding: 5px;
     max-width: 5000px;
     margin: auto;
-    margin-top: 0 !important; /* Ajustez cette valeur selon le besoin */
+    margin-top: 0 !important;
 }
 
 /* Navbar */
@@ -49,6 +48,16 @@ body {
     margin-left: 20px;
     font-weight: 600;
 }
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar-logo {
+    height: 40px;
+    width: auto;
+}
 
 .navbar-links a {
     color: white;
@@ -63,24 +72,6 @@ body {
     color: #e1f1ff;
 }
 
-@media (max-width: 5000px) {
-    .navbar {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .navbar-links {
-        display: block;
-        text-align: center;
-        margin-top: 5px;
-    }
-
-    .navbar-links a {
-        margin-left: 0;
-        margin-bottom: 5px;
-    }
-}
-
 /* Structure des colonnes avec Grille */
 .container_main {
     display: grid;
@@ -88,12 +79,13 @@ body {
     gap: 5px;
     padding: 5px;
 }
-.container_main p{
+
+.container_main p {
     font-size: 1.2rem;
     color: #333;
     margin-bottom: 10px;
     max-width: 800px;
-    margin: 0 auto; 
+    margin: 0 auto;
     line-height: 1.6;
     text-align: center;
 }
@@ -105,8 +97,9 @@ body {
     border-radius: 8px;
     padding: 25px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 30px; /* Espace entre les sections */
-    width: 350px;
+    margin: 0 auto 30px auto;
+    width: 100%;
+    max-width: 1200px;
 }
 
 .section h2 {
@@ -122,7 +115,8 @@ body {
 }
 
 /* Boutons */
-.btn {
+.btn,
+.btn_rp {
     padding: 12px 18px;
     background-color: #4a90e2 !important;
     color: white!important;
@@ -133,21 +127,16 @@ body {
     transition: background-color 0.3s;
     display: block !important;
     margin: 0 auto !important;
-}
-/* Boutons */
-.btn_rp {
-    padding: 8px 12px;
-    background-color: #4a90e2 !important;
-    color: white;
-    border: none;
-    border-radius: 6px !important;
+    text-align: center;
 }
 
-.btn:hover {
-    background-color: #a7a1b9 !important;
+.btn_rp {
+    padding: 8px 12px;
 }
+
+.btn:hover,
 .btn_rp:hover {
-    background-color: #a7a1b9!important;
+    background-color: #a7a1b9 !important;
 }
 
 /* Inputs et select */
@@ -169,31 +158,31 @@ body {
     outline: none;
 }
 
-/* Conteneurs défilants (scroll-box) */
 .scroll-box {
     display: flex;
-    flex-wrap: wrap;         /* Permet le retour à la ligne si l’espace est insuffisant */
+    flex-wrap: wrap;
     gap: 10px;
     max-height: 600px;
-    max-width: 300px;
     overflow-y: auto;
-    overflow-x: hidden;
     padding: 15px;
     border: 1px solid #ccc;
-    background-color: #ffffff;
+    background-color: #fff;
     border-radius: 8px;
 }
 
-/* Preview d'image */
-.image-preview {
-    width: 10px !important;
-    height: 10px !important;
-    object-fit: cover;
-    display: block;
-    border-radius: 6px;
-    max-width: 10px !important;
-    max-height: 10px !important;
+.image-wrapper {
+    flex: 0 0 calc(33.33% - 10px); /* 3 images par ligne */
+    box-sizing: border-box;
 }
+
+.image-preview {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+}
+
 
 
 /* Progress bar */
@@ -204,6 +193,25 @@ body {
     background-color: #eaeaea;
     border-radius: 8px;
 }
+
+  .graph-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .graph-box {
+    width: 45%;         /* Chaque graphique prend 45% de la largeur */
+    min-width: 300px;   /* Évite qu'ils soient trop petits */
+    height: 300px;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
 
 progress {
     width: 100%;
@@ -223,18 +231,12 @@ progress::-webkit-progress-bar {
 /* Footer */
 footer {
     text-align: center;
-    padding: 1px;  /* Augmenter le padding pour un peu plus d'espace interne */
+    padding: 1px;
     background-color: #4a90e2;
     color: white;
     margin-top: 5px;
     border-radius: 8px;
-    width: 100% !important;  /* S'assurer que le footer prend toute la largeur disponible */
-    margin-left: 0;  /* Supprimer la marge gauche */
-    margin-right: 0;  /* Supprimer la marge droite */
-}
-
-footer p {
-    font-size: 1rem;
+    width: 100%;
 }
 
 /* Login */
@@ -246,34 +248,21 @@ footer p {
     width: 100%;
     max-width: 400px;
     margin: auto;
+    text-align: center;
 }
 
 h2 {
     margin-bottom: 25px;
-    text-align: center;
     color: #333;
     font-size: 1.6rem;
+    font-weight: 600;
 }
 
 /* Erreurs */
 .error-message {
     color: #ff4d4d;
-    text-align: center;
-    margin-bottom: 20px;
     font-weight: 500;
-}
-
-/* Footer (Optimisé pour mobile) */
-footer {
-    text-align: center;
-    padding: 1px;  /* Augmenter le padding pour un peu plus d'espace interne */
-    background-color: #4a90e2;
-    color: white;
-    margin-top: 5px;
-    border-radius: 8px;
-    width: 100%;  /* S'assurer que le footer prend toute la largeur disponible */
-    margin-left: 0;  /* Supprimer la marge gauche */
-    margin-right: 0;  /* Supprimer la marge droite */
+    margin-bottom: 20px;
 }
 
 /* Jumbotron */
@@ -291,70 +280,30 @@ footer {
     font-size: 2.5rem;
 }
 
-/* Responsive Grid pour les petites résolutions */
-@media (max-width: 768px) {
-    .container {
-        grid-template-columns: 1fr; /* Une seule colonne sur petits écrans */
-    }
-
-    .navbar-links {
-        text-align: center;
-        margin-top: 5px;
-    }
-
-    .navbar-links a {
-        margin-left: 0;
-        margin-bottom: 5px;
-    }
-
-    .login-container {
-        max-width: 90%;
-        padding: 5px;
-    }
-}
-/* Style pour le conteneur principal */
+/* Conteneur générique */
 .container {
     display: flex;
-    justify-content: space-between;  /* Espacement entre les sections */
-    gap: 20px; /* Espace entre les sections */
+    flex-direction: column;
+    gap: 20px;
     width: 100% !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
 
-
-
-/* Style pour les éléments à l'intérieur du conteneur */
 .item {
-    flex: 1 1 22%; /* Chaque élément prendra 22% de la largeur du conteneur */
-    box-sizing: border-box; /* Pour inclure les bordures et marges dans la largeur totale */
-    padding: 10px; /* Ajout d'un peu de padding pour espacer le contenu des bords */
-}
-
-
-
-/* Style pour la page de login et signup */
-.login-container {
-    background-color: #ffffff;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px;
-    margin: auto;
-    text-align: center; /* Centrer le contenu du formulaire */
-}
-
-h2 {
-    margin-bottom: 25px;
-    color: #333;
-    font-size: 1.6rem;
-    font-weight: 600;
+    margin: 0 auto;
+    flex: 1 1 22%;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 /* Formulaire */
 form {
     display: flex;
     flex-direction: column;
-    gap: 15px;  /* Espacement entre les champs de formulaire */
+    gap: 15px;
 }
 
 form p {
@@ -377,7 +326,6 @@ form p input:focus {
     outline: none;
 }
 
-/* Bouton de soumission */
 button[type="submit"] {
     padding: 12px 18px;
     background-color: #4a90e2;
@@ -394,14 +342,7 @@ button[type="submit"]:hover {
     background-color: #357ab7;
 }
 
-/* Message d'erreur */
-.error-message {
-    color: #ff4d4d;
-    font-weight: 500;
-    margin-bottom: 20px;
-}
-
-/* Lien vers la page de création de compte / connexion */
+/* Lien */
 p {
     font-size: 1rem;
 }
@@ -416,14 +357,69 @@ p a:hover {
     color: #357ab7;
 }
 
-/* Mobile Responsive */
+/* RESPONSIVE SECTION */
+@media (max-width: 1024px) {
+    .container_main {
+        grid-template-columns: 1fr;
+    }
+
+    .section {
+        padding: 20px;
+    }
+
+    .btn, .btn_rp {
+        width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-links {
+        display: block;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .navbar-links a {
+        margin-left: 0;
+        margin-bottom: 5px;
+        font-size: 1rem;
+    }
+
     .login-container {
-        padding: 25px;
         max-width: 90%;
+        padding: 25px;
     }
 
     h2 {
         font-size: 1.4rem;
+    }
+
+    .section h2 {
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+        padding: 10px 14px;
+    }
+
+    .scroll-box {
+        flex-direction: column;
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .display-3 {
+        font-size: 1.8rem;
+    }
+
+    .section {
+        padding: 15px;
     }
 }

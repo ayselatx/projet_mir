@@ -1,14 +1,12 @@
 # myapp/metriques.py
 
 def average_precision(rappels, precisions):
-    ap = 0.0
-    prev_recall = 0.0
-
-    for recall, precision in zip(rappels, precisions):
-        delta_recall = recall - prev_recall
-        ap += precision * delta_recall
-        prev_recall = recall
-
+    somme = sum(precisions)
+    print("Somme des précisions:", somme)
+    if somme == 0:
+        return 0.0
+    else:
+        ap = somme / len(precisions)
     return ap
 
 def mean_average_precision(liste_AP):

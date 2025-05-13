@@ -28,7 +28,7 @@ document.getElementById('raceSelect').addEventListener('change', function () {
 
     // Affiche le message de chargement
     chargementMessage.innerText = "Chargement des images...";
-    
+
     // Désactive le sélecteur et vide la preview
     imageSelect.innerHTML = '<option value="">Chargement...</option>';
     imageSelect.disabled = true;
@@ -39,7 +39,7 @@ document.getElementById('raceSelect').addEventListener('change', function () {
         .then(data => {
             // Réinitialisation du sélecteur
             imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
-            
+
             // Ajout des options d'image au sélecteur
             data.images.forEach(img => {
                 const opt = document.createElement('option');
@@ -47,18 +47,29 @@ document.getElementById('raceSelect').addEventListener('change', function () {
                 opt.textContent = img.name;
                 imageSelect.appendChild(opt);
 
-                // Création de la vignette d'image
-                const label = document.createElement('label');
-                label.className = 'image-option';
-                label.innerHTML = `
-                    <input type="radio" name="image_name" value="${img.url}">
-                    <img src="${img.url}" alt="${img.name}" class="thumbnail">
-                `;
-                imagePreview.appendChild(label);
+                // Création du wrapper pour la vignette d'image et le bouton radio
+                const wrapper = document.createElement('div');
+                wrapper.classList.add('image-wrapper');
 
-                // Ajout de l'événement sur le radio
-                const lastInput = label.querySelector('input[type="radio"]');
-                lastInput.addEventListener('change', getTopOptions);
+                // Crée l'input radio
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'image_name';
+                radio.value = img.url;
+                radio.addEventListener('change', getTopOptions); // Ajoute l'événement pour changer l'image sélectionnée
+
+                // Crée l'image (vignette)
+                const imageElement = document.createElement('img');
+                imageElement.src = img.url;
+                imageElement.alt = img.name;
+                imageElement.classList.add('image-preview');  // Même classe que pour les résultats
+
+                // Ajoute le radio et l'image dans le wrapper
+                wrapper.appendChild(radio);
+                wrapper.appendChild(imageElement);
+
+                // Ajout du wrapper à la prévisualisation
+                imagePreview.appendChild(wrapper);
             });
 
             // Réactive le sélecteur une fois les images chargées
@@ -75,27 +86,27 @@ document.getElementById('raceSelect').addEventListener('change', function () {
 });
 
 
-// Fonction pour mettre à jour la vignette en fonction de la sélection de l'image
 function updateImagePreview() {
     const imageSelect = document.getElementById('imageSelect');
     const imagePreview = document.getElementById('imagePreview');
     const selectedImage = imageSelect.value;
-    // Si une image est sélectionnée, on affiche la vignette
-    if (selectedImage) {
-        // Crée une nouvelle image de prévisualisation
-        const imgElement = document.createElement('img');
-        imgElement.src = selectedImage; // Utilise l'URL de l'image sélectionnée
-        imgElement.alt = "Vignette de l'image sélectionnée";
-        imgElement.classList.add("thumbnail");  // Classe CSS pour les vignettes d'images
 
-        // Vider le conteneur de prévisualisation pour éviter d'afficher plusieurs images
-        imagePreview.innerHTML = '';
-        imagePreview.appendChild(imgElement);  // Ajouter la vignette à l'affichage
-    } else {
-        // Si aucune image n'est sélectionnée, vider la prévisualisation
-        imagePreview.innerHTML = '';
+    imagePreview.innerHTML = ''; // Nettoyer l'affichage existant
+
+    if (selectedImage) {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('image-wrapper');  // même classe que pour les résultats
+
+        const imgElement = document.createElement('img');
+        imgElement.src = selectedImage;
+        imgElement.alt = "Vignette de l'image sélectionnée";
+        imgElement.classList.add("image-preview");  // même classe que pour les résultats
+
+        wrapper.appendChild(imgElement);
+        imagePreview.appendChild(wrapper);
     }
 }
+
 
 
 // Fonction pour appeler la vue 'affiche_top' via AJAX
@@ -288,8 +299,10 @@ function chargerDescripteurs() {
     xhr.open('POST', '/charger_descripteurs/', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));  // CSRF token
+    console.log('ICI');
 
     xhr.onreadystatechange = function() {
+
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
@@ -422,6 +435,11 @@ async function rechercher() {
                 document.getElementById("rpValue").textContent = data.rp.toFixed(4);
                 window.rappels = data.rappels;
                 window.precisions = data.precisions;
+                // Affiche automatiquement les courbes après les résultats
+                afficherCourbe("rappel", "courbeRappel");
+                afficherCourbe("precision", "courbePrecision");
+
+
             } else if ("cosine" in data) {
                 document.getElementById("cosine").textContent = data.cosine.toFixed(4);
                 document.getElementById("apValue").textContent = "0.0";
@@ -474,51 +492,52 @@ async function rechercher() {
 
 // Fonction pour afficher les résultats dans la section #results
 function afficherResultats(images) {
-    console.log('afficher les resultats')
+    console.log('afficher les resultats');
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';  // Réinitialiser les résultats existants
+
     images.forEach(image => {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('image-wrapper');
+
         const imgElement = document.createElement('img');
         imgElement.src = image;
         imgElement.alt = "Résultat de recherche";
-        imgElement.classList.add("thumbnail");  // Classe CSS pour les vignettes d'images
-        resultsContainer.appendChild(imgElement);
+        imgElement.classList.add("image-preview");
+
+        wrapper.appendChild(imgElement);
+        resultsContainer.appendChild(wrapper);
     });
 }
 
-let chartInstance = null; // Pour réutiliser le même graphique
+let chartInstances = {};
 
-// Fonction pour afficher la courbe de rappel ou de précision
-function afficherCourbe(type) {
-    // Vérification que les valeurs sont disponibles
+function afficherCourbe(type, canvasId) {
     if (!window.rappels || !window.precisions) {
         console.error("Les valeurs de rappel et précision ne sont pas disponibles.");
         return;
     }
 
-    // Utilisation des indices comme étiquettes de l'axe des X (nombre d'images)
-    const labels = Array.from({ length: window.rappels.length }, (_, index) => index + 1);  // Indices des images (1, 2, 3, ..., n)
-    
-    // Sélectionner les bonnes données en fonction du type (rappel ou précision)
+    const labels = Array.from({ length: window.rappels.length }, (_, index) => index + 1);
     const data = (type === 'rappel') ? window.rappels : window.precisions;
     const labelText = (type === 'rappel') ? "Rappel" : "Précision";
     const color = (type === 'rappel') ? "rgb(54, 162, 235)" : "rgb(255, 99, 132)";
 
-    const ctx = document.getElementById("courbeRP").getContext("2d");
+    const ctx = document.getElementById(canvasId).getContext("2d");
 
-    // Si un graphique existe déjà, on le détruit
-    if (chartInstance) {
-        chartInstance.destroy();
+    // Détruire l'ancienne instance si elle existe
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
     }
 
-    // Création du graphique avec Chart.js
-    chartInstance = new Chart(ctx, {
+    // Créer et stocker une nouvelle instance
+    chartInstances[canvasId] = new Chart(ctx, {
         type: "line",
         data: {
-            labels: labels,  // Les indices des images comme labels de l'axe X
+            labels: labels,
             datasets: [{
                 label: labelText,
-                data: data,  // Les valeurs de rappel ou de précision sur l'axe Y
+                data: data,
                 borderColor: color,
                 backgroundColor: color,
                 fill: false,
@@ -527,11 +546,12 @@ function afficherCourbe(type) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 x: {
                     title: {
                         display: true,
-                        text: "Indice de l'image",  // Le titre de l'axe X
+                        text: "Indice de l'image",
                     }
                 },
                 y: {
@@ -539,13 +559,28 @@ function afficherCourbe(type) {
                     max: 1,
                     title: {
                         display: true,
-                        text: type === 'rappel' ? "Rappel" : "Précision",  // Le titre de l'axe Y
+                        text: labelText,
                     }
                 }
             }
         }
     });
 }
+
+
+function telechargerGraphique(canvasId, nomFichier) {
+    const canvas = document.getElementById(canvasId);
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = nomFichier;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const imageSelect = document.getElementById('imageSelect');
