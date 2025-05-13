@@ -268,10 +268,6 @@ def affiche_distance(request):
             options.append("Intersection")
             options.append("Bhattacharyya")
 
-        # Ajouter des options supplémentaires si des descripteurs autres sont sélectionnés
-        if any(descriptor in descr_list for descriptor in ['BGR', 'HSV', 'SIFT', 'ORB', 'GLCM', 'HOG', 'LBP', 'ViT']):
-            options.append("Autres algos")
-
     else:
         return JsonResponse({'error': 'Veuillez fournir un nom de fichier et des descripteurs.'})
 
@@ -318,7 +314,6 @@ def charger_descripteurs(request):
             processed_files = 0
             for i, folder_model in enumerate(folder_models):
                 if not os.path.exists(folder_model):
-                    print('ici')
                     continue
                 for root, _, files in os.walk(folder_model):
                     for file in files:

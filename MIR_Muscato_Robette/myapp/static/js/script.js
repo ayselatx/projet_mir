@@ -299,8 +299,10 @@ function chargerDescripteurs() {
     xhr.open('POST', '/charger_descripteurs/', true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));  // CSRF token
+    console.log('ICI');
 
     xhr.onreadystatechange = function() {
+
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
