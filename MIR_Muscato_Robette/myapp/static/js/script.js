@@ -431,11 +431,12 @@ async function rechercher() {
 
             if (searchType === 'clip'){
                 afficherResultatsCLIP(data.images);
-                console.log("hello");}
+                // Affiche automatiquement les courbes après les résultats
+                afficherCourbe("rappel", "courbeRappel");
+                afficherCourbe("precision", "courbePrecision");}
             else {
             
                 afficherResultats(data.images);
-                console.log("bye");
             }
 
             if ("ap" in data && "map" in data && "rp" in data) {
@@ -476,11 +477,13 @@ async function rechercher() {
             document.getElementById("score").textContent = moyenneScore;
 
             document.getElementById("cosine").textContent = data.cosine?.toFixed(4) || "0.0";
-            document.getElementById("apValue").textContent = "0.0";
-            document.getElementById("mapValue").textContent = "0.0";
-            document.getElementById("rpValue").textContent = "0.0";
-            window.rappels = [];
-            window.precisions = [];
+            document.getElementById("apValue").textContent = data.ap.toFixed(4);
+            document.getElementById("mapValue").textContent = data.map.toFixed(4);
+            document.getElementById("rpValue").textContent = data.rp.toFixed(4);
+            window.rappels = data.rappels;
+            window.precisions = data.precisions;
+            afficherCourbe("rappel", "courbeRappel");
+            afficherCourbe("precision", "courbePrecision");
 
             document.getElementById("results").innerHTML = "";
         } else {
@@ -784,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectedValue === 'MIR_DATASETS_CLIP') {
             if (imagesCache) {
                 console.log('Utilisation des images en cache:', imagesCache);
-                afficherImages(imagesCache); // Fonction à créer pour réutiliser ce bloc d'affichage
+                updateImagePreview(imagesCache); // Fonction à créer pour réutiliser ce bloc d'affichage
                 return;
             }
 
@@ -803,31 +806,51 @@ document.addEventListener('DOMContentLoaded', function () {
                     let promises = [];
 
                     data.images.forEach(img => {
-                        const opt = document.createElement('option');
-                        opt.value = img.url;
-                        opt.textContent = img.name;
-                        imageSelect.appendChild(opt);
+                    const opt = document.createElement('option');
+                    opt.value = img.url;
+                    opt.textContent = img.name;
+                    imageSelect.appendChild(opt);
 
-                        const label = document.createElement('label');
-                        label.className = 'image-option';
-                        label.innerHTML = `
-                            <input type="radio" name="image_name" value="${img.url}">
-                            <img src="${img.url}" alt="${img.name}" class="thumbnail">
-                        `;
-                        imagePreview.appendChild(label);
+                    // Création du wrapper
+                    const wrapper = document.createElement('div');
+                    wrapper.classList.add('image-wrapper');
 
-                        label.querySelector('input[type="radio"]').addEventListener('change', getTopOptions);
+                    // Création du label contenant input + image
+                    const label = document.createElement('label');
+                    label.className = 'image-option';
+                    
+                    // Ajout du input et image dans le label
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = 'image_name';
+                    input.value = img.url;
+                    input.addEventListener('change', getTopOptions);
 
-                        // Promesse de chargement d’image
-                        let imageLoadPromise = new Promise((resolve, reject) => {
-                            const imgElement = new Image();
-                            imgElement.src = img.url;
-                            imgElement.onload = () => resolve(img.url);
-                            imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);
-                        });
+                    const imageElement = document.createElement('img');
+                    imageElement.src = img.url;
+                    imageElement.alt = img.name;
+                    imageElement.classList.add('image-preview');
 
-                        promises.push(imageLoadPromise);
+                    label.appendChild(input);
+                    label.appendChild(imageElement);
+
+                    // Ajout du label au wrapper
+                    wrapper.appendChild(label);
+
+                    // Ajout du wrapper à l'imagePreview
+                    imagePreview.appendChild(wrapper);
+
+                    // Promesse de chargement d’image
+                    let imageLoadPromise = new Promise((resolve, reject) => {
+                        const imgElement = new Image();
+                        imgElement.src = img.url;
+                        imgElement.onload = () => resolve(img.url);
+                        imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);
                     });
+
+                    promises.push(imageLoadPromise);
+                });
+
 
                     Promise.all(promises)
                         .then(() => {
@@ -846,6 +869,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             sectionAnimalRace.style.display = 'none';
             sectionImageTexte.style.display = 'block';
+            checkbox_descripteurs.style.display = 'none';
         } else {
             console.log("Autre dataset sélectionné :", selectedValue);
             sectionAnimalRace.style.display = 'block';

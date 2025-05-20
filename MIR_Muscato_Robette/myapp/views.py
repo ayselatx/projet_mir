@@ -17,6 +17,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout
+import pandas as pd
 
 def login_view(request):
     if request.method == 'POST':
@@ -469,28 +470,98 @@ def recherche_images(request):
                     "precisions": precisions,
                 })
         else:
-            formatted_results = []
+
+            resultats = sorted(resultats, key=lambda x: x[2], reverse=True)
+
             if image_name and not text_query:
                 # Requête image → descriptions
-                # Trie les résultats par score décroissant
-                resultats = sorted(resultats, key=lambda x: x[2], reverse=True)
-                formatted_results = [{"description": nom, "score": round(score, 4)} for (_, nom, score) in resultats]
+                csv_path = os.path.join(settings.MEDIA_ROOT, "results.csv")
+                df = pd.read_csv(csv_path, sep="|")
+                df.columns = [col.strip() for col in df.columns]
+                df["comment"] = df["comment"].astype(str).str.lower().str.strip()
+                descriptions_retournees = [nom.lower().strip() for (_, nom, _) in resultats]
+
+                image_basename = os.path.basename(image_name)
+                ground_truth = df[df["image_name"] == image_basename]["comment"].tolist()
+                ground_truth_set = set(ground_truth)
+
+                pertinents_recup = [1 if desc in ground_truth_set else 0 for desc in descriptions_retournees]
+                nb_pertinents = len(ground_truth_set)
+
+                rappels = []
+                precisions = []
+                pertinents_cumules = 0
+
+                for i, est_pertinent in enumerate(pertinents_recup):
+                    if est_pertinent:
+                        pertinents_cumules += 1
+                    rappel = pertinents_cumules / nb_pertinents if nb_pertinents else 0
+                    precision = pertinents_cumules / (i + 1)
+                    rappels.append(rappel)
+                    precisions.append(precision)
+
+                metriques = calculer_metriques(rappels, precisions, pertinents_recup, len(resultats))
+                print(f"AP: {metriques['ap']}, MAP: {metriques['map']}, RP: {metriques['rp']}")
+
+                formatted_results = [{"description": desc, "score": round(score, 4)} for (_, desc, score) in resultats]
                 return JsonResponse({
                     "descriptions": formatted_results,
+                    "ap": metriques["ap"],
+                    "map": metriques["map"],
+                    "rp": metriques["rp"],
+                    "rappels": rappels,
+                    "precisions": precisions,
                 })
 
             elif text_query and not image_name:
                 # Requête texte → images
-                # Trie les résultats par score décroissant
-                resultats = sorted(resultats, key=lambda x: x[2], reverse=True)
-                formatted_paths = [
-                    "/media/MIR_DATASETS_CLIP/" + nom for (_, nom, _) in resultats
-                ]
+                csv_path = os.path.join(settings.MEDIA_ROOT, "results.csv")
+                df = pd.read_csv(csv_path, sep="|")
+                df.columns = [col.strip() for col in df.columns]
+                df["image_name"] = df["image_name"].astype(str).str.strip()
+
+                ground_truth_images = df[df["comment"].str.lower().str.strip() == text_query.lower().strip()]["image_name"].tolist()
+                ground_truth_set = set(ground_truth_images)
+                print("Vérité terrain :", ground_truth_set.values())
+                image_names_retournees = [nom for (_, nom, _) in resultats]
+                print("Image names retournées :", image_names_retournees)
+                pertinents_recup = [1 if img in ground_truth_set else 0 for img in image_names_retournees]
+                nb_pertinents = len(ground_truth_set)
+
+                rappels = []
+                precisions = []
+                pertinents_cumules = 0
+
+                for i, est_pertinent in enumerate(pertinents_recup):
+                    if est_pertinent:
+                        pertinents_cumules += 1
+                    rappel = pertinents_cumules / nb_pertinents if nb_pertinents else 0
+                    precision = pertinents_cumules / (i + 1)
+                    rappels.append(rappel)
+                    precisions.append(precision)
+
+                metriques = calculer_metriques(rappels, precisions, pertinents_recup, len(resultats))
+                print(f"Nombre d'images pertinentes récupérées : {sum(pertinents_recup)}")
+                print(f"Nombre d'images récupérées : {len(resultats)}")
+                print(f'Nombre d\'images pertinentes : {nb_pertinents}')
+                print(f"Vérité terrain : {ground_truth_set}")
+                print(f'precision : {precisions}')
+                print(f'Rappel : {rappels}')
+                print(f"AP: {metriques['ap']}, MAP: {metriques['map']}, RP: {metriques['rp']}")
+                formatted_paths = ["/media/MIR_DATASETS_CLIP/" + nom for nom in image_names_retournees]
                 return JsonResponse({
-                    "images": formatted_paths
+                    "images": formatted_paths,
+                    "ap": metriques["ap"],
+                    "map": metriques["map"],
+                    "rp": metriques["rp"],
+                    "rappels": rappels,
+                    "precisions": precisions,
                 })
+
             else:
                 return JsonResponse({"error": "Requête clip mal formée"}, status=400)
+
+
 
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
