@@ -23,32 +23,41 @@ import torchvision.models as models
 
 class Rechercheur:
     def __init__(self):
-        # Chemin vers le dossier "media/MIR_DATASETS_B"
+        # Chemin vers le dossier "myapp"
         self.base_path = os.path.join(os.getcwd(), "myapp")
-        self.sortie = 20  # Default top results (this can be updated dynamically)
+        self.sortie = 20  # Nombre de résultats par défaut
 
-        self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text.index"))
-        self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image.index"))
+        # Chargement des index Faiss
+        self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text_test.index"))
+        self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image_test.index"))
 
-        with open(os.path.join(self.base_path, "faiss_image_mapping.pkl"), "rb") as f:
+        # Chargement des mappings entre index Faiss et chemins d'images
+        with open(os.path.join(self.base_path, "faiss_image_mapping_test.pkl"), "rb") as f:
             self.faiss_image_mapping = pickle.load(f)
 
-        with open(os.path.join(self.base_path, "faiss_text_mapping.pkl"), "rb") as f:
+        with open(os.path.join(self.base_path, "faiss_text_mapping_test.pkl"), "rb") as f:
             self.faiss_text_mapping = pickle.load(f)
 
+        # Dictionnaire pour stocker les descriptions d'images
         self.caption_dict = defaultdict(list)
+        self.image_descriptions = dict()  # <-- Important : dictionnaire descriptions par image
 
         media_path = os.path.join(self.base_path, "media")
         csv_path = os.path.join(media_path, "results.csv")
 
         try:
-            # Lecture du fichier CSV (généré ou déjà présent)
+            # Lecture du fichier CSV contenant les descriptions
             df = pd.read_csv(csv_path, sep='|')
             df.columns = [col.strip() for col in df.columns]  # nettoyage des colonnes
+
             for _, row in df.iterrows():
                 img = row['image_name']
                 description = row['comment']
                 self.caption_dict[img].append(description)
+
+                # On peut stocker une description simple (par exemple, la première) dans image_descriptions
+                if img not in self.image_descriptions:
+                    self.image_descriptions[img] = description
 
         except Exception as e:
             print(f"Erreur lors de la lecture de results.csv ou de la conversion : {e}")
@@ -122,37 +131,6 @@ class Rechercheur:
 
         print(sorted(fusion, key=lambda x: x[2], reverse=True))
         return sorted(fusion, key=lambda x: x[2], reverse=True)
-    
-    # Créer une fonction pour obtenir les caractéristiques d'une image
-    def get_image_features(self,image_path):
-        # 1. Détection du device
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        # 2. Chargement du modèle CLIP et de la fonction de prétraitement
-        model, preprocess = clip.load("ViT-B/32", device=device)
-        image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
-        with torch.no_grad():
-            image_features = model.encode_image(image)
-        return image_features
-    # Créer une fonction pour obtenir les caractéristiques d'un texte
-    def get_text_features(seld,text):
-        # 1. Détection du device
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        # 2. Chargement du modèle CLIP et de la fonction de prétraitement
-        model, preprocess = clip.load("ViT-B/32", device=device)
-        text = clip.tokenize([text], truncate= True).to(device)
-        with torch.no_grad():
-            text_features = model.encode_text(text)
-        return text_features
-    def get_description_from_id(self, text_id, caption_dict):
-        try:
-            image_name, caption_index = text_id.split('_')
-            caption_index = int(caption_index)
-            return caption_dict[image_name][caption_index]
-        except (KeyError, IndexError, ValueError) as e:
-            print(f"Erreur avec text_id '{text_id}': {e}")
-            return None
 
 
 
@@ -274,51 +252,76 @@ class Rechercheur:
 
         return voisins_total
     
-    def recherche_clip(self, query_text=None, image_path=None, top_k=20, images_deja_ajoutees=None):
+
+    def recherche_clip(self, query_text=None, image_path=None, top_k=2, images_deja_ajoutees=None):
         if images_deja_ajoutees is None:
             images_deja_ajoutees = set()
 
         voisins_total = []
 
+        if not hasattr(self, "model"):
+            self.model, self.preprocess = clip.load("ViT-B/32", device="cuda" if torch.cuda.is_available() else "cpu")
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            self.tokenizer = clip.tokenize
+
         if query_text:
-            query_vec = self.get_text_features(query_text).cpu().numpy()
-            if query_vec.ndim == 1:
-                query_vec = np.expand_dims(query_vec, axis=0)
+            query_text = query_text.lower().strip()
+            text_input = self.tokenizer([query_text]).to(self.device)
 
-            D, I = self.index_text_faiss.search(query_vec, top_k)
+            with torch.no_grad():
+                text_embedding = self.model.encode_text(text_input)
+                text_embedding /= text_embedding.norm(dim=-1, keepdim=True)
 
-            for idx, score in zip(I[0], D[0]):
-                image_name = self.faiss_image_mapping[idx // 5]  # à ajuster selon ton mapping exact
-                if image_name not in images_deja_ajoutees:
-                    nom = os.path.basename(image_name)
-                    voisins_total.append((query_text, nom, float(score)))
-                    images_deja_ajoutees.add(image_name)
-                if len(voisins_total) >= self.sortie:
-                    break
+            D, I = self.index_text_faiss.search(text_embedding.cpu().numpy().astype("float32"), top_k)
 
-            return voisins_total
+            image_scores = defaultdict(list)
+
+            for dist, idx in zip(D[0], I[0]):
+                img_path = self.faiss_text_mapping[idx]
+                if img_path:
+                    score = float(1 - dist)  # Similarity score
+                    image_scores[img_path].append(score)
+
+            # Prendre le score max pour chaque image, et s'assurer de ne pas dupliquer les chemins
+            for img_path, scores in image_scores.items():
+                if img_path not in images_deja_ajoutees:
+                    max_score = max(scores)
+                    voisins_total.append((img_path, os.path.basename(img_path), max_score))
+                    images_deja_ajoutees.add(img_path)
+            print('ici')
+            print(sorted(voisins_total, key=lambda x: x[2], reverse=True))
+            return sorted(voisins_total, key=lambda x: x[2], reverse=True)
+
 
         elif image_path:
-            image_full_path = os.path.join(self.base_path, image_path.lstrip("/"))
-            query_vec = self.get_image_features(image_full_path).cpu().numpy()
-            if query_vec.ndim == 1:
-                query_vec = np.expand_dims(query_vec, axis=0)
+            image_path_full = os.path.join(self.base_path, image_path.lstrip("/"))
 
-            D, I = self.index_image_faiss.search(query_vec, top_k)
+            if not os.path.exists(image_path_full):
+                raise FileNotFoundError(f"Image non trouvée : {image_path_full}")
 
-            for idx, score in zip(I[0], D[0]):
-                text_id = self.faiss_text_mapping[idx][0]
-                description = self.get_description_from_id(text_id, self.caption_dict)
-                if description and description not in images_deja_ajoutees:
-                    voisins_total.append((description, description, float(score)))  # (chemin, nom, score)
-                    images_deja_ajoutees.add(description)
-                if len(voisins_total) >= self.sortie:
-                    break
+            image_input = self.preprocess(Image.open(image_path_full).convert("RGB")).unsqueeze(0).to(self.device)
 
-            return voisins_total
+            with torch.no_grad():
+                image_embedding = self.model.encode_image(image_input)
+                image_embedding /= image_embedding.norm(dim=-1, keepdim=True)
 
-        else:
-            return []
+            D, I = self.index_image_faiss.search(image_embedding.cpu().numpy().astype("float32"), top_k)
+
+            descriptions_deja_ajoutees = set()
+            for dist, idx in zip(D[0], I[0]):
+                img_path = self.faiss_image_mapping[idx]
+                if img_path:
+                    # Récupérer toutes les descriptions associées à l'image
+                    descriptions = self.caption_dict.get(img_path, [])
+                    for description in descriptions:
+                        if description not in descriptions_deja_ajoutees:
+                            voisins_total.append((description, description, float(1 - dist)))
+                            descriptions_deja_ajoutees.add(description)
+
+            return sorted(voisins_total, key=lambda x: x[2], reverse=True)
+
+
+        return []
 
 
 

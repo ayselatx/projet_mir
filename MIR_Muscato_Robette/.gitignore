@@ -6,3 +6,7 @@ myapp/faiss_text_mapping.pkl
 myapp/faiss_image_mapping.pkl
 myapp/index_text.index
 myapp/index_image.index
+myapp/faiss_text_mapping_test.pkl
+myapp/faiss_image_mapping_test.pkl
+myapp/index_text_test.index
+myapp/index_image_test.index
