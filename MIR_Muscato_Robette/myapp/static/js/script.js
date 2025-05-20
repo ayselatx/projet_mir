@@ -432,11 +432,12 @@ async function rechercher() {
 
             if (searchType === 'clip'){
                 afficherResultatsCLIP(data.images, data.scores);
-                console.log("hello");}
+                // Affiche automatiquement les courbes après les résultats
+                afficherCourbe("rappel", "courbeRappel");
+                afficherCourbe("precision", "courbePrecision");}
             else {
             
-                afficherResultats(data.images, data.scores);
-                console.log("bye");
+                afficherResultats(data.images, data.scores);;
             }
 
             if ("ap" in data && "map" in data && "rp" in data) {
@@ -477,11 +478,13 @@ async function rechercher() {
             document.getElementById("score").textContent = moyenneScore;
 
             document.getElementById("cosine").textContent = data.cosine?.toFixed(4) || "0.0";
-            document.getElementById("apValue").textContent = "0.0";
-            document.getElementById("mapValue").textContent = "0.0";
-            document.getElementById("rpValue").textContent = "0.0";
-            window.rappels = [];
-            window.precisions = [];
+            document.getElementById("apValue").textContent = data.ap.toFixed(4);
+            document.getElementById("mapValue").textContent = data.map.toFixed(4);
+            document.getElementById("rpValue").textContent = data.rp.toFixed(4);
+            window.rappels = data.rappels;
+            window.precisions = data.precisions;
+            afficherCourbe("rappel", "courbeRappel");
+            afficherCourbe("precision", "courbePrecision");
 
             document.getElementById("results").innerHTML = "";
         } else {
