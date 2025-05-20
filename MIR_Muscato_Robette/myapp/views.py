@@ -405,6 +405,7 @@ def recherche_images(request):
                 print(round(cosine_moyenne, 4))
                 return JsonResponse({
                     "images": formatted_paths,
+                    "scores": scores,
                     "cosine": round(cosine_moyenne, 4),
                 })
             
@@ -462,6 +463,7 @@ def recherche_images(request):
 
                 return JsonResponse({
                     "images": formatted_paths,
+                    "scores" : scores,
                     "ap": metriques["ap"],
                     "map": metriques["map"],
                     "rp": metriques["rp"],
@@ -487,7 +489,8 @@ def recherche_images(request):
                     "/media/MIR_DATASETS_CLIP/" + nom for (_, nom, _) in resultats
                 ]
                 return JsonResponse({
-                    "images": formatted_paths
+                    "images": formatted_paths,
+                    "scores": scores
                 })
             else:
                 return JsonResponse({"error": "Requête clip mal formée"}, status=400)

@@ -233,7 +233,7 @@ class Rechercheur:
                 for v in voisins:
                     nom = os.path.basename(v[0])
                     if nom not in images_deja_ajoutees:
-                        voisins_total.append((image_name,nom,v[2]))
+                        voisins_total.append((image_name,nom,1-v[2]))
                         images_deja_ajoutees.add(nom)
                     if len(voisins_total) >= self.sortie:
                         break

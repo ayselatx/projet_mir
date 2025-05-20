@@ -420,6 +420,7 @@ async function rechercher() {
         });
 
         const data = await response.json();
+        console.log("Champs dans la réponse :", Object.keys(data));
 
         // Réinitialiser les conteneurs
         document.getElementById("clipTextResult").innerHTML = "";
@@ -430,11 +431,11 @@ async function rechercher() {
             console.log("Type de recherche sélectionné :", searchType);
 
             if (searchType === 'clip'){
-                afficherResultatsCLIP(data.images);
+                afficherResultatsCLIP(data.images, data.scores);
                 console.log("hello");}
             else {
             
-                afficherResultats(data.images);
+                afficherResultats(data.images, data.scores);
                 console.log("bye");
             }
 
@@ -506,7 +507,7 @@ function nettoyerClésCaptions(captions) {
 }
 
 
-async function afficherResultats(images) {
+async function afficherResultats(images, scores) {
     console.log("Début de l'affichage des résultats");
 
     const resultsContainer = document.getElementById('results');
@@ -518,7 +519,9 @@ async function afficherResultats(images) {
         console.log('Captions nettoyées :', captions);
 
 
-        images.forEach(imageUrl => {
+        images.forEach((imageUrl, index)=> {
+            const score = scores[index]; // Récupère le score associé à l'image
+
             console.log('Traitement de l\'image :', imageUrl);
 
             const wrapper = document.createElement('div');
@@ -534,12 +537,18 @@ async function afficherResultats(images) {
             console.log('Chemin relatif utilisé :', relativePath);
 
             const captionText = captions[relativePath];
+
             const descElement = document.createElement('p');
             descElement.classList.add('image-description');
             descElement.textContent = captionText || 'Aucune description disponible';
 
+            const scoreElement = document.createElement('p');
+            scoreElement.classList.add('image-score');
+            scoreElement.textContent = `Score : ${score.toFixed(4)}`;
+
             wrapper.appendChild(imgElement);
             wrapper.appendChild(descElement);
+            wrapper.appendChild(scoreElement);
 
             resultsContainer.appendChild(wrapper);
         });
@@ -550,7 +559,7 @@ async function afficherResultats(images) {
 
 
 
-async function afficherResultatsCLIP(images) {
+async function afficherResultatsCLIP(images, scores) {
     console.log('afficher les resultats');
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';
@@ -560,7 +569,10 @@ async function afficherResultatsCLIP(images) {
     const csvText = await response.text();
     const descriptions = parseCSV(csvText);
 
-    images.forEach(imageUrl => {
+    images.forEach((imageUrl, index)  => {
+
+        const score = scores[index]; // Récupère le score associé à l'image
+
         const imageName = imageUrl.split('/').pop(); // Extrait le nom du fichier (ex. "1000092795.jpg")
         const matchingEntry = descriptions.find(entry =>
             entry.image_name === imageName && entry.comment_number === '0'
@@ -582,6 +594,12 @@ async function afficherResultatsCLIP(images) {
             descElement.textContent = matchingEntry.comment;
             wrapper.appendChild(descElement);
         }
+
+        const scoreElement = document.createElement('p');
+        scoreElement.classList.add('image-score');
+        scoreElement.textContent = `Score : ${score.toFixed(4)}`;
+        
+        wrapper.appendChild(scoreElement);
 
         resultsContainer.appendChild(wrapper);
     });
