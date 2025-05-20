@@ -799,78 +799,99 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("🧠 Changement détecté !");
         const selectedValue = datasetSelect.value;
 
-        if (selectedValue === 'MIR_DATASETS_CLIP') {
-            if (imagesCache) {
-                console.log('Utilisation des images en cache:', imagesCache);
-                afficherImages(imagesCache); // Fonction à créer pour réutiliser ce bloc d'affichage
-                return;
-            }
+                if (selectedValue === 'MIR_DATASETS_CLIP') {
+                    if (imagesCache) {
+                        console.log('Utilisation des images en cache:', imagesCache);
+                        updateImagePreview(imagesCache); // Fonction à créer pour réutiliser ce bloc d'affichage
+                        return;
+                    }
 
-            chargementMessage.innerText = "Chargement des images...";
+                    chargementMessage.innerText = "Chargement des images...";
 
-            fetch('/get_images_in_dataset/')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Images récupérées:', data.images);
-                    imagesCache = data.images;
+                    fetch('/get_images_in_dataset/')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Images récupérées:', data.images);
+                            imagesCache = data.images;
 
-                    // Réinitialiser le sélecteur et les vignettes
-                    imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
-                    imagePreview.innerHTML = '';
+                            // Réinitialiser le sélecteur et les vignettes
+                            imageSelect.innerHTML = '<option value="">-- Sélectionnez une image --</option>';
+                            imagePreview.innerHTML = '';
 
-                    let promises = [];
+                            let promises = [];
 
-                    data.images.forEach(img => {
-                        const opt = document.createElement('option');
-                        opt.value = img.url;
-                        opt.textContent = img.name;
-                        imageSelect.appendChild(opt);
+                            data.images.forEach(img => {
+                            const opt = document.createElement('option');
+                            opt.value = img.url;
+                            opt.textContent = img.name;
+                            imageSelect.appendChild(opt);
 
-                        const label = document.createElement('label');
-                        label.className = 'image-option';
-                        label.innerHTML = `
-                            <input type="radio" name="image_name" value="${img.url}">
-                            <img src="${img.url}" alt="${img.name}" class="thumbnail">
-                        `;
-                        imagePreview.appendChild(label);
+                            // Création du wrapper
+                            const wrapper = document.createElement('div');
+                            wrapper.classList.add('image-wrapper');
 
-                        label.querySelector('input[type="radio"]').addEventListener('change', getTopOptions);
+                            // Création du label contenant input + image
+                            const label = document.createElement('label');
+                            label.className = 'image-option';
+                            
+                            // Ajout du input et image dans le label
+                            const input = document.createElement('input');
+                            input.type = 'radio';
+                            input.name = 'image_name';
+                            input.value = img.url;
+                            input.addEventListener('change', getTopOptions);
 
-                        // Promesse de chargement d’image
-                        let imageLoadPromise = new Promise((resolve, reject) => {
-                            const imgElement = new Image();
-                            imgElement.src = img.url;
-                            imgElement.onload = () => resolve(img.url);
-                            imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);
+                            const imageElement = document.createElement('img');
+                            imageElement.src = img.url;
+                            imageElement.alt = img.name;
+                            imageElement.classList.add('image-preview');
+
+                            label.appendChild(input);
+                            label.appendChild(imageElement);
+
+                            // Ajout du label au wrapper
+                            wrapper.appendChild(label);
+
+                            // Ajout du wrapper à l'imagePreview
+                            imagePreview.appendChild(wrapper);
+
+                            // Promesse de chargement d’image
+                            let imageLoadPromise = new Promise((resolve, reject) => {
+                                const imgElement = new Image();
+                                imgElement.src = img.url;
+                                imgElement.onload = () => resolve(img.url);
+                                imgElement.onerror = () => reject(`Erreur lors du chargement de l'image : ${img.url}`);
+                            });
+
+                            promises.push(imageLoadPromise);
                         });
 
-                        promises.push(imageLoadPromise);
-                    });
 
-                    Promise.all(promises)
-                        .then(() => {
-                            chargementMessage.innerText = "Images chargées.";
-                            imageSelect.disabled = false;
+                            Promise.all(promises)
+                                .then(() => {
+                                    chargementMessage.innerText = "Images chargées.";
+                                    imageSelect.disabled = false;
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                    chargementMessage.innerText = "Erreur lors du chargement des images.";
+                                });
                         })
                         .catch(error => {
-                            console.error(error);
+                            console.error('Erreur lors de la récupération des images:', error);
                             chargementMessage.innerText = "Erreur lors du chargement des images.";
                         });
-                })
-                .catch(error => {
-                    console.error('Erreur lors de la récupération des images:', error);
-                    chargementMessage.innerText = "Erreur lors du chargement des images.";
-                });
 
-            sectionAnimalRace.style.display = 'none';
-            sectionImageTexte.style.display = 'block';
-        } else {
-            console.log("Autre dataset sélectionné :", selectedValue);
-            sectionAnimalRace.style.display = 'block';
-            sectionImageTexte.style.display = 'block';
-        }
-    });
-});
+                    sectionAnimalRace.style.display = 'none';
+                    sectionImageTexte.style.display = 'block';
+                    checkbox_descripteurs.style.display = 'none';
+                } else {
+                    console.log("Autre dataset sélectionné :", selectedValue);
+                    sectionAnimalRace.style.display = 'block';
+                    sectionImageTexte.style.display = 'block';
+                }
+            });
+        });
 
 
 
