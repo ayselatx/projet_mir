@@ -83,11 +83,9 @@ def home(request):
 
 def get_races(request):
     animal = request.GET.get('animal')
-    print("Animal:", animal)
 
     # Utilisation de MEDIA_ROOT pour définir le chemin correct
     base_dir = os.path.join(settings.MEDIA_ROOT, "MIR_DATASETS_B", animal)
-    print("Base directory:", base_dir)
 
     if not os.path.exists(base_dir) or not os.path.isdir(base_dir):
         return JsonResponse({'races': []})
@@ -101,12 +99,9 @@ def get_races(request):
 def get_images(request):
     animal = request.GET.get('animal')
     race = request.GET.get('race')
-    print("Animal:", animal)
-    print("Race:",race)
 
     # Générer le chemin vers le dossier contenant les images
     base_dir = os.path.join(settings.MEDIA_ROOT, "MIR_DATASETS_B", animal, race)
-    print("Base directory for images:", base_dir)
 
 
     if not os.path.exists(base_dir) or not os.path.isdir(base_dir):
@@ -140,7 +135,6 @@ def get_images_in_dataset(request):
             # Créer l'URL complète pour chaque image
             image_url = os.path.join(settings.MEDIA_URL, 'MIR_DATASETS_CLIP', f)
             images.append({'url': image_url, 'name': f})
-    print(images)
 
     # Renvoyer les images en réponse JSON
     return JsonResponse({'images': images})
@@ -234,15 +228,12 @@ def affiche_distance(request):
     file_name = request.GET.get('fileName')
     descr = request.GET.get('descripteurs')
 
-    print(file_name + ' et ' + descr)
-
     # Liste des options à retourner
     options = []  
 
     # Vérification de l'existence des descripteurs et de l'image
     if file_name and descr:
         descr_list = descr.split(",")  # Convertir la chaîne descripteurs en liste
-        print(descr_list)
 
         # Groupes de descripteurs compatibles
         sift_orb_compatible = {'SIFT', 'ORB'}
@@ -358,7 +349,6 @@ def charger_descripteurs(request):
 
 def recherche_images(request):
     if request.method == "POST":
-        print("POST data:", request.POST)
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
         search_type = request.POST.get("searchType", "").strip()
@@ -403,7 +393,6 @@ def recherche_images(request):
                 formatted_paths = [
                         "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
                     ]
-                print(round(cosine_moyenne, 4))
                 return JsonResponse({
                     "images": formatted_paths,
                     "cosine": round(cosine_moyenne, 4),
@@ -418,8 +407,6 @@ def recherche_images(request):
                     print(f"Vérité terrain : {verite_terrain}")
                 except Exception:
                     return JsonResponse({"error": "Format de nom d’image non valide"}, status=500)
-                for nom in noms_resultats:
-                    print(nom.split("_")[3])
                 pertinents_recup = [1 if verite_terrain in nom.split("_")[3] else 0 for nom in noms_resultats]
                 nb_pertinents = sum(pertinents_recup)
                 dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
@@ -447,7 +434,6 @@ def recherche_images(request):
                         pertinents_cumules += 1
                     rappel = pertinents_cumules / nb_images_pertinentes
                     precision = pertinents_cumules / (i + 1)
-                    print(f"Rappel: {rappel}, Précision: {precision}")
                     rappels.append(rappel)
                     precisions.append(precision)
                 images_pertientes_recuperees = sum(pertinents_recup)
@@ -503,7 +489,6 @@ def recherche_images(request):
                     precisions.append(precision)
 
                 metriques = calculer_metriques(rappels, precisions, pertinents_recup, len(resultats))
-                print(f"AP: {metriques['ap']}, MAP: {metriques['map']}, RP: {metriques['rp']}")
 
                 formatted_results = [{"description": desc, "score": round(score, 4)} for (_, desc, score) in resultats]
                 return JsonResponse({
@@ -526,7 +511,6 @@ def recherche_images(request):
                 ground_truth_set = set(ground_truth_images)
                 print("Vérité terrain :", ground_truth_set)
                 image_names_retournees = [nom for (_, nom, _) in resultats]
-                print("Image names retournées :", image_names_retournees)
                 pertinents_recup = [1 if img in ground_truth_set else 0 for img in image_names_retournees]
                 nb_pertinents = len(ground_truth_set)
 
@@ -547,9 +531,6 @@ def recherche_images(request):
                 print(f"Nombre d'images récupérées : {len(resultats)}")
                 print(f'Nombre d\'images pertinentes : {nb_pertinents}')
                 print(f"Vérité terrain : {ground_truth_set}")
-                print(f'precision : {precisions}')
-                print(f'Rappel : {rappels}')
-                print(f"AP: {metriques['ap']}, MAP: {metriques['map']}, RP: {metriques['rp']}")
                 formatted_paths = ["/media/MIR_DATASETS_CLIP/" + nom for nom in image_names_retournees]
                 return JsonResponse({
                     "images": formatted_paths,

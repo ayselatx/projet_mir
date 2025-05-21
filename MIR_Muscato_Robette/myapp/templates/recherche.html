@@ -3,165 +3,156 @@
 {% block title %}Interface de Recherche{% endblock %}
 
 {% block content %}
-<body>
-    {% csrf_token %}
+{% csrf_token %}
 
-    <div class="main-content">
-        <!-- Conteneur pour les sections -->
-        <div class="container">
-            <div class="section">
-                <h2>Requête</h2>
-                <h4>Image: </h4>
-                    <div class="top-bar">
-                        <label for="datasetSelect">Dataset :</label>
-                        <select id="datasetSelect" class="dropdown">
-                            <option value="">-- Sélectionnez un dataset --</option>
-                            <option value="MIR_DATASETS_CLIP">MIR_DATASETS_CLIP</option>
-                            <option value="MIR_DATASETS_B">MIR_DATASETS_B</option>
-                        </select>
-                    </div>
-                
-                    <div id="sectionAnimalRace">
-                        <label for="animalSelect">Choisissez un animal :</label>
-                        <select id="animalSelect" class="dropdown">
-                            <option value="">-- Sélectionnez --</option>
-                            <option value="chiens">Chiens</option>
-                            <option value="singes">Singes</option>
-                            <option value="poissons">Poissons</option>
-                        </select>
-
-                        <label for="raceSelect">Choisissez une race :</label>
-                        <select id="raceSelect" class="dropdown" disabled>
-                            <option value="">-- Sélectionnez une race --</option>
-                        </select>
-                    </div>
-
-                    <p id="chargementImagesMessage"></p>
-                    <div id="sectionImageTexte">
-                        <label for="imageSelect">Sélectionnez une image :</label>
-                        <select id="imageSelect" name="image_name" class="dropdown" disabled>
-                            <option value="">-- Sélectionnez une image --</option>
-                        </select>
-                    
-                        <label> Images disponibles : </label>
-                        <div id="imagePreview" type="radio" name="image_name" class="scroll-box" >
-                            <!-- Les vignettes seront insérées ici -->
-                        </div>
-                    
-                        <h4 for="textQuery">Texte :</h4>
-                        <input type="text" id="textQuery" class="input-field" placeholder="Entrez la requête textuelle...">
-                    </div>
+<div class="main-content">
+    <div class="container">
+        <div class="section">
+            <h2>Requête</h2>
+            <h4>Image: </h4>
+            <div class="top-bar">
+                <label for="datasetSelect">Dataset :</label>
+                <select id="datasetSelect" class="dropdown">
+                    <option value="">-- Sélectionnez un dataset --</option>
+                    <option value="MIR_DATASETS_CLIP">MIR_DATASETS_CLIP</option>
+                    <option value="MIR_DATASETS_B">MIR_DATASETS_B</option>
+                </select>
             </div>
 
-            <!-- Descripteurs -->
-            <div class="section">
-                <h2>Descripteurs</h2>
-                <label><input type="checkbox" name="descripteur" value='BGR'> BGR</label><br>
-                <label><input type="checkbox" name="descripteur" value='HSV'> HSV</label><br>
-                <label><input type="checkbox" name="descripteur" value='SIFT'> SIFT</label><br>
-                <label><input type="checkbox" name="descripteur" value='ORB'> ORB</label><br>
-                <label><input type="checkbox" name="descripteur" value='GLCM'> GLCM</label><br>
-                <label><input type="checkbox" name="descripteur" value='ViT'> ViT</label><br>
-                <label><input type="checkbox" name="descripteur" value='LBP'> LBP</label><br>
-                <label><input type="checkbox" name="descripteur" value='HOG'> HOG</label><br>
-                <button class="btn" onclick="chargerDescripteurs()">Charger les descripteurs</button>
-                <p id="chargementMessage"></p>
-            </div>
-                
-            <!-- Recherche -->
-            <div class="section">
-                <h2>Recherche</h2>
-                <label for="distance">Distance :</label>
-                <select id="distance" class="dropdown">
-                    <!-- Les options seront ajoutées dynamiquement -->
+            <div id="sectionAnimalRace">
+                <label for="animalSelect">Choisissez un animal :</label>
+                <select id="animalSelect" class="dropdown">
+                    <option value="">-- Sélectionnez --</option>
+                    <option value="chiens">Chiens</option>
+                    <option value="singes">Singes</option>
+                    <option value="poissons">Poissons</option>
                 </select>
 
-                <label>Type recherche :</label>
-                <div id="searchType">
-                    <label>
-                        <input type="checkbox" name="searchType" value="image" class="search-type-checkbox">
-                        Image
-                    </label>
-                    <br>
-                    <label>
-                        <input type="checkbox" name="searchType" value="texte" class="search-type-checkbox">
-                        Texte
-                    </label>
-                    <br>
-                    <label>
-                        <input type="checkbox" name="searchType" value="clip" class="search-type-checkbox">
-                        CLIP
-                    </label>
-                </div>
-
-                <div id="combinationTypeContainer" style="display: none;">
-                    <label for="combinationType">Type de combinaison :</label>
-                    <select name="combinationType" id="combinationType">
-                        <option value="addition">Addition</option>
-                        <option value="multiplication">Multiplication</option>
-                        <option value="moyenne">Moyenne</option>
-                    </select>
-                </div>
-                
-                <label for="topResults">Top :</label>
-                <select id="topResults" class="dropdown">
-                    <!-- Les options seront ajoutées dynamiquement -->
+                <label for="raceSelect">Choisissez une race :</label>
+                <select id="raceSelect" class="dropdown" disabled>
+                    <option value="">-- Sélectionnez une race --</option>
                 </select>
-                <button class="btn" type="button" onclick="rechercher()">Rechercher</button>
-                <h5>Images :</h5>
-                <div id="results" class="scroll-box">
-                    <p id="rechercheMessage"></p>
-                    <!-- Images ajoutées dynamiquement ici -->
-                </div>
-
-                <h5>Texte :</h5>
-                <div id="clipTextResult" class="scroll-box">
-                    <!-- Les résultats textuels seront insérés ici -->
-                    <p id="rechercheMessageText"></p>
-                </div>
-
-                
             </div>
 
-            <!-- Métriques -->
-            <div class="section">
-                <h2>Métriques</h2>
-                <h4>Images / Images + texte</h4>
-                <p>AP : <span id="apValue">0.0</span></p>
-                <p>mAP : <span id="mapValue">0.0</span></p>
-                <p>RP : <span id="rpValue">0.0</span></p>
-                <!--<button class="btn_rp" onclick="afficherCourbe('rappel')">Courbe Rappel</button>-->
-                <!--<button class="btn_rp" onclick="afficherCourbe('precision')">Courbe Précision</button>-->
-                <div class="graph-container">
-                    <div class="graph-box">
-                        <canvas id="courbeRappel"></canvas>
-                    </div>
-                    <div class="graph-box">
-                        <canvas id="courbePrecision"></canvas>
-                    </div>
-                </div>
-                <div class="graph-download-buttons" style="margin-top: 10px; display: flex; gap: 10px;">
-                    <button class="btn" onclick="telechargerGraphique('courbeRappel', 'courbe_rappel.png')">Télécharger Courbe Rappel</button>
-                    <button class="btn" onclick="telechargerGraphique('courbePrecision', 'courbe_precision.png')">Télécharger Courbe Précision</button>
+            <p id="chargementImagesMessage"></p>
+
+            <div id="sectionImageTexte">
+                <label for="imageSelect">Sélectionnez une image :</label>
+                <select id="imageSelect" name="image_name" class="dropdown" disabled>
+                    <option value="">-- Sélectionnez une image --</option>
+                </select>
+
+                <label>Images disponibles :</label>
+                <div id="imagePreview" type="radio" name="image_name" class="scroll-box">
+                    <!-- Les vignettes seront insérées ici -->
                 </div>
 
-                <h4>Métriques texte</h4>
-                <p>Cosine Similarity : <span id="cosine">0.0</span></p>
-                <h4>Métriques CLIP</h4>
-                <p>Score : <span id="score">0.0</span></p>
+                <h4 for="textQuery">Texte :</h4>
+                <input type="text" id="textQuery" class="input-field" placeholder="Entrez la requête textuelle...">
             </div>
         </div>
 
-            <!-- ProgressBar -->
-            <div class="progress-container" style="display: none;">
-                <label for="progress">Chargement :</label>
-                <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
-                <span id="progressPercent">0%</span>
-            </div>        
-    </div>
-    <script src="{% static 'js/script.js' %}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</body>
+        <!-- Descripteurs -->
+        <div class="section" id="descripteursSection">
+            <h2>Descripteurs</h2>
+            <label><input type="checkbox" name="descripteur" value="BGR"> BGR</label><br>
+            <label><input type="checkbox" name="descripteur" value="HSV"> HSV</label><br>
+            <label><input type="checkbox" name="descripteur" value="SIFT"> SIFT</label><br>
+            <label><input type="checkbox" name="descripteur" value="ORB"> ORB</label><br>
+            <label><input type="checkbox" name="descripteur" value="GLCM"> GLCM</label><br>
+            <label><input type="checkbox" name="descripteur" value="ViT"> ViT</label><br>
+            <label><input type="checkbox" name="descripteur" value="LBP"> LBP</label><br>
+            <label><input type="checkbox" name="descripteur" value="HOG"> HOG</label><br>
+            <button class="btn" onclick="chargerDescripteurs()">Charger les descripteurs</button>
+            <p id="chargementMessage"></p>
+        </div>
 
-</html>
+        <!-- Recherche -->
+        <div class="section">
+            <h2>Recherche</h2>
+
+            <div id="distanceContainer">
+                <label for="distance">Distance :</label>
+                <select id="distance" class="dropdown"></select>
+            </div>
+
+            <label>Type recherche :</label>
+            <div id="searchType">
+                <!-- Les checkboxes seront injectées dynamiquement -->
+            </div>
+
+            <div id="combinationTypeContainer" style="display: none;">
+                <label for="combinationType">Type de combinaison :</label>
+                <select name="combinationType" id="combinationType">
+                    <option value="addition">Addition</option>
+                    <option value="multiplication">Multiplication</option>
+                    <option value="moyenne">Moyenne</option>
+                </select>
+            </div>
+
+            <label for="topResults">Top :</label>
+            <select id="topResults" class="dropdown"></select>
+
+            <button class="btn" type="button" onclick="rechercher()">Rechercher</button>
+
+            <h5>Images :</h5>
+            <div id="results" class="scroll-box">
+                <p id="rechercheMessage"></p>
+            </div>
+
+            <div id="clipTextResult" style="display: none;">
+                <h5>Texte :</h5>
+                <div class="scroll-box">
+                    <p id="rechercheMessageText"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métriques -->
+        <div class="section">
+            <h2>Métriques</h2>
+            <div id="metriquesImageSection">
+            <h4>Images / Images + texte</h4>
+            <p>AP : <span id="apValue">0.0</span></p>
+            <p>mAP : <span id="mapValue">0.0</span></p>
+            <p>RP : <span id="rpValue">0.0</span></p>
+
+            <div class="graph-container">
+                <div class="graph-box">
+                    <canvas id="courbeRappel"></canvas>
+                </div>
+                <div class="graph-box">
+                    <canvas id="courbePrecision"></canvas>
+                </div>
+            </div>
+            
+
+            <div class="graph-download-buttons" style="margin-top: 10px; display: flex; gap: 10px;">
+                <button class="btn" onclick="telechargerGraphique('courbeRappel', 'courbe_rappel.png')">Télécharger Courbe Rappel</button>
+                <button class="btn" onclick="telechargerGraphique('courbePrecision', 'courbe_precision.png')">Télécharger Courbe Précision</button>
+            </div>
+            </div>
+
+            <div id="metriquesTexteSection">
+                <h4>Texte</h4>
+                <p>Cosine Similarity : <span id="cosine">0.0</span></p>
+            </div>
+
+            <div id="metriquesClipSection" style="display: none;">
+                <h4>CLIP</h4>
+                <p>Score : <span id="score">0.0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ProgressBar -->
+    <div class="progress-container" style="display: none;">
+        <label for="progress">Chargement :</label>
+        <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+        <span id="progressPercent">0%</span>
+    </div>
+</div>
+
+<script src="{% static 'js/script.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
