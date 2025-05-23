@@ -28,14 +28,14 @@ class Rechercheur:
         self.sortie = 20  # Nombre de résultats par défaut
 
         # Chargement des index Faiss
-        self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text_test.index"))
-        self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image_test.index"))
+        self.index_text_faiss = faiss.read_index(os.path.join(self.base_path, "index_text_final.index"))
+        self.index_image_faiss = faiss.read_index(os.path.join(self.base_path, "index_image_final.index"))
 
         # Chargement des mappings entre index Faiss et chemins d'images
-        with open(os.path.join(self.base_path, "faiss_image_mapping_test.pkl"), "rb") as f:
+        with open(os.path.join(self.base_path, "faiss_image_mapping_final.pkl"), "rb") as f:
             self.faiss_image_mapping = pickle.load(f)
 
-        with open(os.path.join(self.base_path, "faiss_text_mapping_test.pkl"), "rb") as f:
+        with open(os.path.join(self.base_path, "faiss_text_mapping_final.pkl"), "rb") as f:
             self.faiss_text_mapping = pickle.load(f)
 
         # Dictionnaire pour stocker les descriptions d'images
@@ -102,35 +102,31 @@ class Rechercheur:
         return lvoisins
     
     def fusionner_scores(self, voisins_img, voisins_txt, combination_type="addition"):
-        dict_img = {img: score for _, img, score in voisins_img}
-        dict_txt = {img: score for _, img, score in voisins_txt}
+        dict_img = {nom: score for _, nom, score in voisins_img}
+        dict_txt = {nom: score for _, nom, score in voisins_txt}
 
         all_images = set(dict_img.keys()).union(dict_txt.keys())
         fusion = []
 
-        for img in all_images:
-            score_img = dict_img.get(img, 0.0)
-            score_txt = dict_txt.get(img, 0.0)
+        for nom in all_images:
+            score_img = dict_img.get(nom, 0.0)
+            score_txt = dict_txt.get(nom, 0.0)
 
-            print(f"Image: {img}, Score Image: {score_img}, Score Texte: {score_txt}")
 
             if combination_type == "addition":
                 score_final = score_img + score_txt
-                print(f"Score final (addition): {score_final}")
             elif combination_type == "multiplication":
                 score_final = score_img * score_txt
-                print(f"Score final (multiplication): {score_final}")
             elif combination_type == "moyenne":
                 score_final = (score_img + score_txt) / 2
-                print(f"Score final (moyenne): {score_final}")
             else:
-                score_final = score_img + score_txt  # Fallback to addition
-                print(f"Score final (fallback addition): {score_final}")
+                score_final = score_img + score_txt
 
-            fusion.append((img, os.path.basename(img), score_final))
+            chemin_complet = os.path.join(self.base_path, nom)
+            fusion.append((chemin_complet, nom, score_final))
 
-        print(sorted(fusion, key=lambda x: x[2], reverse=True))
         return sorted(fusion, key=lambda x: x[2], reverse=True)
+
 
 
 
@@ -170,8 +166,6 @@ class Rechercheur:
                 vit_embeddings = pickle.load(f)
 
             req = extractReqFeatures(path, "ViT")
-            for img, emb in vit_embeddings.items():
-                print("emb.shape:", emb.shape)
             sim_image = {
                 img: cosine_similarity(req.reshape(1, -1), emb.reshape(1, -1))[0][0]
                 for img, emb in vit_embeddings.items()
@@ -211,7 +205,10 @@ class Rechercheur:
                 for v in voisins:
                     nom = os.path.basename(v[0])
                     if nom not in images_deja_ajoutees:
-                        voisins_total.append((image_name,nom,1-v[2]))
+                        if distanceName == "Correlation" or distanceName == "Intersection":
+                            voisins_total.append((v[0], nom, v[2]))
+                        else:
+                            voisins_total.append((image_name,nom,1-v[2]))
                         images_deja_ajoutees.add(nom)
                     if len(voisins_total) >= self.sortie:
                         break
@@ -253,7 +250,7 @@ class Rechercheur:
         return voisins_total
     
 
-    def recherche_clip(self, query_text=None, image_path=None, top_k=2, images_deja_ajoutees=None):
+    def recherche_clip(self, query_text=None, image_path=None, top_k=20, images_deja_ajoutees=None):
         if images_deja_ajoutees is None:
             images_deja_ajoutees = set()
 
@@ -288,12 +285,11 @@ class Rechercheur:
                     max_score = max(scores)
                     voisins_total.append((img_path, os.path.basename(img_path), max_score))
                     images_deja_ajoutees.add(img_path)
-            print('ici')
-            print(sorted(voisins_total, key=lambda x: x[2], reverse=True))
             return sorted(voisins_total, key=lambda x: x[2], reverse=True)
 
 
         elif image_path:
+            top_k = int(top_k/5)
             image_path_full = os.path.join(self.base_path, image_path.lstrip("/"))
 
             if not os.path.exists(image_path_full):

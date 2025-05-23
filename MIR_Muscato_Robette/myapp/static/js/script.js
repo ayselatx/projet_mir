@@ -1,3 +1,138 @@
+document.addEventListener("DOMContentLoaded", function () {
+    const datasetSelect = document.getElementById("datasetSelect");
+    const descripteursSection = document.getElementById("descripteursSection");
+    const distanceContainer = document.getElementById("distanceContainer");
+    const metriquesTexteSection = document.getElementById("metriquesTexteSection");
+    const metriquesClipSection = document.getElementById("metriquesClipSection");
+    const searchTypeDiv = document.getElementById("searchType");
+    const clipTextResult = document.getElementById("clipTextResult");
+    const combinationTypeContainer = document.getElementById("combinationTypeContainer");
+
+    function updateInterfaceVisibility() {
+        const selectedDataset = datasetSelect.value;
+        const isClip = selectedDataset === "MIR_DATASETS_CLIP";
+
+        // Descripteurs & distances
+        descripteursSection.style.display = isClip ? 'none' : 'block';
+        distanceContainer.style.display = isClip ? 'none' : 'block';
+
+        // Métriques
+        metriquesClipSection.style.display = isClip ? 'block' : 'none';
+        metriquesTexteSection.style.display = isClip ? 'none' : 'block';
+
+        // Résultats texte
+        clipTextResult.style.display = isClip ? "block" : "none";
+
+        // Mise à jour des checkboxes selon dataset
+        if (isClip) {
+            searchTypeDiv.innerHTML = `
+                <label>
+                    <input type="checkbox" name="searchType" value="clip" class="search-type-checkbox">
+                    CLIP
+                </label>
+            `;
+        } else if (selectedDataset) {
+            searchTypeDiv.innerHTML = `
+                <label>
+                    <input type="checkbox" name="searchType" value="image" class="search-type-checkbox">
+                    Image
+                </label><br>
+                <label>
+                    <input type="checkbox" name="searchType" value="texte" class="search-type-checkbox">
+                    Texte
+                </label>
+            `;
+        } else {
+        // Aucun dataset sélectionné => proposer image + texte + clip
+        searchTypeDiv.innerHTML = `
+            <label>
+                <input type="checkbox" name="searchType" value="image" class="search-type-checkbox">
+                Image
+            </label><br>
+            <label>
+                <input type="checkbox" name="searchType" value="texte" class="search-type-checkbox">
+                Texte
+            </label><br>
+            <label>
+                <input type="checkbox" name="searchType" value="clip" class="search-type-checkbox">
+                CLIP
+            </label>
+        `;
+    }
+
+
+        // Attacher les événements après ajout dynamique
+        attachSearchTypeListeners();
+        updateCombinationTypeVisibility();
+    }
+
+    function attachSearchTypeListeners() {
+        const checkboxes = document.querySelectorAll(".search-type-checkbox");
+        checkboxes.forEach(cb => {
+            cb.addEventListener("change", updateCombinationTypeVisibility);
+        });
+    }
+
+    function updateCombinationTypeVisibility() {
+        const checkboxes = document.querySelectorAll(".search-type-checkbox");
+        const checkedValues = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+
+        const hasImage = checkedValues.includes("image");
+        const hasText = checkedValues.includes("texte");
+        const hasClip = checkedValues.includes("clip");
+
+        // Gestion affichage combinaison métriques
+        const metriquesImageSection = document.getElementById("metriquesImageSection");
+
+        if (hasClip && !hasImage && !hasText) {
+            // CLIP seul
+            metriquesClipSection.style.display = "block";
+            metriquesTexteSection.style.display = "none";
+            metriquesImageSection.style.display = "block";
+
+        } else if (hasText && !hasImage) {
+            // Texte seul
+            metriquesTexteSection.style.display = "block";
+            metriquesClipSection.style.display = "none";
+            metriquesImageSection.style.display = "none";
+
+        } else if (hasImage && !hasText) {
+            // Image seul
+            metriquesImageSection.style.display = "block";
+            metriquesTexteSection.style.display = "none";
+            metriquesClipSection.style.display = "none";
+
+        } else if (hasImage && hasText) {
+            // Image + Texte
+            metriquesImageSection.style.display = "block";
+            metriquesTexteSection.style.display = "none";
+            metriquesClipSection.style.display = "none";
+
+        } else {
+            // Aucun ou autre combinaison
+            metriquesImageSection.style.display = "none";
+            metriquesTexteSection.style.display = "none";
+            metriquesClipSection.style.display = "none";
+        }
+
+        // Affichage du combo seulement si Image + Texte coché
+        if (hasImage && hasText) {
+            combinationTypeContainer.style.display = "block";
+        } else {
+            combinationTypeContainer.style.display = "none";
+        }
+    }
+
+
+    // Initial setup
+    datasetSelect.addEventListener("change", updateInterfaceVisibility);
+    updateInterfaceVisibility(); // Au chargement
+});
+
+
+
 
 document.getElementById('animalSelect').addEventListener('change', function () {
     const animal = this.value;
@@ -110,7 +245,7 @@ function updateImagePreview() {
 
 
 // Fonction pour appeler la vue 'affiche_top' via AJAX
-function getTopOptions(selectedImage,textQuery) {
+function getTopOptions(selectedImage, textQuery) {
     // Récupère l'image sélectionnée
     let fileName = "";
 
@@ -119,8 +254,13 @@ function getTopOptions(selectedImage,textQuery) {
         const fullPath = selectedImage.value;
         //fileName = fullPath.split('/').slice(-3).join('/');  // Extraire le chemin relatif
         fileName = fullPath.split('\\').pop();  // Récupère uniquement le nom du fichier
-        splitName = fileName.split('_');
-        fileName = splitName[2]+'/'+splitName[3]+'/'+fileName
+        const splitName = fileName.split('_');
+        if (splitName.length >= 4) {
+            fileName = `${splitName[2]}/${splitName[3]}/${fileName}`;
+        } else {
+            console.error("Nom de fichier :", fileName);
+        }
+
 
     }
 
