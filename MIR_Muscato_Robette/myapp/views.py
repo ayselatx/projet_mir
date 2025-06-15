@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import logout
 import pandas as pd
+import time
 
 def login_view(request):
     if request.method == 'POST':
@@ -348,6 +349,7 @@ def charger_descripteurs(request):
 
 
 def recherche_images(request):
+    start_time = time.time()
     if request.method == "POST":
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
@@ -393,6 +395,8 @@ def recherche_images(request):
                 formatted_paths = [
                         "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
                     ]
+                end_time = time.time()
+                print(f"Temps de recherche (recherche_image) : {end_time - start_time:.3f} secondes")
                 return JsonResponse({
                     "images": formatted_paths,
                     "cosine": round(cosine_moyenne, 4),
@@ -447,7 +451,8 @@ def recherche_images(request):
                         "/media/MIR_DATASETS_B/" + nom.split("_")[2] + '/' + nom.split("_")[3] + '/' + nom.replace("\\", "/") for nom in noms_resultats
                     ]
 
-
+                end_time = time.time()
+                print(f"Temps de recherche (recherche_image) : {end_time - start_time:.3f} secondes")
                 return JsonResponse({
                     "images": formatted_paths,
                     "ap": metriques["ap"],
@@ -491,6 +496,8 @@ def recherche_images(request):
                 metriques = calculer_metriques(rappels, precisions, pertinents_recup, len(resultats))
 
                 formatted_results = [{"description": desc, "score": round(score, 4)} for (_, desc, score) in resultats]
+                end_time = time.time()
+                print(f"Temps de recherche (recherche_image) : {end_time - start_time:.3f} secondes")
                 return JsonResponse({
                     "descriptions": formatted_results,
                     "ap": metriques["ap"],
@@ -532,6 +539,8 @@ def recherche_images(request):
                 print(f'Nombre d\'images pertinentes : {nb_pertinents}')
                 print(f"Vérité terrain : {ground_truth_set}")
                 formatted_paths = ["/media/MIR_DATASETS_CLIP/" + nom for nom in image_names_retournees]
+                end_time = time.time()
+                print(f"Temps de recherche (recherche_image) : {end_time - start_time:.3f} secondes")
                 return JsonResponse({
                     "images": formatted_paths,
                     "ap": metriques["ap"],
@@ -543,9 +552,8 @@ def recherche_images(request):
                 })
 
             else:
+                end_time = time.time()
+                print(f"Temps de recherche (recherche_image) : {end_time - start_time:.3f} secondes")
                 return JsonResponse({"error": "Requête clip mal formée"}, status=400)
-
-
-
 
     return JsonResponse({"error": "Méthode non autorisée"}, status=405)
