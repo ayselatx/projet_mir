@@ -178,7 +178,8 @@ def on_top_changed(request):
 def affiche_top(request):
     file_name = request.GET.get('fileName', '')
     text_query = request.GET.get('textQuery', '')
-    if 'undefined/undefined/' in file_name:
+    # if 'undefined/undefined/' in file_name:
+    if file_name:
         options = ["Top 20", "Top 50", "Top 100"]
         return JsonResponse({'options': options})
 
@@ -351,6 +352,7 @@ def charger_descripteurs(request):
 def recherche_images(request):
     start_time = time.time()
     if request.method == "POST":
+        print("i am here", request.POST.get("image_name"))
         image_name = request.POST.get("image_name")
         text_query = request.POST.get("text_query", "").strip()
         search_type = request.POST.get("searchType", "").strip()
@@ -358,6 +360,7 @@ def recherche_images(request):
         distance_type = request.POST.get("distance", "").strip()
         top_results_str = request.POST.get("topResults", "20")
         top_results = int(top_results_str.split()[-1])  # garde "50" dans "Top 50"
+        print("i am here", request.POST.get("topResults", "20"))
         descripteurs = request.POST.get('descripteurs')
         if descripteurs:
             descripteurs_list = descripteurs.split(',')

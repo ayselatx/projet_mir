@@ -10,7 +10,7 @@ from skimage.feature import local_binary_pattern
 import torch
 from torchvision import models, transforms
 from PIL import Image
-#from skimage.feature import greycomatrix, greycoprops
+from skimage.feature import greycomatrix, greycoprops
 def extractReqFeatures(fileName,algo_choice):  
     if fileName : 
         img = cv2.imread(fileName)

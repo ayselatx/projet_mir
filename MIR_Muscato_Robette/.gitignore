@@ -1,4 +1,5 @@
 media/
+flickr30k/
 __pycache__/
 *.pyc
 myapp/features.pkl

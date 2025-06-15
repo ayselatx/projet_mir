@@ -245,7 +245,7 @@ function updateImagePreview() {
 
 
 // Fonction pour appeler la vue 'affiche_top' via AJAX
-function getTopOptions(selectedImage,textQuery) {
+function getTopOptions(selectedImage, textQuery) {
     // Récupère l'image sélectionnée
     let fileName = "";
 
@@ -254,8 +254,13 @@ function getTopOptions(selectedImage,textQuery) {
         const fullPath = selectedImage.value;
         //fileName = fullPath.split('/').slice(-3).join('/');  // Extraire le chemin relatif
         fileName = fullPath.split('\\').pop();  // Récupère uniquement le nom du fichier
-        splitName = fileName.split('_');
-        fileName = splitName[2]+'/'+splitName[3]+'/'+fileName
+        const splitName = fileName.split('_');
+        if (splitName.length >= 4) {
+            fileName = `${splitName[2]}/${splitName[3]}/${fileName}`;
+        } else {
+            console.error("Nom de fichier :", fileName);
+        }
+
 
     }
 
