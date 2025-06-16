@@ -222,6 +222,10 @@ def affiche_top(request):
 
         options.append(f"Top {nb_images_pertinentes}")
 
+        if nb_images_pertinentes == 0:
+            options = ["Top 20", "Top 50", "Top 100"]
+
+
     return JsonResponse({'options': options})
 
 
