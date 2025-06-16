@@ -182,48 +182,46 @@ def affiche_top(request):
         options = ["Top 20", "Top 50", "Top 100"]
         # return JsonResponse({'options': options})
 
-    # options = []
+    if 'CLIP' not in file_name :
+        options = []
 
-    if text_query and not file_name : 
-        options = ["Top 20", "Top 50", "Top 100"]
-
-    elif (file_name or (file_name and text_query)) and ('undefined' not in file_name):
-        filename_req = os.path.basename(file_name)  # Récupère juste le nom du fichier
-
-        try:
-            classe_image_requete = filename_req.split("_")[3]
-        except IndexError:
-            return JsonResponse({'error': f"Impossible d'extraire une classe depuis le nom {filename_req}"}, status=400)
-
-        dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
-        nb_images_pertinentes = 0
-        if not os.path.exists(dossier_racine):
-            return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
-
-        for dossier_principal in os.listdir(dossier_racine):
-            chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
-            if os.path.isdir(chemin_dossier_principal):
-                for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
-                    # Vérifiez si le dossier animal correspond à la classe
-                    if dossier_animal == classe_image_requete:
-                        chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
-                        nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
-                                                     if os.path.isfile(os.path.join(chemin_dossier_race, f))])
-                        break
-
-        print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
-        
-        if nb_images_pertinentes >= 20:
-            options.append("Top 20")
-        if nb_images_pertinentes >= 50:
-            options.append("Top 50")
-        if nb_images_pertinentes >= 100:
-            options.append("Top 100")
-
-        options.append(f"Top {nb_images_pertinentes}")
-
-        if nb_images_pertinentes == 0:
+        if text_query and not file_name : 
             options = ["Top 20", "Top 50", "Top 100"]
+
+        elif file_name or (file_name and text_query):
+            filename_req = os.path.basename(file_name)  # Récupère juste le nom du fichier
+
+            try:
+                classe_image_requete = filename_req.split("_")[3]
+            except IndexError:
+                return JsonResponse({'error': f"Impossible d'extraire une classe depuis le nom {filename_req}"}, status=400)
+
+            dossier_racine = os.path.join(settings.MEDIA_ROOT, 'MIR_DATASETS_B')  # Utilise MEDIA_ROOT
+            nb_images_pertinentes = 0
+            if not os.path.exists(dossier_racine):
+                return JsonResponse({'error': f"Le dossier {dossier_racine} n'existe pas."}, status=400)
+
+            for dossier_principal in os.listdir(dossier_racine):
+                chemin_dossier_principal = os.path.join(dossier_racine, dossier_principal)  # Crée le chemin complet pour le dossier principal
+                if os.path.isdir(chemin_dossier_principal):
+                    for dossier_animal in os.listdir(chemin_dossier_principal):  # Liste les dossiers dans chaque dossier principal
+                        # Vérifiez si le dossier animal correspond à la classe
+                        if dossier_animal == classe_image_requete:
+                            chemin_dossier_race = os.path.join(chemin_dossier_principal, dossier_animal)  # Combine correctement les chemins
+                            nb_images_pertinentes = len([f for f in os.listdir(chemin_dossier_race)
+                                                        if os.path.isfile(os.path.join(chemin_dossier_race, f))])
+                            break
+
+            print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
+            
+            if nb_images_pertinentes >= 20:
+                options.append("Top 20")
+            if nb_images_pertinentes >= 50:
+                options.append("Top 50")
+            if nb_images_pertinentes >= 100:
+                options.append("Top 100")
+
+            options.append(f"Top {nb_images_pertinentes}")
 
 
     return JsonResponse({'options': options})
