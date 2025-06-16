@@ -180,7 +180,7 @@ def affiche_top(request):
     # if 'undefined/undefined/' in file_name:
     if file_name:
         options = ["Top 20", "Top 50", "Top 100"]
-        return JsonResponse({'options': options})
+        # return JsonResponse({'options': options})
 
     options = []
 
