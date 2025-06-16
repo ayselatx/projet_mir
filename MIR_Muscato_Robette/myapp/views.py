@@ -187,7 +187,7 @@ def affiche_top(request):
     if text_query and not file_name : 
         options = ["Top 20", "Top 50", "Top 100"]
 
-    elif file_name or (file_name and text_query) and 'undefined/undefined/' not in file_name:
+    elif (file_name or (file_name and text_query)) and ('undefined' not in file_name):
         filename_req = os.path.basename(file_name)  # Récupère juste le nom du fichier
 
         try:
