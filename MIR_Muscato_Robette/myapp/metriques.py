@@ -1,13 +1,13 @@
 # myapp/metriques.py
 
-def average_precision(rappels, precisions):
-    somme = sum(precisions)
-    print("Somme des précisions:", somme)
-    if somme == 0:
+def average_precision(rappels, precisions, pertinents_recup):
+    precisions_pertinentes = [
+        precisions[i] for i, val in enumerate(pertinents_recup) if val == 1
+    ]
+    if not precisions_pertinentes:
         return 0.0
-    else:
-        ap = somme / len(precisions)
-    return ap
+    return sum(precisions_pertinentes) / len(precisions_pertinentes)
+
 
 def mean_average_precision(liste_AP):
     if not liste_AP:
@@ -20,7 +20,7 @@ def r_precision(liste_pertinentes_recuperees, R):
     return nb_pertinents_dans_top_R / R if R != 0 else 0.0
 
 def calculer_metriques(rappels, precisions, pertinents_recup, R):
-    ap = average_precision(rappels, precisions)
+    ap = average_precision(rappels, precisions, pertinents_recup)
     map_value = mean_average_precision([ap])
     rp = r_precision(pertinents_recup, R)
     return {
@@ -28,4 +28,3 @@ def calculer_metriques(rappels, precisions, pertinents_recup, R):
         "map": round(map_value, 4),
         "rp": round(rp, 4)
     }
-
