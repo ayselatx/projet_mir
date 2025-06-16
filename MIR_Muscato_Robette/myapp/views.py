@@ -182,7 +182,7 @@ def affiche_top(request):
         options = ["Top 20", "Top 50", "Top 100"]
         # return JsonResponse({'options': options})
 
-    options = []
+    # options = []
 
     if text_query and not file_name : 
         options = ["Top 20", "Top 50", "Top 100"]
@@ -213,17 +213,15 @@ def affiche_top(request):
 
         print(f'Nombre d\'images pertinentes : {nb_images_pertinentes}')
         
-        if nb_images_pertinentes >= 20:
-            options.append("Top 20")
-        if nb_images_pertinentes >= 50:
-            options.append("Top 50")
-        if nb_images_pertinentes >= 100:
-            options.append("Top 100")
+        if nb_images_pertinentes < 20:
+            options.remove("Top 20")
+        if nb_images_pertinentes < 50:
+            options.remove("Top 50")
+        if nb_images_pertinentes < 100:
+            options.remove("Top 100")
 
-        options.append(f"Top {nb_images_pertinentes}")
-
-        if nb_images_pertinentes == 0:
-            options = ["Top 20", "Top 50", "Top 100"]
+        if nb_images_pertinentes > 0:
+            options.append(f"Top {nb_images_pertinentes}")
 
 
     return JsonResponse({'options': options})
