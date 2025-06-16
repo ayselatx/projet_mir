@@ -254,7 +254,9 @@ function getTopOptions(selectedImage, textQuery) {
         const fullPath = selectedImage.value;
         //fileName = fullPath.split('/').slice(-3).join('/');  // Extraire le chemin relatif
         fileName = fullPath.split('\\').pop();  // Récupère uniquement le nom du fichier
+        console.error("Nom de fichier :", fileName);
         const splitName = fileName.split('_');
+        console.error("Nom de fichier :", splitName);
         if (splitName.length >= 4) {
             fileName = `${splitName[2]}/${splitName[3]}/${fileName}`;
         } else {
